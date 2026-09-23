@@ -158,7 +158,7 @@ export default function ZikirSchedulePage({ role }) {
                       <p className="flex items-center gap-2 font-medium text-slate-200 text-sm">
                         Zikir {s.session_type === "pagi" ? "Pagi" : "Petang"}
                         <span className="font-mono text-slate-500 text-xs">
-                          {timeLabel(s.time_start)} WITA
+                          {timeLabel(s.time_start)} WIB
                         </span>
                       </p>
                       <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-slate-500 text-xs">

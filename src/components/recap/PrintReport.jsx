@@ -56,6 +56,27 @@ export default function PrintReport({
   const period = `${fmtDate(range[0])} s.d. ${fmtDate(range[1])}`;
   const printedAt = fmtDateTime(new Date());
 
+  // ---------- Agregasi ----------
+  // Rekap per santri: total poin & jumlah pelanggaran per orang
+  const perSantri = new Map();
+  for (const v of real) {
+    const key = v.santri_id;
+    const cur = perSantri.get(key) ?? {
+      nama: v.santri?.full_name ?? "—",
+      kelas: v.santri?.class_name ?? "—",
+      total: 0,
+      poin: 0,
+    };
+    cur.total += 1;
+    cur.poin += v.rule?.points ?? 0;
+    perSantri.set(key, cur);
+  }
+  const santriRows = [...perSantri.values()].sort(
+    (a, b) =>
+      b.poin - a.poin || b.total - a.total || a.nama.localeCompare(b.nama),
+  );
+
+  // Rekap per kelas
   const perClass = new Map();
   for (const v of real) {
     const k = v.santri?.class_name ?? "—";
@@ -67,9 +88,14 @@ export default function PrintReport({
   const classRows = [...perClass.entries()].sort(
     (a, b) => b[1].poin - a[1].poin,
   );
+
   const ruleRows = byRule(real);
   const detail = real.slice(0, 200);
   const reportRows = (reports ?? []).slice(0, 100);
+
+  // Penomoran section dinamis (menyesuaikan ada/tidaknya rekap per kelas)
+  let sec = 0;
+  const next = () => String.fromCharCode(65 + sec++); // A, B, C, ...
 
   return (
     <div className="bg-white mx-auto w-full font-sans text-slate-900 print-doc">
@@ -103,14 +129,14 @@ export default function PrintReport({
       </p>
 
       {/* A. Ringkasan */}
-      <Section no="A" title="Ringkasan">
+      <Section no={next()} title="Ringkasan">
         <div className="gap-2 grid grid-cols-3">
           <SummaryCell label="Jumlah Pelanggaran" value={fmtNum(real.length)} />
           <SummaryCell label="Total Poin" value={fmtNum(sumPoints(real))} />
           {isOsis && (
             <SummaryCell
               label="Santri Terlibat"
-              value={fmtNum(new Set(real.map((v) => v.santri_id)).size)}
+              value={fmtNum(santriRows.length)}
             />
           )}
           <SummaryCell
@@ -136,9 +162,49 @@ export default function PrintReport({
         </p>
       </Section>
 
-      {/* B. Rekap per kelas (khusus OSIS) */}
+      {/* B. Rekap per Santri — total poin per orang */}
+      <Section no={next()} title="Rekap per Santri">
+        {santriRows.length === 0 ? (
+          <p className="text-[11px] text-slate-500 italic">
+            Tidak ada data pada periode ini.
+          </p>
+        ) : (
+          <table className="w-full border-collapse">
+            <thead>
+              <tr>
+                <th className={`${TH} w-10`}>No</th>
+                <th className={TH}>Nama</th>
+                <th className={TH}>Kelas</th>
+                <th className={TH}>Jumlah Pelanggaran</th>
+                <th className={TH}>Total Poin</th>
+              </tr>
+            </thead>
+            <tbody>
+              {santriRows.map((s, i) => (
+                <tr key={`${s.nama}-${i}`}>
+                  <td className={TD}>{i + 1}</td>
+                  <td className={`${TD} font-medium`}>{s.nama}</td>
+                  <td className={TD}>{s.kelas}</td>
+                  <td className={TD}>{fmtNum(s.total)}</td>
+                  <td className={`${TD} font-bold`}>{fmtNum(s.poin)}</td>
+                </tr>
+              ))}
+              {/* Baris jumlah total */}
+              <tr>
+                <td className={`${TD} font-bold`} colSpan={3}>
+                  Jumlah
+                </td>
+                <td className={`${TD} font-bold`}>{fmtNum(real.length)}</td>
+                <td className={`${TD} font-bold`}>{fmtNum(sumPoints(real))}</td>
+              </tr>
+            </tbody>
+          </table>
+        )}
+      </Section>
+
+      {/* C. Rekap per Kelas (khusus OSIS) */}
       {isOsis && classRows.length > 0 && (
-        <Section no="B" title="Rekap per Kelas">
+        <Section no={next()} title="Rekap per Kelas">
           <table className="w-full border-collapse">
             <thead>
               <tr>
@@ -162,8 +228,8 @@ export default function PrintReport({
         </Section>
       )}
 
-      {/* C. Rekap per aturan */}
-      <Section no={isOsis ? "C" : "B"} title="Rekap per Aturan">
+      {/* D. Rekap per Aturan */}
+      <Section no={next()} title="Rekap per Aturan">
         {ruleRows.length === 0 ? (
           <p className="text-[11px] text-slate-500 italic">
             Tidak ada data pada periode ini.
@@ -196,8 +262,8 @@ export default function PrintReport({
         )}
       </Section>
 
-      {/* D. Detail pelanggaran */}
-      <Section no={isOsis ? "D" : "C"} title="Detail Pelanggaran">
+      {/* E. Detail pelanggaran */}
+      <Section no={next()} title="Detail Pelanggaran">
         {detail.length === 0 ? (
           <p className="text-[11px] text-slate-500 italic">
             Tidak ada data pada periode ini.
@@ -230,6 +296,12 @@ export default function PrintReport({
                     <td className={TD}>{v.santri?.class_name}</td>
                     <td className={TD}>{v.rule?.name}</td>
                     <td className={`${TD} font-semibold`}>+{v.rule?.points}</td>
+                    <td className={TD}>
+                      {VIOLATION_STATUS_LABELS[v.status] ?? v.status}
+                    </td>
+                    <td className={`${TD} text-[10px] text-slate-600`}>
+                      {v.note || "—"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -244,8 +316,8 @@ export default function PrintReport({
         )}
       </Section>
 
-      {/* E. Klarifikasi */}
-      <Section no={isOsis ? "E" : "D"} title="Klarifikasi Santri">
+      {/* F. Klarifikasi */}
+      <Section no={next()} title="Klarifikasi Santri">
         {reportRows.length === 0 ? (
           <p className="text-[11px] text-slate-500 italic">
             Tidak ada klarifikasi pada periode ini.
