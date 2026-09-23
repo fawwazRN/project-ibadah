@@ -43,6 +43,9 @@ export default function PrintReport({
   reports,
   isOsis,
 }) {
+  // Pengaman ganda: yang dibatalkan (klarifikasi diterima) tidak dicetak.
+  const real = (violations ?? []).filter((v) => v.status !== "revoked");
+
   const TITLES = {
     today: "REKAP HARIAN",
     week: "REKAP MINGGUAN",
@@ -54,7 +57,7 @@ export default function PrintReport({
   const printedAt = fmtDateTime(new Date());
 
   const perClass = new Map();
-  for (const v of violations) {
+  for (const v of real) {
     const k = v.santri?.class_name ?? "—";
     const cur = perClass.get(k) ?? { total: 0, poin: 0 };
     cur.total += 1;
@@ -64,9 +67,9 @@ export default function PrintReport({
   const classRows = [...perClass.entries()].sort(
     (a, b) => b[1].poin - a[1].poin,
   );
-  const ruleRows = byRule(violations);
-  const detail = violations.slice(0, 200);
-  const reportRows = reports.slice(0, 100);
+  const ruleRows = byRule(real);
+  const detail = real.slice(0, 200);
+  const reportRows = (reports ?? []).slice(0, 100);
 
   return (
     <div className="bg-white mx-auto w-full font-sans text-slate-900 print-doc">
@@ -102,18 +105,12 @@ export default function PrintReport({
       {/* A. Ringkasan */}
       <Section no="A" title="Ringkasan">
         <div className="gap-2 grid grid-cols-3">
-          <SummaryCell
-            label="Jumlah Pelanggaran"
-            value={fmtNum(violations.length)}
-          />
-          <SummaryCell
-            label="Total Poin"
-            value={fmtNum(sumPoints(violations))}
-          />
+          <SummaryCell label="Jumlah Pelanggaran" value={fmtNum(real.length)} />
+          <SummaryCell label="Total Poin" value={fmtNum(sumPoints(real))} />
           {isOsis && (
             <SummaryCell
               label="Santri Terlibat"
-              value={fmtNum(new Set(violations.map((v) => v.santri_id)).size)}
+              value={fmtNum(new Set(real.map((v) => v.santri_id)).size)}
             />
           )}
           <SummaryCell
@@ -133,6 +130,10 @@ export default function PrintReport({
             )}
           />
         </div>
+        <p className="mt-2 text-[9px] text-slate-500 italic">
+          Catatan: pelanggaran yang telah dibatalkan (klarifikasi santri
+          diterima) tidak dicantumkan dalam laporan ini.
+        </p>
       </Section>
 
       {/* B. Rekap per kelas (khusus OSIS) */}
@@ -229,19 +230,13 @@ export default function PrintReport({
                     <td className={TD}>{v.santri?.class_name}</td>
                     <td className={TD}>{v.rule?.name}</td>
                     <td className={`${TD} font-semibold`}>+{v.rule?.points}</td>
-                    <td className={TD}>
-                      {VIOLATION_STATUS_LABELS[v.status] ?? v.status}
-                    </td>
-                    <td className={`${TD} text-[10px] text-slate-600`}>
-                      {v.note || "—"}
-                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {violations.length > 200 && (
+            {real.length > 200 && (
               <p className="mt-1 text-[9.5px] text-slate-500 italic">
-                Menampilkan 200 dari {violations.length} catatan. Sisanya dapat
+                Menampilkan 200 dari {real.length} catatan. Sisanya dapat
                 dilihat pada aplikasi.
               </p>
             )}

@@ -25,7 +25,7 @@ import { rangeForPreset, inRange, fmtDate } from "../../lib/date";
 
 const PRESETS = [
   { key: "today", label: "Hari ini" },
-  { key: "week", label: "Minggu ini (Jumat - Kamis)" },
+  { key: "week", label: "Pekan ini (Jumat–Kamis)" },
   { key: "month", label: "Bulan ini" },
   { key: "custom", label: "Rentang kustom" },
 ];
@@ -77,10 +77,13 @@ export default function RecapPage({ role }) {
     [preset, custom],
   );
 
+  // PENTING: pelanggaran berstatus 'revoked' (klarifikasi diterima / dibatalkan
+  // admin) TIDAK dihitung sama sekali dalam rekap — angka, grafik, tabel, print.
   const fv = useMemo(
     () =>
       (violations ?? []).filter(
         (v) =>
+          v.status !== "revoked" &&
           inRange(v.occurred_at, range) &&
           (!fRule || v.rule_id === fRule) &&
           (!fClass || v.santri?.class_name === fClass) &&
@@ -126,7 +129,7 @@ export default function RecapPage({ role }) {
     <div className="space-y-5 animate-fade-up">
       <PageHeader
         title="Rekap"
-        description={`Ringkasan periode ${rangeLabel}${preset === "week" ? " · pekan Jumat-Kamis" : ""}.`}
+        description={`Ringkasan periode ${rangeLabel}${preset === "week" ? " · pekan Jumat–Kamis" : ""}. Pelanggaran yang dibatalkan (klarifikasi diterima) tidak dihitung.`}
         actions={
           <>
             <Button
@@ -254,7 +257,10 @@ export default function RecapPage({ role }) {
 
       <div className="gap-4 grid lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardHeader title="Pelanggaran per hari" description={rangeLabel} />
+          <CardHeader
+            title="Pelanggaran per hari"
+            description={`${rangeLabel} · tidak termasuk yang dibatalkan`}
+          />
           <div className="p-4">
             {series.every((s) => s.total === 0) ? (
               <EmptyState

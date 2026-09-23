@@ -65,17 +65,19 @@ export default function IbadahDashboard() {
   if (!data) return <LoadingState rows={8} />;
 
   const { v: violations, r: reports, s: santri, a: audit } = data;
-  const since = (d) =>
-    violations.filter((x) => new Date(x.occurred_at) >= d).length;
+
+  // Yang dibatalkan (klarifikasi diterima) tidak dihitung sebagai pelanggaran.
+  const real = violations.filter((x) => x.status !== "revoked");
+  const since = (d) => real.filter((x) => new Date(x.occurred_at) >= d).length;
   const topRule = byRule(
-    violations.filter((x) => new Date(x.occurred_at) >= startOfMonth()),
+    real.filter((x) => new Date(x.occurred_at) >= startOfMonth()),
   )[0];
 
   return (
     <div className="space-y-5 animate-fade-up">
       <PageHeader
         title="Dashboard Admin"
-        description="Pantauan menyeluruh aktivitas Qism Ibadah."
+        description="Pantauan menyeluruh aktivitas Qism Ibadah. Pelanggaran yang dibatalkan tidak dihitung."
       />
 
       <div className="gap-4 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -144,10 +146,10 @@ export default function IbadahDashboard() {
         <Card>
           <CardHeader
             title="Pelanggaran per hari"
-            description="14 hari terakhir"
+            description="14 hari terakhir · tidak termasuk yang dibatalkan"
           />
           <div className="p-4">
-            <AreaPerDay data={seriesPerDay(violations, 14)} />
+            <AreaPerDay data={seriesPerDay(real, 14)} />
           </div>
         </Card>
         <Card>
@@ -156,10 +158,10 @@ export default function IbadahDashboard() {
             description="6 aturan teratas — periode 200 hari"
           />
           <div className="p-4">
-            {byRule(violations).length === 0 ? (
+            {byRule(real).length === 0 ? (
               <EmptyState title="Belum ada data" />
             ) : (
-              <BarsByRule data={byRule(violations).slice(0, 6)} />
+              <BarsByRule data={byRule(real).slice(0, 6)} />
             )}
           </div>
         </Card>
@@ -169,13 +171,13 @@ export default function IbadahDashboard() {
             description="8 pekan terakhir · Jumat–Kamis"
           />
           <div className="p-4">
-            <BarsWeekly data={seriesPerWeek(violations, 8)} />
+            <BarsWeekly data={seriesPerWeek(real, 8)} />
           </div>
         </Card>
         <Card>
           <CardHeader title="Tren bulanan" description="6 bulan terakhir" />
           <div className="p-4">
-            <LineMonthly data={seriesPerMonth(violations, 6)} />
+            <LineMonthly data={seriesPerMonth(real, 6)} />
           </div>
         </Card>
       </div>
