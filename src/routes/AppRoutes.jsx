@@ -8,6 +8,7 @@ import ClaimPage from "../pages/auth/ClaimPage";
 import SantriDashboard from "../pages/santri/SantriDashboard";
 import SantriViolations from "../pages/santri/SantriViolations";
 import SantriReports from "../pages/santri/SantriReports";
+import ZikirSchedulePage from "../pages/shared/ZikirSchedulePage";
 import IbadahDashboard from "../pages/ibadah/IbadahDashboard";
 import SantriManagement from "../pages/ibadah/SantriManagement";
 import ViolationsManagement from "../pages/ibadah/ViolationsManagement";
@@ -73,13 +74,21 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/auth/login" element={<LoginPage />} />
+
+      {/* Pilih kelas & nama — untuk sesi yang belum terhubung profil */}
       <Route element={<ClaimGate />}>
         <Route path="/claim" element={<ClaimPage />} />
       </Route>
+
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
+          {/* ---------------- SANTRI ---------------- */}
           <Route element={<RoleRoute role="santri" />}>
             <Route path="/santri" element={<SantriDashboard />} />
+            <Route
+              path="/santri/zikir"
+              element={<ZikirSchedulePage role="santri" />}
+            />
             <Route path="/santri/violations" element={<SantriViolations />} />
             <Route path="/santri/reports" element={<SantriReports />} />
             <Route
@@ -96,6 +105,8 @@ export default function AppRoutes() {
               element={<ProfilePage role="santri" />}
             />
           </Route>
+
+          {/* ---------------- OSIS IBADAH (ADMIN) ---------------- */}
           <Route element={<RoleRoute role="osis_ibadah" />}>
             <Route path="/ibadah" element={<IbadahDashboard />} />
             <Route path="/ibadah/santri" element={<SantriManagement />} />
@@ -105,6 +116,10 @@ export default function AppRoutes() {
             />
             <Route path="/ibadah/reports" element={<ReportsReview />} />
             <Route path="/ibadah/rules" element={<RulesManagement />} />
+            <Route
+              path="/ibadah/zikir"
+              element={<ZikirSchedulePage role="osis_ibadah" />}
+            />
             <Route path="/ibadah/admins" element={<AdminManagement />} />
             <Route
               path="/ibadah/leaderboard"
@@ -126,6 +141,7 @@ export default function AppRoutes() {
           </Route>
         </Route>
       </Route>
+
       <Route path="/" element={<RootRedirect />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

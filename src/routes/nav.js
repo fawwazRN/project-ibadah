@@ -9,6 +9,7 @@ import {
   FileBarChart,
   History,
   UserRound,
+  CalendarClock,
 } from "lucide-react";
 
 export const NAV = {
@@ -17,6 +18,7 @@ export const NAV = {
       section: "Menu",
       items: [
         { to: "/santri", label: "Dashboard", icon: LayoutDashboard, end: true },
+        { to: "/santri/zikir", label: "Jadwal Zikir", icon: CalendarClock },
         { to: "/santri/violations", label: "Pelanggaran Saya", icon: Flag },
         {
           to: "/santri/reports",
@@ -43,6 +45,7 @@ export const NAV = {
         { to: "/ibadah/violations", label: "Pelanggaran", icon: Flag },
         { to: "/ibadah/reports", label: "Laporan", icon: MessageSquareWarning },
         { to: "/ibadah/rules", label: "Aturan Poin", icon: Scale },
+        { to: "/ibadah/zikir", label: "Jadwal Zikir", icon: CalendarClock },
         { to: "/ibadah/admins", label: "Admin", icon: ShieldCheck },
       ],
     },
