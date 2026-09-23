@@ -169,15 +169,13 @@ export default function ZikirSchedulePage({ role }) {
                         )}
                         <span className="inline-flex items-center gap-1">
                           <User size={11} />
-                          {s.leader?.full_name ? (
+                          {s.leader_name ? (
                             <>
                               Imam:{" "}
                               <span className="font-medium text-slate-300">
-                                {s.leader.full_name}
+                                {s.leader_name}
                               </span>
-                              {s.leader.class_name
-                                ? ` (${s.leader.class_name})`
-                                : ""}
+                              {s.leader_class ? ` (${s.leader_class})` : ""}
                             </>
                           ) : (
                             "Imam belum ditentukan"

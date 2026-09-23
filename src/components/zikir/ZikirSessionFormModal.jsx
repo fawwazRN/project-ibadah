@@ -59,7 +59,7 @@ export function ZikirSessionFormModal({ open, onClose, onSaved, session }) {
         note: session.note ?? "",
         repeat_weeks: 1,
       });
-      setLeaderQuery(session.leader?.full_name ?? "");
+      setLeaderQuery(session.leader_name ?? "");
     } else {
       setForm({
         session_date: localToday(),

@@ -1,23 +1,17 @@
 import { supabase } from "../lib/supabaseClient";
 
-const SELECT = `*, leader:profiles!zikir_sessions_leader_id_fkey(id, full_name, class_name)`;
-
 export const zikirService = {
-  // Semua user terautentikasi bisa melihat (RLS: select true).
+  // Via RPC security definer — imam (nama & kelas) selalu ikut,
+  // tidak tersaring RLS profiles saat dibaca oleh santri.
   async list({ from } = {}) {
-    let q = supabase
-      .from("zikir_sessions")
-      .select(SELECT)
-      .order("session_date")
-      .order("time_start");
-    if (from) q = q.gte("session_date", from);
-    const { data, error } = await q;
+    const { data, error } = await supabase.rpc("list_zikir_sessions", {
+      p_from: from ?? null,
+    });
     if (error) throw error;
-    return data;
+    return data ?? [];
   },
 
-  // repeat_weeks: generate jadwal yang sama untuk N pekan ke depan
-  // (tanggal bergeser +7 hari tiap pekan). Duplikat dilewati otomatis.
+  // repeat_weeks: buat jadwal yang sama untuk N pekan ke depan
   async create({
     session_date,
     session_type,
