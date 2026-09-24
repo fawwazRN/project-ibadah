@@ -4,7 +4,7 @@ import { Card, CardHeader } from "../../components/ui/Card";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
-import { Field, Input } from "../../components/ui/Field";
+import { Field, Input, Select } from "../../components/ui/Field";
 import { TableWrap, Table, Th, Td, Tr } from "../../components/ui/Table";
 import {
   EmptyState,
@@ -15,6 +15,18 @@ import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../hooks/useToast";
 import { useConfirm } from "../../context/ConfirmContext";
 import { profileService } from "../../services/profileService";
+import { supabase } from "../../lib/supabaseClient";
+
+const ADMIN_ROLES = [
+  { value: "qism_ibadah", label: "Qism Ibadah" },
+  { value: "qism_riyadhah", label: "Qism Riyadhah" },
+  { value: "super_admin", label: "Super Admin" },
+];
+const ROLE_TONES = {
+  qism_ibadah: "emerald",
+  qism_riyadhah: "sky",
+  super_admin: "violet",
+};
 
 export default function AdminManagement() {
   const { profile } = useAuth();
@@ -25,6 +37,7 @@ export default function AdminManagement() {
   const [profiles, setProfiles] = useState([]);
   const [error, setError] = useState(null);
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState("qism_ibadah");
   const [emailError, setEmailError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -42,15 +55,14 @@ export default function AdminManagement() {
   }, []);
   useEffect(load, [load]);
 
-  // Gabungkan: email admin + status pendaftarannya (sudah/belum punya akun)
   const rows = useMemo(
     () =>
-      (emails ?? []).map((a) => {
-        const p = profiles.find(
-          (x) => (x.email ?? "").toLowerCase() === a.email,
-        );
-        return { ...a, profile: p ?? null };
-      }),
+      (emails ?? []).map((a) => ({
+        ...a,
+        profile:
+          profiles.find((x) => (x.email ?? "").toLowerCase() === a.email) ??
+          null,
+      })),
     [emails, profiles],
   );
 
@@ -67,8 +79,12 @@ export default function AdminManagement() {
     setSaving(true);
     setEmailError("");
     try {
-      await profileService.addAdminEmail(value, profile?.id);
-      push("success", "Admin ditambahkan", value);
+      await profileService.addAdminEmail(value, role, profile?.id);
+      push(
+        "success",
+        "Calon admin didaftarkan",
+        "Begitu dia daftar akun & memilih namanya, perannya otomatis aktif.",
+      );
       setEmail("");
       load();
     } catch (e) {
@@ -80,26 +96,22 @@ export default function AdminManagement() {
 
   const removeAdmin = async (row) => {
     if (row.email === (profile?.email ?? "").toLowerCase()) {
-      push(
-        "error",
-        "Tidak bisa menghapus diri sendiri",
-        "Minta admin lain untuk mencabut aksesmu.",
-      );
+      push("error", "Tidak bisa menghapus diri sendiri");
       return;
     }
     const ok = await confirm({
-      title: "Hapus akses admin?",
-      message: `${row.email} akan kehilangan akses OSIS Ibadah. Jika akunnya terdaftar, perannya dikembalikan menjadi santri. Riwayat tindakannya di log audit tetap tersimpan.`,
-      confirmText: "Ya, hapus akses",
+      title: "Hapus dari daftar admin?",
+      message: `${row.email} tidak akan otomatis jadi admin lagi. Jika akunnya sudah aktif sebagai staff, perannya juga dikembalikan menjadi santri.`,
+      confirmText: "Ya, hapus",
       tone: "danger",
     });
     if (!ok) return;
     try {
       await profileService.removeAdminEmail(row.email);
-      push("success", "Akses admin dicabut", row.email);
+      push("success", "Dihapus dari daftar admin", row.email);
       load();
     } catch (e) {
-      push("error", "Gagal menghapus admin", e.message);
+      push("error", "Gagal", e.message);
     }
   };
 
@@ -109,17 +121,19 @@ export default function AdminManagement() {
   return (
     <div className="max-w-4xl animate-fade-up">
       <PageHeader
-        title="Kelola Admin"
-        description="Email yang terdaftar di sini otomatis mendapatkan akses OSIS Qism Ibadah."
+        title="Daftar Calon Admin"
+        description="Email di daftar ini, begitu mendaftar akun dan memilih namanya, otomatis mendapat peran yang ditentukan."
       />
 
       <Card className="mb-5 p-5">
-        <p className="mb-3 font-medium text-slate-200 text-sm">Tambah Admin</p>
+        <p className="mb-3 font-medium text-slate-200 text-sm">
+          Tambah Calon Admin
+        </p>
         <div className="flex sm:flex-row flex-col sm:items-start gap-3">
           <div className="flex-1">
             <Field
               error={emailError}
-              hint="Bila email belum pernah mendaftar, dia otomatis menjadi admin saat pertama kali mendaftar di aplikasi.">
+              hint="Alurnya: daftarkan email di sini → orang tsb membuat akun → memilih namanya → otomatis menjadi admin.">
               <Input
                 value={email}
                 onChange={(e) => {
@@ -127,6 +141,15 @@ export default function AdminManagement() {
                   setEmailError("");
                 }}
                 placeholder="email@student.abudzar.sch.id"
+              />
+            </Field>
+          </div>
+          <div className="w-full sm:w-44">
+            <Field label="Peran">
+              <Select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                options={ADMIN_ROLES}
               />
             </Field>
           </div>
@@ -141,26 +164,26 @@ export default function AdminManagement() {
         </div>
         <p className="flex items-start gap-2 mt-3 text-slate-500 text-xs leading-relaxed">
           <Info size={13} className="mt-0.5 text-slate-600 shrink-0" />
-          Hanya email di daftar ini yang mendapat peran admin — peran ditentukan
-          database (trigger + RLS), bukan oleh aplikasi.
+          Untuk peran Super Admin gunakan secukupnya — aksesnya penuh ke semua
+          divisi.
         </p>
       </Card>
 
       <Card>
         <CardHeader
-          title="Daftar Admin"
+          title="Daftar Calon Admin"
           description={`${rows.length} email terdaftar`}
         />
         {rows.length === 0 ? (
-          <EmptyState icon={ShieldCheck} title="Belum ada admin" />
+          <EmptyState icon={ShieldCheck} title="Belum ada calon admin" />
         ) : (
           <TableWrap>
             <Table>
               <thead>
                 <tr>
                   <Th>Email</Th>
-                  <Th>Status</Th>
-                  <Th>Peran Saat Ini</Th>
+                  <Th>Peran Ditugaskan</Th>
+                  <Th>Status Akun</Th>
                   <Th className="text-right">Aksi</Th>
                 </tr>
               </thead>
@@ -176,18 +199,18 @@ export default function AdminManagement() {
                       )}
                     </Td>
                     <Td>
-                      {r.profile ? (
-                        <Badge tone="emerald">Akun terdaftar</Badge>
-                      ) : (
-                        <Badge tone="amber">Menunggu mendaftar</Badge>
-                      )}
+                      <Badge tone={ROLE_TONES[r.role] ?? "neutral"}>
+                        {r.role}
+                      </Badge>
                     </Td>
-                    <Td className="text-slate-400">
-                      {r.profile
-                        ? r.profile.role === "osis_ibadah"
-                          ? "OSIS Ibadah"
-                          : "Santri"
-                        : "—"}
+                    <Td>
+                      {r.profile?.user_id ? (
+                        <Badge tone="emerald">Aktif — {r.profile.role}</Badge>
+                      ) : r.profile ? (
+                        <Badge tone="amber">Belum klaim nama</Badge>
+                      ) : (
+                        <Badge tone="neutral">Belum mendaftar</Badge>
+                      )}
                     </Td>
                     <Td className="text-right">
                       <Button

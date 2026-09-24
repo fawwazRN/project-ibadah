@@ -23,6 +23,7 @@ import {
 } from "../../components/ui/States";
 import { BrandMark } from "../../components/ui/BrandMark";
 import { profileService } from "../../services/profileService";
+import { homeFor } from "../../routes/AppRoutes";
 
 export default function ClaimPage() {
   const { session, claimProfile, signOut } = useAuth();
@@ -77,9 +78,9 @@ export default function ClaimPage() {
         "Profil terhubung",
         `Selamat datang, ${picked.full_name}`,
       );
-      navigate(p?.role === "osis_ibadah" ? "/ibadah" : "/santri", {
-        replace: true,
-      });
+      // Arahkan sesuai peran hasil klaim (santri → /santri ·
+      // calon admin yang terdaftar di admin_emails → dashboard perannya)
+      navigate(homeFor(p?.role), { replace: true });
     } catch (e) {
       push("error", "Gagal menghubungkan profil", e.message);
       load();
