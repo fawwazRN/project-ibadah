@@ -1,21 +1,34 @@
 import { useEffect, useState } from "react";
-import { Search, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
-import { Field, Input, Textarea } from "../ui/Field";
+import { Field, Input, Select, Textarea } from "../ui/Field";
 import { useToast } from "../../hooks/useToast";
 import { violationService } from "../../services/violationService";
 import { profileService } from "../../services/profileService";
 import { ruleService } from "../../services/ruleService";
+import {
+  PRAYER_TIMES,
+  PRAYER_LABELS,
+  PRAYER_CLOCK,
+  detectPrayer,
+} from "../../lib/constants";
 
-const localNow = () => {
+const localToday = () => {
   const d = new Date();
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().slice(0, 16);
+  return d.toISOString().slice(0, 10);
 };
+const localNowTime = () => new Date().toTimeString().slice(0, 5);
 
-export function ViolationFormModal({ open, onClose, onSaved }) {
+export function ViolationFormModal({
+  open,
+  onClose,
+  onSaved,
+  scope = "ibadah",
+}) {
+  const isIbadah = scope === "ibadah";
   const { push } = useToast();
   const [santri, setSantri] = useState([]);
   const [rules, setRules] = useState([]);
@@ -23,7 +36,9 @@ export function ViolationFormModal({ open, onClose, onSaved }) {
   const [form, setForm] = useState({
     santri_id: "",
     rule_id: "",
-    occurred_at: localNow(),
+    session_date: localToday(),
+    prayer_time: "",
+    violation_time: localNowTime(),
     note: "",
   });
   const [errors, setErrors] = useState({});
@@ -33,12 +48,19 @@ export function ViolationFormModal({ open, onClose, onSaved }) {
   useEffect(() => {
     if (!open) return;
     setBooting(true);
-    setForm({ santri_id: "", rule_id: "", occurred_at: localNow(), note: "" });
+    setForm({
+      santri_id: "",
+      rule_id: "",
+      session_date: localToday(),
+      prayer_time: "",
+      violation_time: localNowTime(),
+      note: "",
+    });
     setQuery("");
     setErrors({});
     Promise.all([
       profileService.listSantri(),
-      ruleService.list({ activeOnly: true }),
+      ruleService.list({ activeOnly: true, scope }),
     ])
       .then(([s, r]) => {
         setSantri(s);
@@ -46,7 +68,7 @@ export function ViolationFormModal({ open, onClose, onSaved }) {
       })
       .catch((e) => push("error", "Gagal memuat data form", e.message))
       .finally(() => setBooting(false));
-  }, [open]);
+  }, [open, scope]);
 
   const rule = rules.find((r) => r.id === form.rule_id);
   const selected = santri.find((s) => s.id === form.santri_id);
@@ -60,13 +82,27 @@ export function ViolationFormModal({ open, onClose, onSaved }) {
     const errs = {};
     if (!form.santri_id) errs.santri = "Pilih santri terlebih dahulu.";
     if (!form.rule_id) errs.rule = "Pilih aturan yang dilanggar.";
-    if (!form.occurred_at) errs.occurred_at = "Waktu wajib diisi.";
+    if (!form.session_date) errs.session_date = "Tanggal wajib diisi.";
+    if (!isIbadah && !form.violation_time)
+      errs.violation_time = "Waktu (jam) wajib diisi.";
     setErrors(errs);
     if (Object.keys(errs).length) return;
     setSaving(true);
     try {
+      // Ibadah → jam mengikuti acuan waktu shalat · Riyadhah → jam yang diinput petugas
+      const clock = isIbadah
+        ? form.prayer_time
+          ? PRAYER_CLOCK[form.prayer_time]
+          : localNowTime()
+        : form.violation_time;
+      const occurredAt = `${form.session_date}T${clock}:00+07:00`;
+
       await violationService.create({
-        ...form,
+        santri_id: form.santri_id,
+        rule_id: form.rule_id,
+        occurred_at: occurredAt,
+        prayer_time: isIbadah ? form.prayer_time || null : null, // Riyadhah tanpa waktu shalat
+        note: form.note,
         santri_name: selected.full_name,
         rule_name: rule.name,
         rule_points: rule.points,
@@ -74,7 +110,7 @@ export function ViolationFormModal({ open, onClose, onSaved }) {
       push(
         "success",
         "Pelanggaran tercatat",
-        `${rule.name} · ${rule.points} poin — ${selected.full_name}`,
+        `${rule.name} — ${selected.full_name}`,
       );
       onSaved?.();
       onClose();
@@ -146,30 +182,76 @@ export function ViolationFormModal({ open, onClose, onSaved }) {
             </select>
           </Field>
           {rule && (
-            <p className="flex items-center gap-2 -mt-2 text-slate-400 text-xs">
-              Poin otomatis dari aturan:{" "}
-              <Badge tone="rose">+{rule.points} poin</Badge>
-              <span className="text-slate-600">· kategori {rule.category}</span>
+            <p className="flex flex-wrap items-center gap-2 -mt-2 text-slate-400 text-xs">
+              Poin otomatis: <Badge tone="rose">+{rule.points} poin</Badge>
+              {rule.creates_suspension && (
+                <Badge tone="violet">
+                  Suspensi {rule.suspension_weeks} pekan
+                </Badge>
+              )}
             </p>
           )}
 
-          <Field label="Waktu kejadian" required error={errors.occurred_at}>
-            <Input
-              type="datetime-local"
-              value={form.occurred_at}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, occurred_at: e.target.value }))
-              }
-              className="[color-scheme:dark]"
-            />
-          </Field>
+          <div className="gap-3 grid grid-cols-2">
+            <Field label="Tanggal" required error={errors.session_date}>
+              <Input
+                type="date"
+                value={form.session_date}
+                className="[color-scheme:dark]"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, session_date: e.target.value }))
+                }
+              />
+            </Field>
 
-          <Field
-            label="Catatan (opsional)"
-            hint="Mis. lokasi, kegiatan, atau keterangan petugas.">
+            {isIbadah ? (
+              /* IBADAH: waktu shalat */
+              <Field
+                label="Waktu Shalat (opsional)"
+                hint="Ketik di catatan (mis. “isya”) → terpilih otomatis.">
+                <Select
+                  value={form.prayer_time}
+                  placeholder="— tanpa waktu shalat —"
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, prayer_time: e.target.value }))
+                  }
+                  options={PRAYER_TIMES.map((p) => ({
+                    value: p,
+                    label: PRAYER_LABELS[p],
+                  }))}
+                />
+              </Field>
+            ) : (
+              /* RIYADHAH: jam */
+              <Field label="Waktu (jam)" required error={errors.violation_time}>
+                <Input
+                  type="time"
+                  value={form.violation_time}
+                  className="[color-scheme:dark]"
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, violation_time: e.target.value }))
+                  }
+                />
+              </Field>
+            )}
+          </div>
+
+          <Field label="Catatan (opsional)">
             <Textarea
               value={form.note}
-              onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+              onChange={(e) => {
+                const note = e.target.value;
+                // Deteksi otomatis waktu shalat hanya untuk modul Ibadah
+                setForm((f) =>
+                  isIbadah
+                    ? {
+                        ...f,
+                        note,
+                        prayer_time: detectPrayer(note) ?? f.prayer_time,
+                      }
+                    : { ...f, note },
+                );
+              }}
               placeholder="Catatan tambahan…"
             />
           </Field>

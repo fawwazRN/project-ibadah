@@ -2,15 +2,15 @@ import { supabase } from "../lib/supabaseClient";
 import { auditService } from "./auditService";
 
 export const ruleService = {
-  async list({ activeOnly = false } = {}) {
+  async list({ activeOnly = false, scope } = {}) {
     let q = supabase.from("rules").select("*").order("category").order("name");
     if (activeOnly) q = q.eq("is_active", true);
+    if (scope) q = q.eq("scope", scope);
     const { data, error } = await q;
     if (error) throw error;
     return data;
   },
 
-  // created_by diisi otomatis oleh database.
   async create(payload) {
     const { data, error } = await supabase
       .from("rules")

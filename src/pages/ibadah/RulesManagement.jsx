@@ -15,6 +15,8 @@ import { useConfirm } from "../../context/ConfirmContext";
 import { ruleService } from "../../services/ruleService";
 import { RULE_CATEGORIES } from "../../lib/constants";
 
+const SCOPE_LABELS = { ibadah: "Qism Ibadah", riyadhah: "Qism Riyadhah" };
+
 function Switch({ checked, onChange }) {
   return (
     <button
@@ -30,7 +32,7 @@ function Switch({ checked, onChange }) {
   );
 }
 
-export default function RulesManagement() {
+export default function RulesManagement({ scope = "ibadah" }) {
   const [rules, setRules] = useState(null);
   const [error, setError] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -41,10 +43,10 @@ export default function RulesManagement() {
   const load = useCallback(() => {
     setError(null);
     ruleService
-      .list()
+      .list({ scope })
       .then(setRules)
       .catch((e) => setError(e.message));
-  }, []);
+  }, [scope]);
   useEffect(load, [load]);
 
   if (error) return <ErrorState message={error} onRetry={load} />;
@@ -56,7 +58,7 @@ export default function RulesManagement() {
       title: activating ? "Aktifkan aturan?" : "Nonaktifkan aturan?",
       message: activating
         ? `“${rule.name}” akan kembali tersedia saat pencatatan pelanggaran.`
-        : `“${rule.name}” tidak akan muncul saat pencatatan pelanggaran baru. Riwayat lama tetap tersimpan dan tidak ada data yang dihapus.`,
+        : `“${rule.name}” tidak akan muncul saat pencatatan pelanggaran baru. Riwayat lama tetap tersimpan.`,
       confirmText: activating ? "Ya, aktifkan" : "Ya, nonaktifkan",
       tone: activating ? "default" : "danger",
     });
@@ -84,8 +86,8 @@ export default function RulesManagement() {
   return (
     <div className="animate-fade-up">
       <PageHeader
-        title="Aturan Poin"
-        description="Aturan tidak dapat dihapus — gunakan nonaktifkan agar riwayat pelanggaran tetap utuh."
+        title={`Aturan Poin — ${SCOPE_LABELS[scope]}`}
+        description={`Aturan milik ${SCOPE_LABELS[scope]} saja. Aturan tidak dapat dihapus — gunakan nonaktifkan agar riwayat tetap utuh.`}
         actions={
           <Button
             variant="primary"
@@ -104,7 +106,7 @@ export default function RulesManagement() {
           <EmptyState
             icon={Scale}
             title="Belum ada aturan"
-            description="Buat aturan pertama untuk mulai pencatatan."
+            description={`Buat aturan pertama untuk ${SCOPE_LABELS[scope]}.`}
           />
         </Card>
       ) : (
@@ -132,6 +134,11 @@ export default function RulesManagement() {
                         </p>
                       </div>
                       <Badge tone="rose">+{rule.points} poin</Badge>
+                      {rule.creates_suspension && (
+                        <Badge tone="violet">
+                          Suspensi {rule.suspension_weeks} pekan
+                        </Badge>
+                      )}
                       <Switch
                         checked={rule.is_active}
                         onChange={() => toggle(rule)}
@@ -158,6 +165,7 @@ export default function RulesManagement() {
       <RuleFormModal
         open={formOpen}
         rule={editing}
+        scope={scope}
         onClose={() => setFormOpen(false)}
         onSaved={load}
       />

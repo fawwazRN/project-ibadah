@@ -115,9 +115,13 @@ export default function DashboardLayout() {
               {profile?.full_name}
             </p>
             <p className="text-[11px] text-slate-500">
-              {profile?.role === "osis_ibadah"
-                ? "OSIS Qism Ibadah"
-                : `Santri · ${profile?.class_name ?? ""}`}
+              {profile?.role === "qism_ibadah"
+                ? "Qism Ibadah"
+                : profile?.role === "qism_riyadhah"
+                  ? "Qism Riyadhah"
+                  : profile?.role === "super_admin"
+                    ? "Super Admin"
+                    : `Santri · ${profile?.class_name ?? ""}`}
             </p>
           </div>
           <button

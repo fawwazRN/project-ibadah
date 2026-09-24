@@ -10,9 +10,17 @@ import {
   History,
   UserRound,
   CalendarClock,
+  Volleyball,
+  Table2,
+  CalendarDays,
+  Gavel,
+  Settings,
+  ClipboardList,
+  Ban,
 } from "lucide-react";
 
 export const NAV = {
+  // ---------- SANTRI ----------
   santri: [
     {
       section: "Menu",
@@ -25,13 +33,17 @@ export const NAV = {
           label: "Laporan Saya",
           icon: MessageSquareWarning,
         },
+        { to: "/santri/team", label: "Tim Saya", icon: Volleyball },
+        { to: "/santri/matches", label: "Pertandingan", icon: CalendarDays },
         { to: "/santri/leaderboard", label: "Leaderboard", icon: Trophy },
         { to: "/santri/recap", label: "Rekap", icon: FileBarChart },
         { to: "/santri/profile", label: "Profil", icon: UserRound },
       ],
     },
   ],
-  osis_ibadah: [
+
+  // ---------- QISM IBADAH ----------
+  qism_ibadah: [
     {
       section: "Ikhtisar",
       items: [
@@ -45,8 +57,9 @@ export const NAV = {
         { to: "/ibadah/violations", label: "Pelanggaran", icon: Flag },
         { to: "/ibadah/reports", label: "Laporan", icon: MessageSquareWarning },
         { to: "/ibadah/rules", label: "Aturan Poin", icon: Scale },
+        { to: "/ibadah/suspensions", label: "Suspensi", icon: Ban },
         { to: "/ibadah/zikir", label: "Jadwal Zikir", icon: CalendarClock },
-        { to: "/ibadah/admins", label: "Admin", icon: ShieldCheck },
+        { to: "/ibadah/admins", label: "Daftar Email", icon: ShieldCheck },
       ],
     },
     {
@@ -57,6 +70,105 @@ export const NAV = {
         { to: "/ibadah/audit", label: "Log Audit", icon: History },
         { to: "/ibadah/profile", label: "Profil", icon: UserRound },
       ],
+    },
+  ],
+
+  // ---------- QISM RIYADHAH ----------
+  qism_riyadhah: [
+    {
+      section: "Pertandingan",
+      items: [
+        {
+          to: "/riyadhah",
+          label: "Match Center",
+          icon: LayoutDashboard,
+          end: true,
+        },
+        {
+          to: "/riyadhah/fixtures",
+          label: "Jadwal & Hasil",
+          icon: CalendarDays,
+        },
+        { to: "/riyadhah/matches", label: "Kelola Pertandingan", icon: Gavel },
+        { to: "/riyadhah/standings", label: "Klasemen", icon: Table2 },
+      ],
+    },
+    {
+      section: "Pelanggaran & Liga",
+      items: [
+        {
+          to: "/riyadhah/violations",
+          label: "Pelanggaran & Suspensi",
+          icon: Flag,
+        },
+        { to: "/riyadhah/rules", label: "Aturan Pelanggaran", icon: Scale },
+        { to: "/riyadhah/teams", label: "Tim & Pemain", icon: Users },
+        { to: "/riyadhah/seasons", label: "Fase & Musim", icon: ClipboardList },
+        { to: "/riyadhah/suspensions", label: "Daftar Suspensi", icon: Ban },
+        { to: "/riyadhah/recap", label: "Rekap Liga", icon: FileBarChart },
+      ],
+    },
+    {
+      section: "Sistem",
+      items: [{ to: "/riyadhah/profile", label: "Profil", icon: UserRound }],
+    },
+  ],
+
+  // ---------- SUPER ADMIN (SEMUA GABUNGAN) ----------
+  super_admin: [
+    {
+      section: "Super Admin",
+      items: [
+        { to: "/admin", label: "Ringkasan", icon: LayoutDashboard, end: true },
+        { to: "/admin/users", label: "Pengguna & Peran", icon: Users },
+        { to: "/admin/audit", label: "Log Audit", icon: History },
+        { to: "/admin/settings", label: "Pengaturan Liga", icon: Settings },
+      ],
+    },
+
+    {
+      section: "Qism Ibadah",
+      items: [
+        { to: "/ibadah", label: "Dashboard Ibadah", icon: Flag, end: true },
+        { to: "/ibadah/santri", label: "Santri", icon: Users },
+        { to: "/ibadah/violations", label: "Pelanggaran", icon: Flag },
+        { to: "/ibadah/reports", label: "Laporan", icon: MessageSquareWarning },
+        { to: "/ibadah/rules", label: "Aturan Poin", icon: Scale },
+        { to: "/ibadah/suspensions", label: "Suspensi", icon: Ban },
+        { to: "/ibadah/zikir", label: "Jadwal Zikir", icon: CalendarClock },
+        { to: "/ibadah/admins", label: "Daftar Email", icon: ShieldCheck },
+        { to: "/ibadah/leaderboard", label: "Leaderboard", icon: Trophy },
+        { to: "/ibadah/recap", label: "Rekap Ibadah", icon: FileBarChart },
+      ],
+    },
+
+    {
+      section: "Qism Riyadhah",
+      items: [
+        { to: "/riyadhah", label: "Match Center", icon: Volleyball, end: true },
+        {
+          to: "/riyadhah/violations",
+          label: "Pelanggaran & Suspensi",
+          icon: Flag,
+        },
+        { to: "/riyadhah/rules", label: "Aturan Pelanggaran", icon: Scale },
+        {
+          to: "/riyadhah/fixtures",
+          label: "Jadwal & Hasil",
+          icon: CalendarDays,
+        },
+        { to: "/riyadhah/matches", label: "Kelola Pertandingan", icon: Gavel },
+        { to: "/riyadhah/standings", label: "Klasemen", icon: Table2 },
+        { to: "/riyadhah/teams", label: "Tim & Pemain", icon: Users },
+        { to: "/riyadhah/seasons", label: "Fase & Musim", icon: ClipboardList },
+        { to: "/riyadhah/suspensions", label: "Daftar Suspensi", icon: Ban },
+        { to: "/riyadhah/recap", label: "Rekap Liga", icon: FileBarChart },
+      ],
+    },
+
+    {
+      section: "Akun",
+      items: [{ to: "/admin/profile", label: "Profil", icon: UserRound }],
     },
   ],
 };
@@ -72,5 +184,5 @@ export const pageTitleFor = (pathname, nav) => {
       )
         best = it;
     }
-  return best?.label ?? "Ibadah OSIS";
+  return best?.label ?? "OSIS Management";
 };

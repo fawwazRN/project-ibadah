@@ -1,3 +1,5 @@
+import { PRAYER_LABELS } from "./constants";
+
 export const startOfDay = (d = new Date()) => {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
@@ -108,3 +110,9 @@ export const timeAgo = (d) => {
   if (s < 86400) return `${Math.floor(s / 86400)} jam lalu`;
   return `${Math.floor(s / 86400)} hari lalu`;
 };
+
+// "24 Sep 2026 · Isya" — fallback ke tanggal saja bila tak ada data shalat
+export const fmtOccurred = (v) =>
+  v?.prayer_time
+    ? `${fmtDate(v.occurred_at)} · ${PRAYER_LABELS[v.prayer_time] ?? v.prayer_time}`
+    : fmtDate(v?.occurred_at);

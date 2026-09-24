@@ -16,7 +16,7 @@ import { ViolationFormModal } from "../../components/violations/ViolationFormMod
 import { ViolationDetailModal } from "../../components/violations/ViolationDetailModal";
 import { violationService } from "../../services/violationService";
 import { ruleService } from "../../services/ruleService";
-import { fmtDateTime } from "../../lib/date";
+import { fmtOccurred } from "../../lib/date";
 
 export default function ViolationsManagement() {
   const [violations, setViolations] = useState(null);
@@ -56,7 +56,7 @@ export default function ViolationsManagement() {
     <div className="animate-fade-up">
       <PageHeader
         title="Manajemen Pelanggaran"
-        description="Catat, tinjau, dan kelola seluruh pelanggaran santri."
+        description="Catat, tinjau, dan kelola pelanggaran ranah Qism Ibadah."
         actions={
           <Button
             variant="primary"
@@ -119,7 +119,7 @@ export default function ViolationsManagement() {
                 {list.slice(0, 100).map((v) => (
                   <Tr key={v.id}>
                     <Td className="text-slate-400 whitespace-nowrap">
-                      {fmtDateTime(v.occurred_at)}
+                      {fmtOccurred(v)}
                     </Td>
                     <Td>
                       <p className="font-medium text-slate-200">
@@ -157,6 +157,7 @@ export default function ViolationsManagement() {
 
       <ViolationFormModal
         open={formOpen}
+        scope="ibadah"
         onClose={() => setFormOpen(false)}
         onSaved={load}
       />

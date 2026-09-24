@@ -1,7 +1,7 @@
 import { supabase } from "../lib/supabaseClient";
 import { auditService } from "./auditService";
 
-const SELECT = `*, rule:rules(name, points, category),
+const SELECT = `*, prayer_time, rule:rules(name, points, category, scope),
   santri:profiles!violations_santri_id_fkey(id, full_name, class_name),
   recorder:profiles!violations_recorded_by_fkey(full_name)`;
 
@@ -26,11 +26,17 @@ export const violationService = {
     return data;
   },
 
-  async create({ santri_id, rule_id, occurred_at, note }) {
+  async create({ santri_id, rule_id, occurred_at, prayer_time, note }) {
     // recorded_by diisi otomatis oleh database (default app_my_profile_id).
     const { data, error } = await supabase
       .from("violations")
-      .insert({ santri_id, rule_id, occurred_at, note: note || null })
+      .insert({
+        santri_id,
+        rule_id,
+        occurred_at,
+        prayer_time: prayer_time || null,
+        note: note || null,
+      })
       .select(SELECT)
       .single();
     if (error) throw error;

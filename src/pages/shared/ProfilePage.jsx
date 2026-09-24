@@ -6,13 +6,14 @@ import { PageHeader } from "../../components/ui/PageHeader";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Avatar } from "../../components/ui/Avatar";
+import { ROLE_LABELS } from "../../lib/constants";
 import { fmtDate } from "../../lib/date";
 
 export default function ProfilePage({ role }) {
   const { profile, session, signOut } = useAuth();
   const confirm = useConfirm();
   if (!profile) return null;
-  const isOsis = role === "osis_ibadah";
+  const isStaff = role !== "santri";
 
   return (
     <div className="max-w-2xl animate-fade-up">
@@ -28,10 +29,17 @@ export default function ProfilePage({ role }) {
               {profile.full_name}
             </h2>
             <div className="flex items-center gap-2 mt-1">
-              <Badge tone={isOsis ? "emerald" : "neutral"}>
-                {isOsis ? "OSIS Qism Ibadah" : "Santri"}
+              <Badge
+                tone={
+                  role === "super_admin"
+                    ? "violet"
+                    : role === "santri"
+                      ? "neutral"
+                      : "emerald"
+                }>
+                {ROLE_LABELS[role] ?? role}
               </Badge>
-              {!isOsis && profile.class_name && (
+              {!isStaff && profile.class_name && (
                 <Badge tone="neutral">Kelas {profile.class_name}</Badge>
               )}
             </div>
@@ -63,7 +71,7 @@ export default function ProfilePage({ role }) {
             </dd>
           </div>
         </dl>
-        {!isOsis && (
+        {!isStaff && (
           <p className="flex items-start gap-2 bg-white/[0.02] mt-5 p-3 border border-white/[0.06] rounded-xl text-slate-500 text-xs leading-relaxed">
             <ShieldCheck
               size={14}
