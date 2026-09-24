@@ -198,6 +198,7 @@ export default function AppRoutes() {
               path="/riyadhah/rules"
               element={<RulesManagement scope="riyadhah" />}
             />
+            <Route path="/riyadhah/roster" element={<SantriManagement />} />
             <Route path="/riyadhah/fixtures" element={<FixturesPage />} />
             <Route path="/riyadhah/matches" element={<MatchesPage />} />
             <Route path="/riyadhah/standings" element={<StandingsPage />} />

@@ -2,10 +2,15 @@ import { supabase } from "../lib/supabaseClient";
 
 const norm = (email) => (email ?? "").trim().toLowerCase();
 
-export const profileService = {
-  // ---------- Baca ----------
+// Guard kecil: siapa boleh menambah/mengedit santri (untuk pesan error ramah
+// sebelum menabrak RLS). Super admin selalu boleh.
+const canManageSantri = (role) =>
+  ["qism_ibadah", "qism_riyadhah", "super_admin"].includes(role);
 
-  // Semua santri (untuk admin: form pelanggaran, manajemen santri, filter rekap)
+export const profileService = {
+  // ================= BACA =================
+
+  // Semua santri (untuk staff: form pelanggaran, manajemen santri, tim, filter rekap)
   async listSantri() {
     const { data, error } = await supabase
       .from("profiles")
@@ -44,26 +49,70 @@ export const profileService = {
     return data;
   },
 
-  // ---------- Tambah santri manual (yang belum terimpor) ----------
+  // ================= TAMBAH SANTRI =================
+  // (Ibadah / Riyadhah / Super Admin)
+  async addSantri({ full_name, class_name, nis }, callerRole) {
+    if (!canManageSantri(callerRole))
+      throw new Error(
+        "Hanya Qism Ibadah, Qism Riyadhah, atau Super Admin yang dapat menambah santri.",
+      );
 
-  async addSantri({ full_name, class_name, nis }) {
     const { data, error } = await supabase
       .from("profiles")
-      .insert({ full_name, class_name, nis: nis || null, role: "santri" })
+      .insert({
+        full_name: full_name.trim(),
+        class_name: class_name.trim(),
+        nis: nis?.trim() || null,
+        role: "santri",
+      })
       .select("*")
       .single();
     if (error) throw error;
+
     const { auditService } = await import("./auditService");
     await auditService.log(
       "santri_created",
       "profile",
       data.id,
-      `${full_name} (${class_name})`,
+      `${data.full_name} (${data.class_name})`,
     );
     return data;
   },
 
-  // ---------- Calon admin (Ibadah / Riyadhah / Super) ----------
+  // ================= EDIT SANTRI =================
+  // (Ibadah / Riyadhah / Super Admin) — riwayat aman karena
+  // pelanggaran/tim/laporan merujuk profile_id, bukan teks nama/kelas.
+  async updateSantri(profileId, { full_name, class_name, nis }, callerRole) {
+    if (!canManageSantri(callerRole))
+      throw new Error(
+        "Hanya Qism Ibadah, Qism Riyadhah, atau Super Admin yang dapat mengedit santri.",
+      );
+
+    const payload = {
+      full_name: full_name.trim(),
+      class_name: class_name.trim(),
+      nis: nis?.trim() || null,
+    };
+    const { data, error } = await supabase
+      .from("profiles")
+      .update(payload)
+      .eq("id", profileId)
+      .select("*")
+      .single();
+    if (error) throw error;
+
+    const { auditService } = await import("./auditService");
+    await auditService.log(
+      "santri_updated",
+      "profile",
+      profileId,
+      `${payload.full_name} (${payload.class_name})`,
+    );
+    return data;
+  },
+
+  // ================= CALON ADMIN =================
+  // (khusus Super Admin — dibuka lewat menu Pengguna & Peran / Daftar Email)
 
   // Daftarkan email + peran. Bila akunnya sudah aktif & terklaim, perannya
   // langsung diperbarui. Bila belum, otomatis aktif saat dia klaim nama.
@@ -112,8 +161,10 @@ export const profileService = {
     }
   },
 
-  // ---------- Manajemen akun & orang (divalidasi di database) ----------
+  // ================= MANAJEMEN AKUN / ORANG =================
+  // (khusus Ibadah + Super Admin — divalidasi ulang di database/RPC)
 
+  // Lepas akun dari nama → nama kembali bisa diklaim. Riwayat tetap utuh.
   async adminResetClaim(profileId) {
     const { error } = await supabase.rpc("admin_reset_claim", {
       p_profile_id: profileId,
@@ -121,6 +172,7 @@ export const profileService = {
     if (error) throw error;
   },
 
+  // Hapus akun auth (email + sandi). Profil & riwayat tetap ada.
   async adminDeleteAccount(profileId) {
     const { error } = await supabase.rpc("admin_delete_auth_account", {
       p_profile_id: profileId,
@@ -128,6 +180,7 @@ export const profileService = {
     if (error) throw error;
   },
 
+  // Hapus permanen profil santri — hanya lolos jika belum punya riwayat.
   async adminDeleteSantri(profileId) {
     const { error } = await supabase.rpc("admin_delete_santri", {
       p_profile_id: profileId,

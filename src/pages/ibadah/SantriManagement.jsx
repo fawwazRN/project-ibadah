@@ -8,6 +8,7 @@ import {
   ShieldAlert,
   Mail,
   Plus,
+  Pencil,
 } from "lucide-react";
 import { Card } from "../../components/ui/Card";
 import { PageHeader } from "../../components/ui/PageHeader";
@@ -25,6 +26,7 @@ import {
 import { ViolationStatusBadge } from "../../components/violations/StatusBadge";
 import { useToast } from "../../hooks/useToast";
 import { useConfirm } from "../../context/ConfirmContext";
+import { useAuth } from "../../context/AuthContext";
 import { violationService } from "../../services/violationService";
 import { reportService } from "../../services/reportService";
 import { profileService } from "../../services/profileService";
@@ -34,6 +36,13 @@ import { fmtDate } from "../../lib/date";
 export default function SantriManagement() {
   const { push } = useToast();
   const confirm = useConfirm();
+  const { profile } = useAuth();
+
+  // Hak kelola akun (reset klaim / hapus akun / hapus profil)
+  // hanya untuk Qism Ibadah + Super Admin — Riyadhah hanya tambah/edit data.
+  const canManageAccounts = ["qism_ibadah", "super_admin"].includes(
+    profile?.role,
+  );
 
   const [santri, setSantri] = useState(null);
   const [violations, setViolations] = useState([]);
@@ -49,6 +58,16 @@ export default function SantriManagement() {
   const [form, setForm] = useState({ full_name: "", class_name: "", nis: "" });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+
+  // Edit santri
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    full_name: "",
+    class_name: "",
+    nis: "",
+  });
+  const [editErrors, setEditErrors] = useState({});
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const load = useCallback(() => {
     setError(null);
@@ -86,7 +105,6 @@ export default function SantriManagement() {
     return m;
   }, [santri, violations, reports]);
 
-  // ---------- Tambah santri ----------
   const existingClasses = useMemo(
     () =>
       [
@@ -95,6 +113,7 @@ export default function SantriManagement() {
     [santri],
   );
 
+  // ---------- Tambah ----------
   const openAdd = () => {
     setForm({ full_name: "", class_name: existingClasses[0] ?? "", nis: "" });
     setErrors({});
@@ -112,11 +131,14 @@ export default function SantriManagement() {
     if (Object.keys(errs).length) return;
     setSaving(true);
     try {
-      await profileService.addSantri({
-        full_name: form.full_name.trim(),
-        class_name: form.class_name.trim(),
-        nis: form.nis.trim() || null,
-      });
+      await profileService.addSantri(
+        {
+          full_name: form.full_name.trim(),
+          class_name: form.class_name.trim(),
+          nis: form.nis.trim() || null,
+        },
+        profile?.role,
+      );
       push(
         "success",
         "Santri ditambahkan",
@@ -131,7 +153,46 @@ export default function SantriManagement() {
     }
   };
 
-  // ---------- Kelola akun / orang ----------
+  // ---------- Edit ----------
+  const openEdit = (s) => {
+    setEditForm({
+      full_name: s.full_name,
+      class_name: s.class_name ?? "",
+      nis: s.nis ?? "",
+    });
+    setEditErrors({});
+    setEditOpen(true);
+  };
+
+  const submitEdit = async () => {
+    if (!detail) return;
+    const errs = {};
+    if (editForm.full_name.trim().length < 3)
+      errs.full_name = "Nama minimal 3 karakter.";
+    if (!editForm.class_name.trim()) errs.class_name = "Kelas wajib diisi.";
+    if (editForm.nis && !/^\d+$/.test(editForm.nis.trim()))
+      errs.nis = "NIS hanya angka (boleh dikosongkan).";
+    setEditErrors(errs);
+    if (Object.keys(errs).length) return;
+    setSavingEdit(true);
+    try {
+      await profileService.updateSantri(detail.id, editForm, profile?.role);
+      push(
+        "success",
+        "Data santri diperbarui",
+        `${editForm.full_name.trim()} — ${editForm.class_name.trim()}`,
+      );
+      setEditOpen(false);
+      setDetail(null); // tutup modal kelola agar data di dalamnya ikut segar
+      load();
+    } catch (e) {
+      push("error", "Gagal memperbarui data", e.message);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  // ---------- Kelola akun / orang (Ibadah + Super Admin saja) ----------
   const resetClaim = async (s) => {
     const ok = await confirm({
       title: "Reset klaim profil?",
@@ -379,10 +440,7 @@ export default function SantriManagement() {
               ))}
             </datalist>
           </Field>
-          <Field
-            label="NIS (opsional)"
-            error={errors.nis}
-            hint="Kalau diisi, klaim nama tidak butuh konfirmasi tambahan.">
+          <Field label="NIS (opsional)" error={errors.nis}>
             <Input
               value={form.nis}
               inputMode="numeric"
@@ -406,6 +464,60 @@ export default function SantriManagement() {
         </div>
       </Modal>
 
+      {/* ---------- Modal: Edit Santri ---------- */}
+      <Modal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        title="Edit Data Santri"
+        size="sm">
+        <div className="space-y-4">
+          <Field label="Nama lengkap" required error={editErrors.full_name}>
+            <Input
+              value={editForm.full_name}
+              autoFocus
+              onChange={(e) =>
+                setEditForm((f) => ({ ...f, full_name: e.target.value }))
+              }
+            />
+          </Field>
+          <Field
+            label="Kelas"
+            required
+            error={editErrors.class_name}
+            hint="Mengubah kelas tidak mempengaruhi riwayat tim & pelanggarannya.">
+            <Input
+              list="kelas-list-edit"
+              value={editForm.class_name}
+              onChange={(e) =>
+                setEditForm((f) => ({ ...f, class_name: e.target.value }))
+              }
+            />
+            <datalist id="kelas-list-edit">
+              {existingClasses.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+          </Field>
+          <Field label="NIS (opsional)" error={editErrors.nis}>
+            <Input
+              value={editForm.nis}
+              inputMode="numeric"
+              onChange={(e) =>
+                setEditForm((f) => ({ ...f, nis: e.target.value }))
+              }
+            />
+          </Field>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button variant="ghost" onClick={() => setEditOpen(false)}>
+              Batal
+            </Button>
+            <Button variant="primary" loading={savingEdit} onClick={submitEdit}>
+              Simpan Perubahan
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
       {/* ---------- Modal: Kelola santri ---------- */}
       <Modal
         open={!!detail}
@@ -424,6 +536,14 @@ export default function SantriManagement() {
                   Kelas {detail.class_name} · NIS {detail.nis ?? "—"}
                 </p>
               </div>
+              <Button
+                size="sm"
+                variant="secondary"
+                icon={Pencil}
+                className="ml-auto"
+                onClick={() => openEdit(detail)}>
+                Edit Data
+              </Button>
             </div>
 
             <div className="gap-2 grid grid-cols-3 text-center">
@@ -453,78 +573,85 @@ export default function SantriManagement() {
               </div>
             </div>
 
-            <div className="bg-white/[0.02] p-4 border border-white/[0.06] rounded-xl">
-              <p className="mb-1 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
-                Kelola Akun
-              </p>
-              {detail.user_id ? (
-                <>
-                  <p className="flex items-center gap-1.5 mb-3 text-slate-400 text-xs">
-                    <Mail size={12} className="text-slate-500" /> {detail.email}
-                    <span className="text-slate-600">
-                      · terklaim{" "}
-                      {detail.claimed_at ? fmtDate(detail.claimed_at) : "—"}
-                    </span>
+            {/* Kelola akun — hanya Ibadah + Super Admin */}
+            {canManageAccounts && (
+              <div className="bg-white/[0.02] p-4 border border-white/[0.06] rounded-xl">
+                <p className="mb-1 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+                  Kelola Akun
+                </p>
+                {detail.user_id ? (
+                  <>
+                    <p className="flex items-center gap-1.5 mb-3 text-slate-400 text-xs">
+                      <Mail size={12} className="text-slate-500" />{" "}
+                      {detail.email}
+                      <span className="text-slate-600">
+                        · terklaim{" "}
+                        {detail.claimed_at ? fmtDate(detail.claimed_at) : "—"}
+                      </span>
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        icon={KeyRound}
+                        loading={busy}
+                        onClick={() => resetClaim(detail)}>
+                        Reset Klaim
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="dangerSoft"
+                        icon={UserX}
+                        loading={busy}
+                        onClick={() => deleteAccount(detail)}>
+                        Hapus Akun
+                      </Button>
+                    </div>
+                    <p className="mt-2.5 text-[11px] text-slate-600 leading-relaxed">
+                      <span className="font-medium text-slate-500">
+                        Reset Klaim
+                      </span>{" "}
+                      = lepas akun dari nama ini.{" "}
+                      <span className="font-medium text-slate-500">
+                        Hapus Akun
+                      </span>{" "}
+                      = hapus email &amp; sandi; profil &amp; riwayat tetap ada.
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-slate-500 text-xs">
+                    <Badge tone="neutral" className="mr-2">
+                      Belum terklaim
+                    </Badge>
+                    Nama ini belum dihubungkan dengan akun mana pun dan tersedia
+                    di halaman pilih nama.
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      icon={KeyRound}
-                      loading={busy}
-                      onClick={() => resetClaim(detail)}>
-                      Reset Klaim
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="dangerSoft"
-                      icon={UserX}
-                      loading={busy}
-                      onClick={() => deleteAccount(detail)}>
-                      Hapus Akun
-                    </Button>
-                  </div>
-                  <p className="mt-2.5 text-[11px] text-slate-600 leading-relaxed">
-                    <span className="font-medium text-slate-500">
-                      Reset Klaim
-                    </span>{" "}
-                    = lepas akun dari nama ini.{" "}
-                    <span className="font-medium text-slate-500">
-                      Hapus Akun
-                    </span>{" "}
-                    = hapus email &amp; sandi; profil &amp; riwayat tetap ada.
-                  </p>
-                </>
-              ) : (
-                <p className="text-slate-500 text-xs">
-                  <Badge tone="neutral" className="mr-2">
-                    Belum terklaim
-                  </Badge>
-                  Nama ini belum dihubungkan dengan akun mana pun dan tersedia
-                  di halaman pilih nama.
-                </p>
-              )}
-            </div>
-
-            {detailStats.total === 0 && detailStats.pending === 0 && (
-              <div className="bg-rose-500/[0.04] p-4 border border-rose-400/15 rounded-xl">
-                <p className="flex items-center gap-1.5 mb-1 font-semibold text-[11px] text-rose-300 uppercase tracking-wider">
-                  <ShieldAlert size={12} /> Zona Berbahaya
-                </p>
-                <p className="mb-3 text-slate-500 text-xs">
-                  Santri ini belum punya riwayat apa pun, jadi profilnya boleh
-                  dihapus permanen.
-                </p>
-                <Button
-                  size="sm"
-                  variant="dangerSoft"
-                  icon={Trash2}
-                  loading={busy}
-                  onClick={() => deleteSantri(detail)}>
-                  Hapus Permanen Profil
-                </Button>
+                )}
               </div>
             )}
+
+            {/* Zona berbahaya — hanya Ibadah + Super Admin */}
+            {canManageAccounts &&
+              detailStats.total === 0 &&
+              detailStats.pending === 0 && (
+                <div className="bg-rose-500/[0.04] p-4 border border-rose-400/15 rounded-xl">
+                  <p className="flex items-center gap-1.5 mb-1 font-semibold text-[11px] text-rose-300 uppercase tracking-wider">
+                    <ShieldAlert size={12} /> Zona Berbahaya
+                  </p>
+                  <p className="mb-3 text-slate-500 text-xs">
+                    Santri ini belum punya riwayat apa pun, jadi profilnya boleh
+                    dihapus permanen.
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="dangerSoft"
+                    icon={Trash2}
+                    loading={busy}
+                    onClick={() => deleteSantri(detail)}>
+                    Hapus Permanen Profil
+                  </Button>
+                </div>
+              )}
 
             <div>
               <p className="mb-2 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">

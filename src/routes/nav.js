@@ -102,6 +102,7 @@ export const NAV = {
           icon: Flag,
         },
         { to: "/riyadhah/rules", label: "Aturan Pelanggaran", icon: Scale },
+        { to: "/riyadhah/roster", label: "Data Santri", icon: Users },
         { to: "/riyadhah/teams", label: "Tim & Pemain", icon: Users },
         { to: "/riyadhah/seasons", label: "Fase & Musim", icon: ClipboardList },
         { to: "/riyadhah/suspensions", label: "Daftar Suspensi", icon: Ban },
@@ -152,6 +153,7 @@ export const NAV = {
           icon: Flag,
         },
         { to: "/riyadhah/rules", label: "Aturan Pelanggaran", icon: Scale },
+        { to: "/riyadhah/roster", label: "Data Santri", icon: Users },
         {
           to: "/riyadhah/fixtures",
           label: "Jadwal & Hasil",
