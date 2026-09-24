@@ -28,8 +28,7 @@ export const profileService = {
     return data;
   },
 
-  // Daftar nama yang bisa diklaim — lewat RPC security definer
-  // (kebal RLS; hanya id/nama/kelas + penanda butuh NIS, tanpa data pribadi)
+  // Daftar nama yang bisa diklaim — RPC security definer (kebal RLS)
   async listClaimable() {
     const { data, error } = await supabase.rpc("list_claimable_santri");
     if (error) throw error;
@@ -45,11 +44,29 @@ export const profileService = {
     return data;
   },
 
-  // ---------- Calon admin ----------
+  // ---------- Tambah santri manual (yang belum terimpor) ----------
 
-  // Daftarkan email + peran yang ditugaskan.
-  // Bila akunnya sudah aktif & terklaim, perannya langsung diperbarui.
-  // Bila belum, otomatis aktif saat dia klaim nama (trigger claim_santri_profile).
+  async addSantri({ full_name, class_name, nis }) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .insert({ full_name, class_name, nis: nis || null, role: "santri" })
+      .select("*")
+      .single();
+    if (error) throw error;
+    const { auditService } = await import("./auditService");
+    await auditService.log(
+      "santri_created",
+      "profile",
+      data.id,
+      `${full_name} (${class_name})`,
+    );
+    return data;
+  },
+
+  // ---------- Calon admin (Ibadah / Riyadhah / Super) ----------
+
+  // Daftarkan email + peran. Bila akunnya sudah aktif & terklaim, perannya
+  // langsung diperbarui. Bila belum, otomatis aktif saat dia klaim nama.
   async addAdminEmail(email, role = "qism_ibadah", addedByProfileId) {
     const e = norm(email);
     const { error } = await supabase
@@ -57,7 +74,6 @@ export const profileService = {
       .insert({ email: e, role, added_by: addedByProfileId ?? null });
     if (error) throw error;
 
-    // Akun sudah ada & terklaim → peran langsung diperbarui
     const { data: p } = await supabase
       .from("profiles")
       .select("id, role, user_id")
@@ -72,8 +88,8 @@ export const profileService = {
     }
   },
 
-  // Hapus dari daftar admin; bila akunnya sedang aktif sebagai staff
-  // (dan bukan super admin), perannya dikembalikan menjadi santri.
+  // Hapus dari daftar admin; bila akunnya aktif sebagai staff (bukan super),
+  // perannya dikembalikan menjadi santri.
   async removeAdminEmail(email) {
     const e = norm(email);
     const { error } = await supabase
@@ -98,7 +114,6 @@ export const profileService = {
 
   // ---------- Manajemen akun & orang (divalidasi di database) ----------
 
-  // Lepas akun dari nama → nama kembali bisa diklaim. Riwayat tetap utuh.
   async adminResetClaim(profileId) {
     const { error } = await supabase.rpc("admin_reset_claim", {
       p_profile_id: profileId,
@@ -106,7 +121,6 @@ export const profileService = {
     if (error) throw error;
   },
 
-  // Hapus akun auth (email + sandi). Profil & riwayat tetap ada.
   async adminDeleteAccount(profileId) {
     const { error } = await supabase.rpc("admin_delete_auth_account", {
       p_profile_id: profileId,
@@ -114,7 +128,6 @@ export const profileService = {
     if (error) throw error;
   },
 
-  // Hapus permanen profil santri — hanya lolos jika belum punya riwayat.
   async adminDeleteSantri(profileId) {
     const { error } = await supabase.rpc("admin_delete_santri", {
       p_profile_id: profileId,

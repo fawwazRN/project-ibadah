@@ -7,12 +7,13 @@ import {
   KeyRound,
   ShieldAlert,
   Mail,
+  Plus,
 } from "lucide-react";
 import { Card } from "../../components/ui/Card";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
-import { Input, Select } from "../../components/ui/Field";
+import { Field, Input, Select } from "../../components/ui/Field";
 import { Modal } from "../../components/ui/Modal";
 import { TableWrap, Table, Th, Td, Tr } from "../../components/ui/Table";
 import { Avatar } from "../../components/ui/Avatar";
@@ -27,7 +28,7 @@ import { useConfirm } from "../../context/ConfirmContext";
 import { violationService } from "../../services/violationService";
 import { reportService } from "../../services/reportService";
 import { profileService } from "../../services/profileService";
-import { OPEN_STATUSES, sumPoints, fmtNum } from "../../lib/calc";
+import { OPEN_STATUSES, fmtNum } from "../../lib/calc";
 import { fmtDate } from "../../lib/date";
 
 export default function SantriManagement() {
@@ -42,6 +43,12 @@ export default function SantriManagement() {
   const [fClass, setFClass] = useState("");
   const [detail, setDetail] = useState(null);
   const [busy, setBusy] = useState(false);
+
+  // Tambah santri
+  const [addOpen, setAddOpen] = useState(false);
+  const [form, setForm] = useState({ full_name: "", class_name: "", nis: "" });
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(() => {
     setError(null);
@@ -59,7 +66,6 @@ export default function SantriManagement() {
   }, []);
   useEffect(load, [load]);
 
-  // Ringkasan per santri: total riwayat, pelanggaran aktif, poin aktif, laporan berjalan
   const perSantri = useMemo(() => {
     const m = {};
     for (const s of santri ?? [])
@@ -80,11 +86,56 @@ export default function SantriManagement() {
     return m;
   }, [santri, violations, reports]);
 
-  // ---------- Aksi kelola akun / orang ----------
+  // ---------- Tambah santri ----------
+  const existingClasses = useMemo(
+    () =>
+      [
+        ...new Set((santri ?? []).map((s) => s.class_name).filter(Boolean)),
+      ].sort(),
+    [santri],
+  );
+
+  const openAdd = () => {
+    setForm({ full_name: "", class_name: existingClasses[0] ?? "", nis: "" });
+    setErrors({});
+    setAddOpen(true);
+  };
+
+  const submitAdd = async () => {
+    const errs = {};
+    if (form.full_name.trim().length < 3)
+      errs.full_name = "Nama minimal 3 karakter.";
+    if (!form.class_name.trim()) errs.class_name = "Kelas wajib diisi.";
+    if (form.nis && !/^\d+$/.test(form.nis.trim()))
+      errs.nis = "NIS hanya angka (boleh dikosongkan).";
+    setErrors(errs);
+    if (Object.keys(errs).length) return;
+    setSaving(true);
+    try {
+      await profileService.addSantri({
+        full_name: form.full_name.trim(),
+        class_name: form.class_name.trim(),
+        nis: form.nis.trim() || null,
+      });
+      push(
+        "success",
+        "Santri ditambahkan",
+        `${form.full_name.trim()} kini bisa diklaim di halaman Pilih Nama.`,
+      );
+      setAddOpen(false);
+      load();
+    } catch (e) {
+      push("error", "Gagal menambah santri", e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ---------- Kelola akun / orang ----------
   const resetClaim = async (s) => {
     const ok = await confirm({
       title: "Reset klaim profil?",
-      message: `Akun ${s.email} akan diputuskan dari nama “${s.full_name}”. Nama ini kembali bisa dipilih (diklaim) oleh akun mana pun. Riwayat pelanggaran & laporan tetap tersimpan di nama ini.`,
+      message: `Akun ${s.email} akan diputuskan dari nama “${s.full_name}”. Nama ini kembali bisa dipilih. Riwayat tetap tersimpan.`,
       confirmText: "Ya, reset klaim",
       tone: "danger",
     });
@@ -109,7 +160,7 @@ export default function SantriManagement() {
   const deleteAccount = async (s) => {
     const ok = await confirm({
       title: "Hapus akun (email & sandi)?",
-      message: `Akun ${s.email} akan dihapus permanen dari sistem autentikasi. Profil “${s.full_name}” dan seluruh riwayatnya TETAP ada, lalu nama ini bisa diklaim lagi. Orang tersebut bisa mendaftar ulang kapan pun.`,
+      message: `Akun ${s.email} dihapus permanen dari autentikasi. Profil “${s.full_name}” dan riwayatnya TETAP ada, nama ini bisa diklaim lagi.`,
       confirmText: "Ya, hapus akun",
       tone: "danger",
     });
@@ -134,7 +185,7 @@ export default function SantriManagement() {
   const deleteSantri = async (s) => {
     const ok = await confirm({
       title: "Hapus permanen profil santri?",
-      message: `“${s.full_name}” akan dihapus dari daftar nama sekolah. Hanya bisa dilakukan karena santri ini belum punya riwayat apa pun. Tindakan ini tidak bisa dibatalkan.`,
+      message: `“${s.full_name}” dihapus dari daftar nama. Hanya bisa karena belum punya riwayat apa pun.`,
       confirmText: "Ya, hapus permanen",
       tone: "danger",
     });
@@ -180,6 +231,11 @@ export default function SantriManagement() {
       <PageHeader
         title="Data Santri"
         description={`${santri.length} santri terdaftar beserta ringkasan kondisi ibadahnya.`}
+        actions={
+          <Button variant="primary" icon={Plus} onClick={openAdd}>
+            Tambah Santri
+          </Button>
+        }
       />
 
       <div className="flex flex-wrap gap-2 mb-4">
@@ -287,6 +343,70 @@ export default function SantriManagement() {
         )}
       </Card>
 
+      {/* ---------- Modal: Tambah Santri ---------- */}
+      <Modal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        title="Tambah Santri"
+        size="sm">
+        <div className="space-y-4">
+          <Field label="Nama lengkap" required error={errors.full_name}>
+            <Input
+              value={form.full_name}
+              autoFocus
+              onChange={(e) =>
+                setForm((f) => ({ ...f, full_name: e.target.value }))
+              }
+              placeholder="Mis. Rafif Alghani"
+            />
+          </Field>
+          <Field
+            label="Kelas"
+            required
+            error={errors.class_name}
+            hint="Pilih dari daftar yang ada, atau ketik kelas baru.">
+            <Input
+              list="kelas-list"
+              value={form.class_name}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, class_name: e.target.value }))
+              }
+              placeholder="Mis. 10-Qolun"
+            />
+            <datalist id="kelas-list">
+              {existingClasses.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+          </Field>
+          <Field
+            label="NIS (opsional)"
+            error={errors.nis}
+            hint="Kalau diisi, klaim nama tidak butuh konfirmasi tambahan.">
+            <Input
+              value={form.nis}
+              inputMode="numeric"
+              onChange={(e) => setForm((f) => ({ ...f, nis: e.target.value }))}
+              placeholder="Mis. 5261200"
+            />
+          </Field>
+          <p className="text-[11px] text-slate-600 leading-relaxed">
+            Santri baru langsung muncul di halaman{" "}
+            <span className="font-medium text-slate-400">Pilih Nama</span> dan
+            bisa diklaim oleh akunnya.
+          </p>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button variant="ghost" onClick={() => setAddOpen(false)}>
+              Batal
+            </Button>
+            <Button variant="primary" loading={saving} onClick={submitAdd}>
+              Tambahkan
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ---------- Modal: Kelola santri ---------- */}
       <Modal
         open={!!detail}
         onClose={() => setDetail(null)}
@@ -294,7 +414,6 @@ export default function SantriManagement() {
         size="lg">
         {detail && detailStats && (
           <div className="space-y-5">
-            {/* Identitas */}
             <div className="flex items-center gap-3">
               <Avatar name={detail.full_name} size="md" />
               <div>
@@ -307,7 +426,6 @@ export default function SantriManagement() {
               </div>
             </div>
 
-            {/* Ringkasan */}
             <div className="gap-2 grid grid-cols-3 text-center">
               <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
                 <p className="text-[10px] text-slate-500 uppercase tracking-wider">
@@ -335,7 +453,6 @@ export default function SantriManagement() {
               </div>
             </div>
 
-            {/* Kelola akun */}
             <div className="bg-white/[0.02] p-4 border border-white/[0.06] rounded-xl">
               <p className="mb-1 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
                 Kelola Akun
@@ -371,12 +488,11 @@ export default function SantriManagement() {
                     <span className="font-medium text-slate-500">
                       Reset Klaim
                     </span>{" "}
-                    = lepas akun dari nama ini (nama bisa dipilih lagi).{" "}
+                    = lepas akun dari nama ini.{" "}
                     <span className="font-medium text-slate-500">
                       Hapus Akun
                     </span>{" "}
-                    = hapus email &amp; sandi dari sistem; profil &amp; riwayat
-                    tetap ada.
+                    = hapus email &amp; sandi; profil &amp; riwayat tetap ada.
                   </p>
                 </>
               ) : (
@@ -390,7 +506,6 @@ export default function SantriManagement() {
               )}
             </div>
 
-            {/* Hapus profil (hanya jika bersih) */}
             {detailStats.total === 0 && detailStats.pending === 0 && (
               <div className="bg-rose-500/[0.04] p-4 border border-rose-400/15 rounded-xl">
                 <p className="flex items-center gap-1.5 mb-1 font-semibold text-[11px] text-rose-300 uppercase tracking-wider">
@@ -398,7 +513,7 @@ export default function SantriManagement() {
                 </p>
                 <p className="mb-3 text-slate-500 text-xs">
                   Santri ini belum punya riwayat apa pun, jadi profilnya boleh
-                  dihapus permanen dari daftar nama.
+                  dihapus permanen.
                 </p>
                 <Button
                   size="sm"
@@ -411,17 +526,12 @@ export default function SantriManagement() {
               </div>
             )}
 
-            {/* Riwayat */}
             <div>
               <p className="mb-2 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
                 Riwayat Pelanggaran ({detailViolations.length})
               </p>
               {detailViolations.length === 0 ? (
-                <EmptyState
-                  icon={Users}
-                  title="Belum ada pelanggaran"
-                  description="Santri ini bersih dari catatan pelanggaran."
-                />
+                <EmptyState icon={Users} title="Belum ada pelanggaran" />
               ) : (
                 <ul className="border border-white/[0.06] rounded-xl divide-y divide-white/[0.04]">
                   {detailViolations.map((v) => (
