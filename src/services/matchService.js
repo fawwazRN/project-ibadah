@@ -2,6 +2,9 @@ import { supabase } from "../lib/supabaseClient";
 import { auditService } from "./auditService";
 
 export const matchService = {
+  // ================= BACA =================
+
+  // Daftar pertandingan musim (via RPC security definer — nama tim ikut)
   async list(seasonId, status = null) {
     const { data, error } = await supabase.rpc("list_matches", {
       p_season_id: seasonId,
@@ -10,6 +13,7 @@ export const matchService = {
     if (error) throw error;
     return data;
   },
+
   async detail(matchId) {
     const { data, error } = await supabase.rpc("get_match_detail", {
       p_match_id: matchId,
@@ -17,6 +21,8 @@ export const matchService = {
     if (error) throw error;
     return data?.[0] ?? null;
   },
+
+  // Kelayakan pemain kedua tim (suspended + alasannya)
   async eligibility(matchId) {
     const { data, error } = await supabase.rpc("get_match_eligibility", {
       p_match_id: matchId,
@@ -24,6 +30,7 @@ export const matchService = {
     if (error) throw error;
     return data;
   },
+
   async events(matchId) {
     const { data, error } = await supabase.rpc("list_match_events", {
       p_match_id: matchId,
@@ -31,6 +38,19 @@ export const matchService = {
     if (error) throw error;
     return data;
   },
+
+  // Pelanggaran ranah Riyadhah pada pekan madrasah (Jumat–Kamis)
+  // TEPAT SEBELUM pekan tanggal laga — utk kedua tim yang bertanding
+  async matchWeekViolations(matchId) {
+    const { data, error } = await supabase.rpc("get_match_week_violations", {
+      p_match_id: matchId,
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  // ================= EVENT =================
+
   async addEvent(matchId, teamId, playerId, eventType, minute, note) {
     const { error } = await supabase
       .from("match_events")
@@ -45,6 +65,7 @@ export const matchService = {
     if (error) throw error;
     await auditService.log("match_event_added", "match", matchId, eventType);
   },
+
   async removeEvent(matchId, eventId) {
     const { error } = await supabase
       .from("match_events")
@@ -54,7 +75,9 @@ export const matchService = {
     await auditService.log("match_event_removed", "match", matchId, null);
   },
 
-  // Buat pertandingan MANUAL (tanpa skor) → status 'scheduled'
+  // ================= BUAT =================
+
+  // Buat pertandingan MANUAL oleh Riyadhah (tanpa skor) → status 'scheduled'
   async createFixture({
     phase_id,
     season_id,
@@ -123,6 +146,8 @@ export const matchService = {
     return data;
   },
 
+  // ================= HASIL & STATUS =================
+
   async setResult(matchId, homeScore, awayScore, notes, asDraft = false) {
     const { error } = await supabase.rpc("set_match_result", {
       p_match_id: matchId,
@@ -133,6 +158,7 @@ export const matchService = {
     });
     if (error) throw error;
   },
+
   async transition(matchId, action) {
     const { error } = await supabase.rpc("transition_match", {
       p_match_id: matchId,
@@ -141,6 +167,9 @@ export const matchService = {
     if (error) throw error;
   },
 
+  // ================= STATISTIK =================
+
+  // Gol/kartu/kehadiran per pemain — dari laga resmi
   async playerStats(seasonId) {
     const { data, error } = await supabase.rpc("get_player_stats", {
       p_season_id: seasonId,
@@ -148,6 +177,8 @@ export const matchService = {
     if (error) throw error;
     return data;
   },
+
+  // Laga/kebobolan/clean sheet per kiper — dari laga resmi
   async goalkeeperStats(seasonId) {
     const { data, error } = await supabase.rpc("get_goalkeeper_stats", {
       p_season_id: seasonId,
