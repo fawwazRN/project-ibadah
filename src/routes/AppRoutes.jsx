@@ -9,6 +9,8 @@ import LoginPage from "../pages/auth/LoginPage";
 import ClaimPage from "../pages/auth/ClaimPage";
 import GuestLayout from "../pages/auth/GuestLayout";
 import GuestDashboard from "../pages/auth/GuestDashboard";
+import GuestIbadahPage from "../pages/auth/GuestIbadahPage";
+import GuestLeaderboardPage from "../pages/auth/GuestLeaderboardPage";
 
 // ---------- Santri ----------
 import SantriDashboard from "../pages/santri/SantriDashboard";
