@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Eye, History, Trash2 } from "lucide-react";
+import { Eye, History, Trash2, Flag, CalendarDays } from "lucide-react";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Badge } from "../../components/ui/Badge";
@@ -20,7 +20,11 @@ import {
   RedButton,
 } from "../../components/ui/StatChips";
 import { useToast } from "../../hooks/useToast";
-import { MATCH_STATUS_LABELS, MATCH_STATUS_TONES } from "../../lib/constants";
+import {
+  MATCH_STATUS_LABELS,
+  MATCH_STATUS_TONES,
+  VIOLATION_STATUS_LABELS,
+} from "../../lib/constants";
 import { leagueService } from "../../services/leagueService";
 import { matchService } from "../../services/matchService";
 import { fmtDate } from "../../lib/date";
@@ -61,7 +65,7 @@ export default function MatchesPage() {
     <div className="animate-fade-up">
       <PageHeader
         title="Kelola Pertandingan"
-        description="Entri hasil historis, verifikasi, dan catat event gol/kartu per pemain."
+        description="Entri hasil historis, verifikasi, catat event, dan pantau pelanggaran pekan sebelum tiap laga."
         actions={
           <Button
             variant="primary"
@@ -346,7 +350,7 @@ function HistoricalModal({ open, onClose, phases, currentSeason, onSaved }) {
   );
 }
 
-// ================= Modal: detail + event =================
+// ================= Modal: detail =================
 function MatchDetailModal({ match, onClose }) {
   const [detail, setDetail] = useState(null);
   const [events, setEvents] = useState([]);
@@ -377,10 +381,19 @@ function MatchDetailModal({ match, onClose }) {
               </span>{" "}
               {detail.away_name}
             </p>
-            <Badge tone={MATCH_STATUS_TONES[detail.status]}>
-              {MATCH_STATUS_LABELS[detail.status]}
-            </Badge>
+            <div className="flex items-center gap-2">
+              {detail.scheduled_at && (
+                <span className="flex items-center gap-1 text-slate-500 text-xs">
+                  <CalendarDays size={12} /> {fmtDate(detail.scheduled_at)}
+                </span>
+              )}
+              <Badge tone={MATCH_STATUS_TONES[detail.status]}>
+                {MATCH_STATUS_LABELS[detail.status]}
+              </Badge>
+            </div>
           </div>
+
+          <WeekViolationsPanel match={detail} />
 
           <EventPanel match={detail} events={events} onChanged={reloadEvents} />
 
@@ -399,6 +412,109 @@ function MatchDetailModal({ match, onClose }) {
         </div>
       )}
     </Modal>
+  );
+}
+
+// ================= Panel: pelanggaran riyadhah pekan SEBELUM laga =================
+// Rentang = pekan madrasah (Jumat–Kamis) TEPAT SEBELUM pekan tanggal laga.
+// Contoh: laga Sab 26 Sep → pelanggaran Jumat 18 – Kamis 24 Sep.
+function WeekViolationsPanel({ match }) {
+  const [rows, setRows] = useState(null);
+
+  useEffect(() => {
+    matchService
+      .matchWeekViolations(match.id)
+      .then(setRows)
+      .catch(() => setRows([]));
+  }, [match.id]);
+
+  // Label pekan (client): Jumat pembuka pekan tanggal laga, mundur 7 hari
+  const ref = match.scheduled_at ? new Date(match.scheduled_at) : new Date();
+  const start = new Date(ref);
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - ((start.getDay() + 2) % 7) - 7); // -7 → pekan sebelum pekan laga
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const wkLabel = `${fmtDate(start)} — ${fmtDate(end)}`;
+
+  const byTeam = {};
+  for (const r of rows ?? []) {
+    if (!byTeam[r.team_name]) byTeam[r.team_name] = [];
+    byTeam[r.team_name].push(r);
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
+        <p className="font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+          Pelanggaran Riyadhah — Pekan Sebelum Laga
+        </p>
+        <Badge tone="sky">
+          <CalendarDays size={11} /> {wkLabel}
+        </Badge>
+      </div>
+
+      {!rows ? (
+        <LoadingState rows={2} />
+      ) : (
+        <>
+          {rows.length === 0 ? (
+            <p className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl text-slate-500 text-xs italic">
+              Bersih — tidak ada pelanggaran ranah Riyadhah pada pekan sebelum
+              laga untuk kedua tim.
+            </p>
+          ) : (
+            <div className="gap-3 grid sm:grid-cols-2">
+              {Object.entries(byTeam).map(([tn, list]) => (
+                <div
+                  key={tn}
+                  className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
+                  <p className="mb-1.5 font-semibold text-slate-200 text-sm">
+                    {tn}
+                  </p>
+                  <ul className="space-y-1.5">
+                    {list.map((v) => (
+                      <li
+                        key={v.occurred_at + v.student_id}
+                        className="flex items-center gap-2 text-xs">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-slate-200 truncate">
+                            {v.full_name}
+                            <span className="ml-1.5 text-[10px] text-slate-500">
+                              {v.class_name}
+                            </span>
+                          </p>
+                          <p className="text-[10px] text-slate-500 truncate">
+                            {v.rule_name} · {fmtDate(v.occurred_at)}
+                          </p>
+                        </div>
+                        {v.points > 0 && <Badge tone="rose">+{v.points}</Badge>}
+                        <Badge
+                          tone={
+                            v.status === "active"
+                              ? "amber"
+                              : v.status === "confirmed"
+                                ? "rose"
+                                : "neutral"
+                          }>
+                          {VIOLATION_STATUS_LABELS[v.status] ?? v.status}
+                        </Badge>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="mt-2 text-[10px] text-slate-600 leading-relaxed">
+            Rentang = pekan madrasah (Jumat–Kamis) tepat SEBELUM pekan tanggal
+            laga — pelanggaran pekan ini yang menjadi dasar penilaian untuk
+            laga. Status Terbukti dengan aturan ber-suspensi otomatis membuat
+            pemain terkunci — lihat Kelayakan Pemain di bawah.
+          </p>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -553,7 +669,6 @@ function EventPanel({ match, events, onChanged }) {
         </div>
       )}
 
-      {/* Daftar event tercatat */}
       <div className="mt-3">
         <p className="mb-1.5 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
           Tercatat ({events.length})
@@ -583,11 +698,6 @@ function EventPanel({ match, events, onChanged }) {
             ))}
           </ul>
         )}
-        <p className="mt-2 text-[10px] text-slate-600 leading-relaxed">
-          Statistik pemain &amp; klasemen hanya dihitung dari pertandingan
-          berstatus <span className="font-medium text-slate-400">Resmi</span>.
-          Skor akhir tetap diisi lewat “Input Hasil”.
-        </p>
       </div>
     </div>
   );
