@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Flag, Plus, CheckCheck } from "lucide-react";
+import { Flag, Plus, CheckCheck, Ban } from "lucide-react";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Badge } from "../../components/ui/Badge";
@@ -35,7 +35,7 @@ export default function RiyadhahViolationsPage() {
   const [fStatus, setFStatus] = useState("active");
   const [error, setError] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [busyId, setBusyId] = useState(null);
 
   const load = useCallback(() => {
     setError(null);
@@ -48,7 +48,6 @@ export default function RiyadhahViolationsPage() {
   }, []);
   useEffect(load, [load]);
 
-  // Konfirmasi = pemicu suspensi otomatis (trigger database)
   const confirmViolation = async (v) => {
     const rule = rules.find((r) => r.id === v.rule_id);
     const susp = rule?.creates_suspension;
@@ -61,7 +60,7 @@ export default function RiyadhahViolationsPage() {
       tone: "danger",
     });
     if (!ok) return;
-    setBusy(true);
+    setBusyId(v.id);
     try {
       await violationService.updateStatus(v.id, "confirmed");
       push(
@@ -75,17 +74,36 @@ export default function RiyadhahViolationsPage() {
     } catch (e) {
       push("error", "Gagal", e.message);
     } finally {
-      setBusy(false);
+      setBusyId(null);
+    }
+  };
+
+  // Batalkan → status revoked; suspensi aktif otomatis dibatalkan oleh trigger
+  const revokeViolation = async (v) => {
+    const ok = await confirm({
+      title: "Batalkan pelanggaran?",
+      message: `“${v.rule?.name}” atas nama ${v.santri?.full_name} akan dibatalkan (status: Dibatalkan). Bila sudah ada suspensi aktif dari pelanggaran ini, suspensinya OTOMATIS dibatalkan dan pemain bisa bermain lagi. Riwayat tetap tersimpan.`,
+      confirmText: "Ya, batalkan",
+      tone: "danger",
+    });
+    if (!ok) return;
+    setBusyId(v.id);
+    try {
+      await violationService.updateStatus(v.id, "revoked");
+      push("success", "Pelanggaran dibatalkan", v.santri?.full_name);
+      load();
+    } catch (e) {
+      push("error", "Gagal membatalkan", e.message);
+    } finally {
+      setBusyId(null);
     }
   };
 
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!violations) return <LoadingState rows={8} />;
 
-  // ---------- FILTER SCOPE: hanya pelanggaran ranah Riyadhah ----------
   const scoped = violations.filter((v) => v.rule?.scope === "riyadhah");
   const list = fStatus ? scoped.filter((v) => v.status === fStatus) : scoped;
-
   const suspendedRules = new Set(
     rules.filter((r) => r.creates_suspension).map((r) => r.id),
   );
@@ -94,7 +112,7 @@ export default function RiyadhahViolationsPage() {
     <div className="animate-fade-up">
       <PageHeader
         title="Pelanggaran & Suspensi"
-        description="Catat pelanggaran ranah Qism Riyadhah. Pelanggaran yang dikonfirmasi dengan aturan ber-suspensi otomatis melarang pemain bermain."
+        description="Catat pelanggaran ranah Qism Riyadhah. Konfirmasi = pemicu suspensi otomatis. Batalkan = pemain bebas kembali (suspensinya ikut dicabut otomatis)."
         actions={
           <Button
             variant="primary"
@@ -123,7 +141,7 @@ export default function RiyadhahViolationsPage() {
       <Card>
         <CardHeader
           title="Daftar Pelanggaran"
-          description={`${list.length} catatan${fStatus ? "" : ` (ranah Qism Riyadhah)`}`}
+          description={`${list.length} catatan`}
         />
         {list.length === 0 ? (
           <EmptyState
@@ -171,16 +189,38 @@ export default function RiyadhahViolationsPage() {
                       <ViolationStatusBadge status={v.status} />
                     </Td>
                     <Td className="text-right">
-                      {v.status === "active" && (
-                        <Button
-                          size="sm"
-                          variant="dangerSoft"
-                          icon={CheckCheck}
-                          loading={busy}
-                          onClick={() => confirmViolation(v)}>
-                          Konfirmasi
-                        </Button>
-                      )}
+                      <div className="flex justify-end gap-2">
+                        {v.status === "active" && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="dangerSoft"
+                              icon={CheckCheck}
+                              loading={busyId === v.id}
+                              onClick={() => confirmViolation(v)}>
+                              Konfirmasi
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              icon={Ban}
+                              loading={busyId === v.id}
+                              onClick={() => revokeViolation(v)}>
+                              Batalkan
+                            </Button>
+                          </>
+                        )}
+                        {v.status === "confirmed" && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            icon={Ban}
+                            loading={busyId === v.id}
+                            onClick={() => revokeViolation(v)}>
+                            Batalkan
+                          </Button>
+                        )}
+                      </div>
                     </Td>
                   </Tr>
                 ))}
@@ -190,7 +230,7 @@ export default function RiyadhahViolationsPage() {
         )}
       </Card>
 
-      {/* Form terkunci ke aturan scope riyadhah + input jam (bukan waktu shalat) */}
+      {/* Form terkunci ke aturan scope riyadhah + input jam */}
       <ViolationFormModal
         open={formOpen}
         scope="riyadhah"
