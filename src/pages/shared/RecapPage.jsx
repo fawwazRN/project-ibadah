@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { FileBarChart, Printer } from "lucide-react";
+import { FileBarChart, Printer, SlidersHorizontal } from "lucide-react";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { StatCard } from "../../components/ui/StatCard";
@@ -15,6 +15,10 @@ import {
 } from "../../components/ui/States";
 import { ViolationStatusBadge } from "../../components/violations/StatusBadge";
 import { AreaPerDay } from "../../components/dashboard/Charts";
+import PrintOptionsModal, {
+  IBADAH_SECTIONS,
+  loadPrintOptions,
+} from "../../components/recap/PrintOptionsModal";
 import PrintReport from "../../components/recap/PrintReport";
 import { violationService } from "../../services/violationService";
 import { reportService } from "../../services/reportService";
@@ -26,6 +30,7 @@ import { rangeForPreset, inRange, fmtDate } from "../../lib/date";
 const PRESETS = [
   { key: "today", label: "Hari ini" },
   { key: "week", label: "Pekan ini (Jumat–Kamis)" },
+  { key: "prev_week", label: "Pekan lalu" },
   { key: "month", label: "Bulan ini" },
   { key: "custom", label: "Rentang kustom" },
 ];
@@ -36,13 +41,14 @@ export default function RecapPage({ role }) {
   const [reports, setReports] = useState([]);
   const [rules, setRules] = useState([]);
   const [santriList, setSantriList] = useState([]);
-  const [preset, setPreset] = useState("month");
+  const [preset, setPreset] = useState("week");
   const [custom, setCustom] = useState({ from: "", to: "" });
   const [fRule, setFRule] = useState("");
   const [fClass, setFClass] = useState("");
   const [fSantri, setFSantri] = useState("");
   const [error, setError] = useState(null);
-  const [pendingPrint, setPendingPrint] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [printSections, setPrintSections] = useState(null); // null = belum dipilih → pakai preferensi tersimpan
 
   const load = useCallback(() => {
     setError(null);
@@ -62,23 +68,33 @@ export default function RecapPage({ role }) {
   }, [isOsis]);
   useEffect(load, [load]);
 
-  // Jalankan dialog cetak setelah render terbaru (dengan preset/filter terbaru) tampil
+  // Cetak: pakai preferensi tersimpan; kalau belum pernah atur → buka dialog dulu
+  const [pendingPrint, setPendingPrint] = useState(false);
   useEffect(() => {
     if (!pendingPrint) return;
-    const t = setTimeout(() => {
-      window.print();
-      setPendingPrint(false);
-    }, 150);
-    return () => clearTimeout(t);
+    const saved = loadPrintOptions("ibadah");
+    if (saved) {
+      setPrintSections(Object.keys(saved).filter((k) => saved[k]));
+      const t = setTimeout(() => {
+        window.print();
+        setPendingPrint(false);
+      }, 150);
+      return () => clearTimeout(t);
+    }
+    setPendingPrint(false);
+    setOptionsOpen(true);
   }, [pendingPrint]);
+
+  const handlePrintWithSections = (sections) => {
+    setPrintSections(sections);
+    setTimeout(() => window.print(), 150);
+  };
 
   const range = useMemo(
     () => rangeForPreset(preset, custom.from, custom.to),
     [preset, custom],
   );
 
-  // PENTING: pelanggaran berstatus 'revoked' (klarifikasi diterima / dibatalkan
-  // admin) TIDAK dihitung sama sekali dalam rekap — angka, grafik, tabel, print.
   const fv = useMemo(
     () =>
       (violations ?? []).filter(
@@ -129,25 +145,20 @@ export default function RecapPage({ role }) {
     <div className="space-y-5 animate-fade-up">
       <PageHeader
         title="Rekap"
-        description={`Ringkasan periode ${rangeLabel}${preset === "week" ? " · pekan Jumat–Kamis" : ""}. Pelanggaran yang dibatalkan (klarifikasi diterima) tidak dihitung.`}
+        description={`Ringkasan periode ${rangeLabel}${["week", "prev_week"].includes(preset) ? " · pekan Jumat–Kamis" : ""}. Pelanggaran yang dibatalkan tidak dihitung.`}
         actions={
           <>
             <Button
               variant="secondary"
-              icon={Printer}
-              disabled={!violations}
-              onClick={() => setPendingPrint(true)}>
-              Cetak Filter Ini
+              icon={SlidersHorizontal}
+              onClick={() => setOptionsOpen(true)}>
+              Atur Isi Laporan
             </Button>
             <Button
               variant="primary"
               icon={Printer}
-              disabled={!violations}
-              onClick={() => {
-                setPreset("week");
-                setPendingPrint(true);
-              }}>
-              Cetak Rekap Mingguan
+              onClick={() => setPendingPrint(true)}>
+              Cetak
             </Button>
           </>
         }
@@ -353,7 +364,6 @@ export default function RecapPage({ role }) {
         )}
       </Card>
 
-      {/* Dokumen cetak — di luar layout (portal ke body), hanya tampil saat print */}
       {createPortal(
         <div className="print-only">
           <PrintReport
@@ -363,10 +373,19 @@ export default function RecapPage({ role }) {
             violations={fv}
             reports={fr}
             isOsis={isOsis}
+            sections={printSections}
           />
         </div>,
         document.body,
       )}
+
+      <PrintOptionsModal
+        open={optionsOpen}
+        onClose={() => setOptionsOpen(false)}
+        module="ibadah"
+        sections={IBADAH_SECTIONS}
+        onPrint={handlePrintWithSections}
+      />
     </div>
   );
 }

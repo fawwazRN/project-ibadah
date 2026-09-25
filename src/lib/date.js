@@ -18,9 +18,20 @@ export const startOfWeek = (d = new Date()) => {
   x.setDate(x.getDate() - ((x.getDay() + 2) % 7)); // Jumat 00:00
   return x;
 };
-// Akhir pekan = Kamis 23:59:59 (Jumat + 6 hari)
 export const endOfWeek = (d = new Date()) => {
   const x = startOfWeek(d);
+  x.setDate(x.getDate() + 6);
+  return endOfDay(x); // Kamis 23:59:59
+};
+
+// Pekan dengan offset: 0 = pekan berjalan, 1 = pekan lalu, dst.
+export const weekStartWithOffset = (offset = 0) => {
+  const x = startOfWeek();
+  x.setDate(x.getDate() - offset * 7);
+  return x;
+};
+export const weekEndWithOffset = (offset = 0) => {
+  const x = weekStartWithOffset(offset);
   x.setDate(x.getDate() + 6);
   return endOfDay(x);
 };
@@ -33,7 +44,7 @@ export const startOfMonth = (d = new Date()) => {
 export const endOfMonth = (d = new Date()) => {
   const x = startOfMonth(d);
   x.setMonth(x.getMonth() + 1);
-  x.setDate(0); // hari terakhir bulan berjalan
+  x.setDate(0);
   return endOfDay(x);
 };
 export const daysAgo = (n) => {
@@ -50,14 +61,15 @@ const parseLocalDate = (s) => {
 
 export function rangeForPreset(preset, from, to) {
   if (preset === "today") return [startOfDay(), new Date()];
-  // Pekan & bulan dihitung PENUH sampai hari terakhirnya — penting untuk label
-  // laporan cetak (REKAP MINGGUAN = Jumat s.d. Kamis), walau datanya baru
-  // ada sampai hari ini. Tidak mempengaruhi kebenaran angka.
-  if (preset === "week") return [startOfWeek(), endOfWeek()];
+  // Pekan & bulan dihitung PENUH sampai hari terakhirnya — penting untuk
+  // label laporan cetak (REKAP MINGGUAN = Jumat s.d. Kamis).
+  if (preset === "week") return [weekStartWithOffset(0), weekEndWithOffset(0)];
+  if (preset === "prev_week")
+    return [weekStartWithOffset(1), weekEndWithOffset(1)];
   if (preset === "month") return [startOfMonth(), endOfMonth()];
   return [
     from ? startOfDay(parseLocalDate(from)) : daysAgo(7),
-    to ? endOfDay(parseLocalDate(to)) : new Date(), // "s.d." mencakup sehari penuh
+    to ? endOfDay(parseLocalDate(to)) : new Date(),
   ];
 }
 
