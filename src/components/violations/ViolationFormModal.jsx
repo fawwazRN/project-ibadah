@@ -22,6 +22,9 @@ const localToday = () => {
 };
 const localNowTime = () => new Date().toTimeString().slice(0, 5);
 
+// Satu-satunya komponen di file ini. scope menentukan:
+// - aturan apa saja yang tampil (filter scope)
+// - input waktu: ibadah = waktu shalat · riyadhah = jam
 export function ViolationFormModal({
   open,
   onClose,
@@ -89,7 +92,7 @@ export function ViolationFormModal({
     if (Object.keys(errs).length) return;
     setSaving(true);
     try {
-      // Ibadah → jam mengikuti acuan waktu shalat · Riyadhah → jam yang diinput petugas
+      // Ibadah → jam mengikuti acuan waktu shalat · Riyadhah → jam yang diinput
       const clock = isIbadah
         ? form.prayer_time
           ? PRAYER_CLOCK[form.prayer_time]
@@ -101,7 +104,7 @@ export function ViolationFormModal({
         santri_id: form.santri_id,
         rule_id: form.rule_id,
         occurred_at: occurredAt,
-        prayer_time: isIbadah ? form.prayer_time || null : null, // Riyadhah tanpa waktu shalat
+        prayer_time: isIbadah ? form.prayer_time || null : null,
         note: form.note,
         santri_name: selected.full_name,
         rule_name: rule.name,
@@ -205,7 +208,6 @@ export function ViolationFormModal({
             </Field>
 
             {isIbadah ? (
-              /* IBADAH: waktu shalat */
               <Field
                 label="Waktu Shalat (opsional)"
                 hint="Ketik di catatan (mis. “isya”) → terpilih otomatis.">
@@ -222,7 +224,6 @@ export function ViolationFormModal({
                 />
               </Field>
             ) : (
-              /* RIYADHAH: jam */
               <Field label="Waktu (jam)" required error={errors.violation_time}>
                 <Input
                   type="time"
@@ -241,7 +242,6 @@ export function ViolationFormModal({
               value={form.note}
               onChange={(e) => {
                 const note = e.target.value;
-                // Deteksi otomatis waktu shalat hanya untuk modul Ibadah
                 setForm((f) =>
                   isIbadah
                     ? {

@@ -78,7 +78,7 @@ export default function RiyadhahViolationsPage() {
     }
   };
 
-  // Batalkan → status revoked; suspensi aktif otomatis dibatalkan oleh trigger
+  // Batalkan → revoked; suspensi aktif otomatis dicabut oleh trigger database
   const revokeViolation = async (v) => {
     const ok = await confirm({
       title: "Batalkan pelanggaran?",
@@ -102,6 +102,7 @@ export default function RiyadhahViolationsPage() {
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!violations) return <LoadingState rows={8} />;
 
+  // Hanya pelanggaran ranah Riyadhah
   const scoped = violations.filter((v) => v.rule?.scope === "riyadhah");
   const list = fStatus ? scoped.filter((v) => v.status === fStatus) : scoped;
   const suspendedRules = new Set(
@@ -230,7 +231,6 @@ export default function RiyadhahViolationsPage() {
         )}
       </Card>
 
-      {/* Form terkunci ke aturan scope riyadhah + input jam */}
       <ViolationFormModal
         open={formOpen}
         scope="riyadhah"
