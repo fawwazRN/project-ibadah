@@ -33,9 +33,7 @@ export default function AdminManagement() {
   const { push } = useToast();
   const confirm = useConfirm();
 
-  // ---------- GUARD: hanya Super Admin ----------
-  if (profile?.role !== "super_admin") return <Navigate to="/admin" replace />;
-
+  // ================= SEMUA HOOKS DULU =================
   const [emails, setEmails] = useState(null);
   const [profiles, setProfiles] = useState([]);
   const [error, setError] = useState(null);
@@ -122,7 +120,10 @@ export default function AdminManagement() {
     }
   };
 
-  // ---------- Tampilan ----------
+  // ============ GUARD: SETELAH semua hooks ============
+  if (profile?.role !== "super_admin") return <Navigate to="/admin" replace />;
+
+  // ================= TAMPILAN =================
   return (
     <div className="max-w-4xl animate-fade-up">
       <PageHeader
