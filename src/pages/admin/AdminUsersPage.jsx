@@ -30,6 +30,7 @@ export default function AdminUsersPage() {
   const { push } = useToast();
   const confirm = useConfirm();
 
+  // ================= SEMUA HOOKS DULU =================
   const [profiles, setProfiles] = useState(null);
   const [q, setQ] = useState("");
   const [fRole, setFRole] = useState("");
@@ -51,6 +52,7 @@ export default function AdminUsersPage() {
   }, []);
   useEffect(load, [load]);
 
+  // useMemo SEBELUM early return — wajib, agar jumlah hook konsisten
   const counts = useMemo(
     () =>
       ROLES.reduce(
@@ -93,6 +95,7 @@ export default function AdminUsersPage() {
     }
   };
 
+  // ================= EARLY RETURN (setelah semua hooks) =================
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!profiles) return <LoadingState rows={8} />;
 
@@ -102,6 +105,7 @@ export default function AdminUsersPage() {
       (!fRole || p.role === fRole),
   );
 
+  // ================= TAMPILAN =================
   return (
     <div className="animate-fade-up">
       <PageHeader
@@ -109,7 +113,7 @@ export default function AdminUsersPage() {
         description="Tunjuk siapa yang Full Admin, Qism Ibadah saja, Qism Riyadhah saja, atau Santri biasa. Peran ditentukan di database (RPC + RLS), bukan di aplikasi."
       />
 
-      {/* Ringkasan per peran */}
+      {/* Filter per peran + pencarian */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
         {ROLES.map((r) => (
           <button
@@ -150,7 +154,8 @@ export default function AdminUsersPage() {
           description={`${list.length} profil`}
           actions={
             <Badge tone="violet">
-              <ShieldCheck size={11} /> Kamu: {ROLE_LABELS[profile?.role]}
+              <ShieldCheck size={11} /> Kamu:{" "}
+              {ROLE_LABELS[profile?.role] ?? "—"}
             </Badge>
           }
         />
