@@ -57,8 +57,9 @@ function NavList({ groups, onNavigate }) {
                 }>
                 {({ isActive }) => (
                   <>
+                    {/* Indikator nempel garis tepi sidebar (sama dengan guest) */}
                     {isActive && (
-                      <span className="top-1/2 left-0 absolute bg-brand rounded-full w-0.5 h-4 -translate-y-1/2" />
+                      <span className="top-1/2 -left-3 absolute bg-brand rounded-r-full w-1 h-5 -translate-y-1/2" />
                     )}
                     <it.icon
                       size={15}

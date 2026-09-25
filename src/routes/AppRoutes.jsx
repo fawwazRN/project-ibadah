@@ -7,6 +7,10 @@ import { BrandMark } from "../components/ui/BrandMark";
 // ---------- Auth ----------
 import LoginPage from "../pages/auth/LoginPage";
 import ClaimPage from "../pages/auth/ClaimPage";
+import GuestLayout from "../pages/auth/GuestLayout";
+import GuestDashboard from "../pages/auth/GuestDashboard";
+import GuestIbadahPage from "../pages/auth/GuestIbadahPage";
+import GuestLeaderboardPage from "../pages/auth/GuestLeaderboardPage";
 
 // ---------- Santri ----------
 import SantriDashboard from "../pages/santri/SantriDashboard";
@@ -16,6 +20,7 @@ import SantriTeamPage from "../pages/santri/SantriTeamPage";
 
 // ---------- Shared ----------
 import ZikirSchedulePage from "../pages/shared/ZikirSchedulePage";
+import GuestZikirPage from "../pages/shared/GuestZikirPage";
 import LeaderboardPage from "../pages/shared/LeaderboardPage";
 import LeaderboardDetailPage from "../pages/shared/LeaderboardDetailPage";
 import RecapPage from "../pages/shared/RecapPage";
@@ -27,7 +32,7 @@ import SantriManagement from "../pages/ibadah/SantriManagement";
 import ViolationsManagement from "../pages/ibadah/ViolationsManagement";
 import ReportsReview from "../pages/ibadah/ReportsReview";
 import RulesManagement from "../pages/ibadah/RulesManagement";
-import AdminManagement from "../pages/ibadah/AdminManagement";
+import AdminManagement from "../pages/admin/AdminManagement";
 import AuditLog from "../pages/ibadah/AuditLog";
 import RiyadhahSuspensionsPage from "../pages/riyadhah/RiyadhahSuspensionsPage";
 
@@ -72,22 +77,22 @@ function FullPageLoader() {
 }
 
 function ProtectedRoute() {
-  const { session, booting } = useAuth();
+  const { session, booting, isGuest } = useAuth();
   if (booting) return <FullPageLoader />;
-  if (!session) return <Navigate to="/auth/login" replace />;
+  if (!session && !isGuest) return <Navigate to="/auth/login" replace />;
   return <Outlet />;
 }
 
 function ClaimGate() {
-  const { session, profile, booting } = useAuth();
+  const { session, profile, booting, isGuest } = useAuth();
   if (booting) return <FullPageLoader />;
+  if (isGuest) return <Navigate to="/guest" replace />;
   if (!session) return <Navigate to="/auth/login" replace />;
   if (profile === undefined) return <FullPageLoader />;
   if (profile) return <Navigate to={homeFor(profile.role)} replace />;
   return <Outlet />;
 }
 
-// Pelindung peran — super_admin boleh masuk SEMUA area.
 function RoleRoute({ role }) {
   const { profile } = useAuth();
   if (profile === undefined) return <FullPageLoader />;
@@ -98,8 +103,9 @@ function RoleRoute({ role }) {
 }
 
 function RootRedirect() {
-  const { session, profile, booting } = useAuth();
+  const { session, profile, booting, isGuest } = useAuth();
   if (booting) return <FullPageLoader />;
+  if (isGuest) return <Navigate to="/guest" replace />;
   if (!session) return <Navigate to="/auth/login" replace />;
   if (profile === undefined) return <FullPageLoader />;
   if (!profile) return <Navigate to="/claim" replace />;
@@ -114,6 +120,15 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/auth/login" element={<LoginPage />} />
 
+      {/* ---------- MODE TAMU (tanpa login, read-only) ---------- */}
+      <Route element={<GuestLayout />}>
+        <Route path="/guest" element={<GuestDashboard />} />
+        <Route path="/guest/ibadah" element={<GuestIbadahPage />} />
+        <Route path="/guest/leaderboard" element={<GuestLeaderboardPage />} />
+        <Route path="/guest/zikir" element={<GuestZikirPage />} />
+      </Route>
+
+      {/* Pilih kelas & nama — untuk sesi yang belum terhubung profil */}
       <Route element={<ClaimGate />}>
         <Route path="/claim" element={<ClaimPage />} />
       </Route>
@@ -217,9 +232,8 @@ export default function AppRoutes() {
           {/* ---------------- SUPER ADMIN ---------------- */}
           <Route element={<RoleRoute role="super_admin" />}>
             <Route path="/admin" element={<AdminHome />} />
-
-            <Route path="/admin/admins" element={<AdminManagement />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
+            <Route path="/admin/admins" element={<AdminManagement />} />
             <Route path="/admin/audit" element={<AuditLog />} />
             <Route path="/admin/settings" element={<LeagueSettingsPage />} />
             <Route

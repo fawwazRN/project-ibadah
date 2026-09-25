@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Eye, History, Trash2, Target } from "lucide-react";
+import { Eye, History, Trash2 } from "lucide-react";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Badge } from "../../components/ui/Badge";
@@ -7,18 +7,20 @@ import { Button } from "../../components/ui/Button";
 import { Field, Input, Select, Textarea } from "../../components/ui/Field";
 import { Modal } from "../../components/ui/Modal";
 import { TableWrap, Table, Th, Td, Tr } from "../../components/ui/Table";
-import { Avatar } from "../../components/ui/Avatar";
 import {
   LoadingState,
   ErrorState,
   EmptyState,
 } from "../../components/ui/States";
-import { useToast } from "../../hooks/useToast";
 import {
-  MATCH_STATUS_LABELS,
-  MATCH_STATUS_TONES,
-  MATCH_EVENTS,
-} from "../../lib/constants";
+  GoalChip,
+  CardChips,
+  GoalButton,
+  YellowButton,
+  RedButton,
+} from "../../components/ui/StatChips";
+import { useToast } from "../../hooks/useToast";
+import { MATCH_STATUS_LABELS, MATCH_STATUS_TONES } from "../../lib/constants";
 import { leagueService } from "../../services/leagueService";
 import { matchService } from "../../services/matchService";
 import { fmtDate } from "../../lib/date";
@@ -414,7 +416,6 @@ function EventPanel({ match, events, onChanged }) {
       .catch(() => setElig([]));
   }, [match.id]);
 
-  // Hitung event per pemain (dari daftar event yang ada)
   const counts = {};
   for (const e of events) {
     const k = `${e.player_name}|${e.event_type}`;
@@ -469,9 +470,7 @@ function EventPanel({ match, events, onChanged }) {
       <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
         <p className="font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
           Event Pertandingan{" "}
-          <span className="text-slate-600">
-            (opsional — klik tombol per pemain)
-          </span>
+          <span className="text-slate-600">(klik tombol per pemain)</span>
         </p>
         <div className="flex items-center gap-2">
           <span className="text-slate-500 text-xs">Menit:</span>
@@ -503,6 +502,7 @@ function EventPanel({ match, events, onChanged }) {
                   const g = counts[`${p.full_name}|goal`] ?? 0;
                   const y = counts[`${p.full_name}|yellow`] ?? 0;
                   const r = counts[`${p.full_name}|red`] ?? 0;
+                  const hasStats = g > 0 || y > 0 || r > 0;
                   return (
                     <li
                       key={p.student_id}
@@ -513,42 +513,36 @@ function EventPanel({ match, events, onChanged }) {
                           {p.full_name}
                           {p.suspended && (
                             <span className="ml-1.5 text-rose-300">
-                              ⚠ Suspended
+                              Suspended
                             </span>
                           )}
                         </p>
-                        <p className="text-[10px] text-slate-500">
-                          {g > 0 && `⚽ ${g} `}
-                          {y > 0 && `🟨 ${y} `}
-                          {r > 0 && `🟥 ${r}`}
-                          {g === 0 && y === 0 && r === 0 && "—"}
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {g > 0 && <GoalChip n={g} short />}
+                          <CardChips yellow={y} red={r} />
+                          {!hasStats && (
+                            <span className="text-[10px] text-slate-600">
+                              —
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex gap-1 shrink-0">
-                        <button
-                          type="button"
+                        <GoalButton
                           disabled={busy || p.suspended}
                           onClick={() => add(p, "goal")}
                           title="Tambah gol"
-                          className="place-items-center grid bg-emerald-400/10 hover:bg-emerald-400/20 disabled:opacity-40 border border-emerald-400/25 rounded-md size-7 font-bold text-[11px] text-emerald-300 transition-colors">
-                          ⚽
-                        </button>
-                        <button
-                          type="button"
+                        />
+                        <YellowButton
                           disabled={busy || p.suspended}
                           onClick={() => add(p, "yellow")}
                           title="Kartu kuning"
-                          className="place-items-center grid bg-amber-400/10 hover:bg-amber-400/20 disabled:opacity-40 border border-amber-400/25 rounded-md size-7 font-bold text-[11px] text-amber-300 transition-colors">
-                          🟨
-                        </button>
-                        <button
-                          type="button"
+                        />
+                        <RedButton
                           disabled={busy || p.suspended}
                           onClick={() => add(p, "red")}
                           title="Kartu merah"
-                          className="place-items-center grid bg-rose-400/10 hover:bg-rose-400/20 disabled:opacity-40 border border-rose-400/25 rounded-md size-7 font-bold text-[11px] text-rose-300 transition-colors">
-                          🟥
-                        </button>
+                        />
                       </div>
                     </li>
                   );
@@ -635,7 +629,7 @@ function EligibilityPanel({ matchId }) {
                         }>
                         {e.full_name}{" "}
                         {e.suspended && (
-                          <span className="text-rose-300">⚠ Suspended</span>
+                          <span className="text-rose-300">Suspended</span>
                         )}
                       </span>
                       {e.suspended && (

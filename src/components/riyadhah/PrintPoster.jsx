@@ -2,7 +2,7 @@ import { BrandMark } from "../ui/BrandMark";
 import { fmtNum } from "../../lib/calc";
 import { fmtDate } from "../../lib/date";
 
-// Poster liga A4: jadwal pekan + klasemen + sanksi + top skor.
+// Poster liga A4: jadwal pekan + klasemen + top skor + sanksi.
 // Dirender via portal ke body; hanya tampil saat print (.print-only).
 export default function PrintPoster({
   ctx,
@@ -116,7 +116,7 @@ export default function PrintPoster({
         </table>
       </section>
 
-      {/* Top skor (bonus, bila ada data) */}
+      {/* Top skor (bila ada data) */}
       {scorers.length > 0 && (
         <section className="mt-6 break-inside-avoid">
           <h2 className="mb-2 pb-1 border-ink-900 border-b-2 font-display font-bold text-sm uppercase tracking-wider">
@@ -134,8 +134,9 @@ export default function PrintPoster({
                 <p className="text-[10px] text-slate-600 truncate">
                   {s.team_name}
                 </p>
-                <p className="font-display font-bold text-[13px]">
-                  ⚽ {s.goals}
+                <p className="flex justify-center items-center gap-1.5 font-display font-bold text-[13px]">
+                  <span className="bg-emerald-600 rounded-full size-1.5" />{" "}
+                  {s.goals} gol
                 </p>
               </div>
             ))}

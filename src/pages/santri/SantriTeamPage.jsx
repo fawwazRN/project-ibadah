@@ -19,6 +19,7 @@ import {
   ErrorState,
   EmptyState,
 } from "../../components/ui/States";
+import { GoalChip } from "../../components/ui/StatChips";
 import { MATCH_STATUS_LABELS, MATCH_STATUS_TONES } from "../../lib/constants";
 import { supabase } from "../../lib/supabaseClient";
 import { leagueService } from "../../services/leagueService";
@@ -29,7 +30,7 @@ import { StandingsTable } from "../riyadhah/RiyadhahDashboard";
 export default function SantriTeamPage() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const [openEvents, setOpenEvents] = useState({}); // match_id → events[]
+  const [openEvents, setOpenEvents] = useState({});
 
   const load = useCallback(() => {
     setError(null);
@@ -37,11 +38,10 @@ export default function SantriTeamPage() {
       const my = await supabase.rpc("get_santri_league");
       if (my.error) throw my.error;
       const ctx = await leagueService.getContext();
-      const [teams, matches, players, gks] = await Promise.all([
+      const [teams, matches, players] = await Promise.all([
         leagueService.listTeams(ctx.phase_id),
         matchService.list(ctx.season_id),
         matchService.playerStats(ctx.season_id),
-        matchService.goalkeeperStats(ctx.season_id),
       ]);
       const official = matches.filter((m) => m.status === "official");
       setData({
@@ -49,7 +49,6 @@ export default function SantriTeamPage() {
         ctx,
         standings: computeStandings(teams, official),
         scorers: (players ?? []).filter((p) => p.goals > 0).slice(0, 5),
-        topGK: (gks ?? [])[0] ?? null,
         matches,
       });
     })().catch((err) => setError(err.message));
@@ -131,7 +130,6 @@ export default function SantriTeamPage() {
         </Card>
       )}
 
-      {/* Klasemen tim */}
       <Card>
         <CardHeader
           title="Klasemen Liga"
@@ -140,74 +138,37 @@ export default function SantriTeamPage() {
         <StandingsTable rows={data.standings} compact />
       </Card>
 
-      <div className="gap-4 grid lg:grid-cols-2">
-        {/* Top skor */}
-        <Card>
-          <CardHeader
-            title="Top Skor"
-            description="Dari event gol laga resmi"
-            actions={<Trophy size={14} className="text-brand-soft" />}
-          />
-          {data.scorers.length === 0 ? (
-            <EmptyState icon={Target} title="Belum ada gol tercatat" />
-          ) : (
-            <ul className="divide-y divide-white/[0.04]">
-              {data.scorers.map((p, i) => (
-                <li
-                  key={p.student_id}
-                  className="flex items-center gap-3 px-5 py-2.5">
-                  <span className="w-5 font-mono text-slate-500 text-xs">
-                    {i + 1}
+      <Card>
+        <CardHeader
+          title="Top Skor"
+          description="Pencetak gol terbanyak musim ini"
+          actions={<Trophy size={14} className="text-brand-soft" />}
+        />
+        {data.scorers.length === 0 ? (
+          <EmptyState icon={Target} title="Belum ada gol tercatat" />
+        ) : (
+          <ul className="divide-y divide-white/[0.04]">
+            {data.scorers.map((p, i) => (
+              <li
+                key={p.student_id}
+                className="flex items-center gap-3 px-5 py-2.5">
+                <span className="w-5 font-mono text-slate-500 text-xs">
+                  {i + 1}
+                </span>
+                <Avatar name={p.full_name} size="sm" />
+                <p className="flex-1 min-w-0 text-slate-200 text-sm truncate">
+                  {p.full_name}
+                  <span className="ml-1.5 text-slate-500 text-xs">
+                    {p.team_name}
                   </span>
-                  <Avatar name={p.full_name} size="sm" />
-                  <p className="flex-1 min-w-0 text-slate-200 text-sm truncate">
-                    {p.full_name}
-                    <span className="ml-1.5 text-slate-500 text-xs">
-                      {p.team_name}
-                    </span>
-                  </p>
-                  <Badge tone="emerald">⚽ {p.goals}</Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+                </p>
+                <GoalChip n={p.goals} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
 
-        {/* Kiper terbaik (top 1) */}
-        <Card>
-          <CardHeader
-            title="Kiper Terbaik"
-            description="Peringkat 1 musim ini"
-            actions={<ShieldAlert size={14} className="text-sky-300" />}
-          />
-          {!data.topGK ? (
-            <EmptyState icon={ShieldAlert} title="Belum ada kiper terdaftar" />
-          ) : (
-            <div className="flex items-center gap-4 p-5">
-              <span className="place-items-center grid bg-sky-400/10 border border-sky-400/25 rounded-xl size-11 font-display font-bold text-sky-300 text-sm">
-                GK
-              </span>
-              <Avatar name={data.topGK.full_name} size="md" />
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-slate-100 text-sm truncate">
-                  {data.topGK.full_name}
-                </p>
-                <p className="text-slate-500 text-xs">{data.topGK.team_name}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider">
-                  Clean Sheet
-                </p>
-                <p className="font-display font-bold text-emerald-300 text-lg">
-                  {data.topGK.clean_sheets}
-                </p>
-              </div>
-            </div>
-          )}
-        </Card>
-      </div>
-
-      {/* Pertandingan tim + siapa yang mencetak gol */}
       <Card>
         <CardHeader
           title="Pertandingan Timku"

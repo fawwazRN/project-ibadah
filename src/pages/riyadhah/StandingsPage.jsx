@@ -9,6 +9,7 @@ import {
   ErrorState,
   EmptyState,
 } from "../../components/ui/States";
+import { GoalChip, CardChips } from "../../components/ui/StatChips";
 import { leagueService } from "../../services/leagueService";
 import { matchService } from "../../services/matchService";
 import { computeStandings } from "../../utils/standings";
@@ -44,8 +45,6 @@ const PODIUM = {
     lift: "",
   },
 };
-
-// Urutan render podium: Ke-2 | Juara (tengah, terangkat) | Ke-3
 const PODIUM_ORDER = [1, 0, 2];
 
 function Podium({ entries, renderValue, renderSub }) {
@@ -59,7 +58,6 @@ function Podium({ entries, renderValue, renderSub }) {
           <div
             key={e.student_id ?? e.team_id}
             className={`relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.025] ${m.ring} ${m.lift}`}>
-            {/* Angka besar di dalam kartu (watermark), tidak terpotong */}
             <span
               className={`pointer-events-none absolute bottom-1 right-3 select-none font-display text-6xl font-bold leading-none ${m.num}`}>
               {i + 1}
@@ -194,9 +192,8 @@ export default function StandingsPage() {
               renderSub={(e) => `${e.team_name} · ${e.appearances} laga`}
               renderValue={(e) => (
                 <div className="flex items-center gap-2">
-                  <Badge tone="emerald">⚽ {e.goals} gol</Badge>
-                  {e.yellow > 0 && <Badge tone="amber">🟨 {e.yellow}</Badge>}
-                  {e.red > 0 && <Badge tone="rose">🟥 {e.red}</Badge>}
+                  <GoalChip n={e.goals} />
+                  <CardChips yellow={e.yellow} red={e.red} />
                 </div>
               )}
             />
@@ -234,11 +231,8 @@ export default function StandingsPage() {
                           {p.team_name} · {p.class_name} · {p.appearances} laga
                         </p>
                       </div>
-                      <Badge tone="emerald">⚽ {p.goals}</Badge>
-                      {p.yellow > 0 && (
-                        <Badge tone="amber">🟨 {p.yellow}</Badge>
-                      )}
-                      {p.red > 0 && <Badge tone="rose">🟥 {p.red}</Badge>}
+                      <GoalChip n={p.goals} />
+                      <CardChips yellow={p.yellow} red={p.red} />
                     </li>
                   ))}
               </ul>

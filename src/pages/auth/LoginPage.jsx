@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { LogIn, UserPlus, MailCheck } from "lucide-react";
+import { LogIn, UserPlus, MailCheck, Eye } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../hooks/useToast";
 import { Button } from "../../components/ui/Button";
@@ -11,13 +11,14 @@ import { homeFor } from "../../routes/AppRoutes";
 const EMAIL_DOMAIN = "@student.abudzar.sch.id";
 
 // Email harus domain sekolah, KECUALI yang mengandung 'fawwaz'
+// (dan calon admin non-@student — divalidasi lagi di trigger database)
 const emailAllowed = (email) => {
   const v = email.toLowerCase();
   return v.includes("fawwaz") || v.endsWith(EMAIL_DOMAIN);
 };
 
 export default function LoginPage() {
-  const { session, profile, booting, signIn, signUp } = useAuth();
+  const { session, profile, booting, signIn, signUp, enterGuest } = useAuth();
   const { push } = useToast();
   const navigate = useNavigate();
 
@@ -70,6 +71,11 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const enterAsGuest = () => {
+    enterGuest();
+    navigate("/guest");
   };
 
   return (
@@ -219,11 +225,19 @@ export default function LoginPage() {
               className="w-full">
               {tab === "login" ? "Masuk" : "Daftar"}
             </Button>
+
+            {/* ---------- MODE TAMU ---------- */}
+            <button
+              type="button"
+              onClick={enterAsGuest}
+              className="flex justify-center items-center gap-2 bg-white/[0.03] hover:bg-white/[0.06] py-2.5 border border-white/10 rounded-lg w-full text-slate-400 hover:text-slate-200 text-sm transition-colors">
+              <Eye size={15} /> Masuk sebagai Tamu
+            </button>
           </form>
 
           <p className="mt-6 text-[11px] text-slate-600 text-center leading-relaxed">
-            Pengurus masuk lewat tab yang sama — hak akses ditentukan oleh email
-            yang terdaftar di sistem, bukan oleh pilihan di layar.
+            Mode tamu hanya untuk melihat jadwal &amp; liga — tanpa data
+            pribadi.
           </p>
         </div>
       </div>

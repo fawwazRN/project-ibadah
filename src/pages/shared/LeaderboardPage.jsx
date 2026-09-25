@@ -92,7 +92,7 @@ export default function LeaderboardPage({ role }) {
               </Card>
             ) : (
               <Card className="mt-4 p-5 text-slate-400 text-sm">
-                Kamu belum memiliki poin pelanggaran bulan ini. Pertahankan! 😄
+                Kamu belum memiliki poin pelanggaran bulan ini. Pertahankan.
               </Card>
             ))}
         </>
