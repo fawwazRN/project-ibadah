@@ -4,7 +4,7 @@ import { Card, CardHeader } from "../../components/ui/Card";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
-import { Field, Input } from "../../components/ui/Field";
+import { Field, Input, Select } from "../../components/ui/Field";
 import { Modal } from "../../components/ui/Modal";
 import { Avatar } from "../../components/ui/Avatar";
 import {
@@ -29,7 +29,11 @@ export default function TeamsPage() {
   const [q, setQ] = useState("");
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [mode, setMode] = useState(null); // 'member' | 'leader' | 'team' | 'rename'
-  const [form, setForm] = useState({ name: "", student_id: "" });
+  const [form, setForm] = useState({
+    name: "",
+    student_id: "",
+    position: "pemain",
+  });
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
@@ -54,6 +58,7 @@ export default function TeamsPage() {
     setForm({
       name: modeKey === "rename" ? (team?.name ?? "") : "",
       student_id: "",
+      position: "pemain",
     });
     setQ("");
   };
@@ -69,17 +74,14 @@ export default function TeamsPage() {
       if (mode === "rename") {
         if (!form.name.trim() || form.name.trim().length < 2)
           throw new Error("Nama tim minimal 2 karakter.");
-        if (form.name.trim() === selectedTeam.name) {
-          setMode(null);
-          setSaving(false);
-          return;
+        if (form.name.trim() !== selectedTeam.name) {
+          await teamService.renameTeam(selectedTeam.id, form.name.trim());
+          push(
+            "success",
+            "Nama tim diubah",
+            `${selectedTeam.name} → ${form.name.trim()}`,
+          );
         }
-        await teamService.renameTeam(selectedTeam.id, form.name.trim());
-        push(
-          "success",
-          "Nama tim diubah",
-          `${selectedTeam.name} → ${form.name.trim()}`,
-        );
       }
       if (mode === "leader") {
         if (!form.student_id) throw new Error("Pilih santri.");
@@ -100,8 +102,14 @@ export default function TeamsPage() {
           selectedTeam.id,
           form.student_id,
           ctx.season_id,
+          form.position ?? "pemain",
         );
-        push("success", "Pemain ditambahkan");
+        push(
+          "success",
+          form.position === "kiper"
+            ? "Kiper ditambahkan"
+            : "Pemain ditambahkan",
+        );
       }
       setMode(null);
       load();
@@ -136,14 +144,14 @@ export default function TeamsPage() {
     team: "Tambah Tim",
     rename: `Ubah Nama Tim — ${selectedTeam?.name ?? ""}`,
     leader: `Tunjuk Ketua — ${selectedTeam?.name ?? ""}`,
-    member: `Tambah Pemain — ${selectedTeam?.name ?? ""}`,
+    member: `Tambah Anggota — ${selectedTeam?.name ?? ""}`,
   }[mode];
 
   return (
     <div className="animate-fade-up">
       <PageHeader
         title="Tim & Pemain"
-        description={`${ctx.phase_name} · ${ctx.season_name} — keanggotaan per musim, riwayat tetap tersimpan.`}
+        description={`${ctx.phase_name} · ${ctx.season_name} — tiap tim: 1 kiper aktif + para pemain.`}
         actions={
           <Button
             variant="primary"
@@ -189,7 +197,7 @@ export default function TeamsPage() {
                       variant="ghost"
                       icon={UserPlus}
                       onClick={() => openModal("member", t)}
-                      title="Tambah pemain"
+                      title="Tambah anggota"
                     />
                   </div>
                 }
@@ -200,7 +208,7 @@ export default function TeamsPage() {
                 </div>
               )}
               {tm.length === 0 ? (
-                <EmptyState title="Belum ada pemain" />
+                <EmptyState title="Belum ada anggota" />
               ) : (
                 <ul className="divide-y divide-white/[0.04]">
                   {tm.map((m) => (
@@ -216,6 +224,9 @@ export default function TeamsPage() {
                           {m.class_name}
                         </p>
                       </div>
+                      {m.player_position === "kiper" && (
+                        <Badge tone="sky">Kiper</Badge>
+                      )}
                       {m.suspended && <Badge tone="rose">⚠ Suspended</Badge>}
                       <Button
                         size="sm"
@@ -244,7 +255,7 @@ export default function TeamsPage() {
               required
               hint={
                 mode === "rename"
-                  ? "Nama lama tetap tersimpan di riwayat pertandingan & hasil fase."
+                  ? "Riwayat pertandingan & klasemen tetap menempel ke tim ini."
                   : undefined
               }>
               <Input
@@ -258,34 +269,55 @@ export default function TeamsPage() {
             </Field>
           )}
           {(mode === "leader" || mode === "member") && (
-            <Field
-              label="Cari santri"
-              required
-              hint="Ketik nama, lalu pilih dari daftar.">
-              <Input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Ketik nama…"
-              />
-              <div className="bg-ink-800 mt-2 border border-white/10 rounded-lg max-h-48 overflow-y-auto">
-                {filtered.slice(0, 10).map((s) => (
-                  <button
-                    type="button"
-                    key={s.id}
-                    onClick={() => setForm((f) => ({ ...f, student_id: s.id }))}
-                    className={`block w-full px-3 py-2 text-left text-sm transition-colors hover:bg-white/5 ${
-                      form.student_id === s.id
-                        ? "bg-brand/10 text-brand-soft"
-                        : "text-slate-300"
-                    }`}>
-                    {s.full_name}{" "}
-                    <span className="text-slate-500 text-xs">
-                      {s.class_name}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </Field>
+            <>
+              <Field
+                label="Cari santri"
+                required
+                hint="Ketik nama, lalu pilih dari daftar.">
+                <Input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Ketik nama…"
+                />
+                <div className="bg-ink-800 mt-2 border border-white/10 rounded-lg max-h-48 overflow-y-auto">
+                  {filtered.slice(0, 10).map((s) => (
+                    <button
+                      type="button"
+                      key={s.id}
+                      onClick={() =>
+                        setForm((f) => ({ ...f, student_id: s.id }))
+                      }
+                      className={`block w-full px-3 py-2 text-left text-sm transition-colors hover:bg-white/5 ${
+                        form.student_id === s.id
+                          ? "bg-brand/10 text-brand-soft"
+                          : "text-slate-300"
+                      }`}>
+                      {s.full_name}{" "}
+                      <span className="text-slate-500 text-xs">
+                        {s.class_name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </Field>
+              {mode === "member" && (
+                <Field
+                  label="Posisi"
+                  required
+                  hint="Maksimal 1 kiper aktif per tim.">
+                  <Select
+                    value={form.position ?? "pemain"}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, position: e.target.value }))
+                    }
+                    options={[
+                      { value: "pemain", label: "Pemain" },
+                      { value: "kiper", label: "Kiper" },
+                    ]}
+                  />
+                </Field>
+              )}
+            </>
           )}
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setMode(null)}>

@@ -8,6 +8,13 @@ import { BrandMark } from "../components/ui/BrandMark";
 import { Avatar } from "../components/ui/Avatar";
 import { fmtFullDate, hijriToday } from "../lib/date";
 
+const ROLE_LABELS = {
+  santri: "Santri",
+  qism_ibadah: "Qism Ibadah",
+  qism_riyadhah: "Qism Riyadhah",
+  super_admin: "Super Admin",
+};
+
 function Brand() {
   return (
     <div className="flex items-center gap-3 px-5 py-5">
@@ -16,10 +23,10 @@ function Brand() {
       </span>
       <div>
         <p className="font-display font-bold text-[15px] text-slate-50 tracking-tight">
-          Ibadah OSIS
+          OSIS Management
         </p>
         <p className="font-medium text-[10px] text-slate-500 uppercase tracking-[0.18em]">
-          Qism Ibadah · OSIS
+          Qism Ibadah · Qism Riyadhah
         </p>
       </div>
     </div>
@@ -115,13 +122,9 @@ export default function DashboardLayout() {
               {profile?.full_name}
             </p>
             <p className="text-[11px] text-slate-500">
-              {profile?.role === "qism_ibadah"
-                ? "Qism Ibadah"
-                : profile?.role === "qism_riyadhah"
-                  ? "Qism Riyadhah"
-                  : profile?.role === "super_admin"
-                    ? "Super Admin"
-                    : `Santri · ${profile?.class_name ?? ""}`}
+              {profile?.role === "santri"
+                ? `Santri · ${profile?.class_name ?? ""}`
+                : (ROLE_LABELS[profile?.role] ?? "—")}
             </p>
           </div>
           <button

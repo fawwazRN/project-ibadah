@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Volleyball,
   Table2,
@@ -6,11 +7,13 @@ import {
   Ban,
   CalendarDays,
   CheckCircle2,
+  Printer,
 } from "lucide-react";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { StatCard } from "../../components/ui/StatCard";
 import { Badge } from "../../components/ui/Badge";
+import { Button } from "../../components/ui/Button";
 import {
   LoadingState,
   ErrorState,
@@ -21,6 +24,7 @@ import { leagueService } from "../../services/leagueService";
 import { matchService } from "../../services/matchService";
 import { suspensionService } from "../../services/suspensionService";
 import { computeStandings } from "../../utils/standings";
+import PrintPoster from "../../components/riyadhah/PrintPoster";
 
 const fmtDate = (d) =>
   d
@@ -103,6 +107,7 @@ export default function RiyadhahDashboard() {
   const [teams, setTeams] = useState([]);
   const [susp, setSusp] = useState([]);
   const [error, setError] = useState(null);
+  const [pendingPrint, setPendingPrint] = useState(false);
 
   const load = useCallback(() => {
     setError(null);
@@ -121,6 +126,15 @@ export default function RiyadhahDashboard() {
     })().catch((e) => setError(e.message));
   }, []);
   useEffect(load, [load]);
+
+  useEffect(() => {
+    if (!pendingPrint) return;
+    const t = setTimeout(() => {
+      window.print();
+      setPendingPrint(false);
+    }, 150);
+    return () => clearTimeout(t);
+  }, [pendingPrint]);
 
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!ctx) return <LoadingState rows={8} />;
@@ -143,6 +157,14 @@ export default function RiyadhahDashboard() {
       <PageHeader
         title="Match Center"
         description={`${ctx.phase_name} · ${ctx.season_name} · Pekan ${curWeek}`}
+        actions={
+          <Button
+            variant="secondary"
+            icon={Printer}
+            onClick={() => setPendingPrint(true)}>
+            Cetak Poster Pekan {curWeek}
+          </Button>
+        }
       />
 
       <div className="gap-4 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -266,6 +288,20 @@ export default function RiyadhahDashboard() {
           )}
         </Card>
       </div>
+
+      {/* Poster cetak */}
+      {createPortal(
+        <div className="print-only">
+          <PrintPoster
+            ctx={ctx}
+            week={curWeek}
+            matches={matches}
+            standings={standings}
+            suspensions={susp}
+          />
+        </div>,
+        document.body,
+      )}
     </div>
   );
 }

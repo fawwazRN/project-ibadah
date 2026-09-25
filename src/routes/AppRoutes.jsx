@@ -167,7 +167,6 @@ export default function AppRoutes() {
               path="/ibadah/zikir"
               element={<ZikirSchedulePage role="qism_ibadah" />}
             />
-            <Route path="/ibadah/admins" element={<AdminManagement />} />
             <Route
               path="/ibadah/leaderboard"
               element={<LeaderboardPage role="qism_ibadah" />}
@@ -218,6 +217,8 @@ export default function AppRoutes() {
           {/* ---------------- SUPER ADMIN ---------------- */}
           <Route element={<RoleRoute role="super_admin" />}>
             <Route path="/admin" element={<AdminHome />} />
+
+            <Route path="/admin/admins" element={<AdminManagement />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/audit" element={<AuditLog />} />
             <Route path="/admin/settings" element={<LeagueSettingsPage />} />

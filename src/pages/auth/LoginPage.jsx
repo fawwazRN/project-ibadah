@@ -21,7 +21,7 @@ export default function LoginPage() {
   const { push } = useToast();
   const navigate = useNavigate();
 
-  const [tab, setTab] = useState("login"); // 'login' | 'daftar'
+  const [tab, setTab] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -62,7 +62,7 @@ export default function LoginPage() {
             replace: true,
           });
         } else {
-          setNeedVerify(true); // verifikasi email aktif di pengaturan Supabase
+          setNeedVerify(true);
         }
       }
     } catch (err) {
@@ -82,20 +82,22 @@ export default function LoginPage() {
           </span>
           <div>
             <p className="font-display font-bold text-slate-50 text-base">
-              Ibadah OSIS
+              OSIS Management
             </p>
             <p className="font-medium text-[10px] text-slate-500 uppercase tracking-[0.2em]">
-              Qism Ibadah · OSIS
+              Qism Ibadah · Qism Riyadhah
             </p>
           </div>
         </div>
         <div className="max-w-md">
           <h1 className="font-display font-semibold text-slate-50 text-3xl leading-snug">
-            Sistem pemantauan &amp; pengelolaan poin ibadah santri.
+            Manajemen poin ibadah &amp; liga riyadhah santri — dalam satu
+            sistem.
           </h1>
           <p className="mt-3 text-slate-500 text-sm leading-relaxed">
-            Masuk dengan email kamu. Santri kemudian memilih kelas dan namanya
-            dari daftar resmi sekolah untuk menghubungkan akun.
+            Qism Ibadah mengelola pelanggaran &amp; suspensi. Qism Riyadhah
+            menjalankan liga: jadwal, hasil, klasemen, hingga statistik pemain
+            &amp; kiper.
           </p>
           <p className="mt-4 text-slate-600 text-xs">
             Pendaftaran menggunakan email{" "}
@@ -103,8 +105,7 @@ export default function LoginPage() {
           </p>
         </div>
         <p className="text-slate-600 text-xs">
-          © {new Date().getFullYear()} OSIS Qism Ibadah · Penggunaan internal
-          madrasah
+          © {new Date().getFullYear()} OSIS · Penggunaan internal madrasah
         </p>
       </div>
 
@@ -117,10 +118,10 @@ export default function LoginPage() {
             </span>
             <div>
               <p className="font-display font-bold text-slate-50">
-                Ibadah OSIS
+                OSIS Management
               </p>
               <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em]">
-                Qism Ibadah · OSIS
+                Qism Ibadah · Qism Riyadhah
               </p>
             </div>
           </div>
@@ -221,7 +222,7 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-6 text-[11px] text-slate-600 text-center leading-relaxed">
-            Admin masuk lewat tab yang sama — hak akses ditentukan oleh email
+            Pengurus masuk lewat tab yang sama — hak akses ditentukan oleh email
             yang terdaftar di sistem, bukan oleh pilihan di layar.
           </p>
         </div>

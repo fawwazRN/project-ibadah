@@ -45,8 +45,16 @@ export const matchService = {
     if (error) throw error;
     await auditService.log("match_event_added", "match", matchId, eventType);
   },
+  async removeEvent(matchId, eventId) {
+    const { error } = await supabase
+      .from("match_events")
+      .delete()
+      .eq("id", eventId);
+    if (error) throw error;
+    await auditService.log("match_event_removed", "match", matchId, null);
+  },
 
-  // Buat pertandingan MANUAL oleh Riyadhah (tanpa skor) → status 'scheduled'
+  // Buat pertandingan MANUAL (tanpa skor) → status 'scheduled'
   async createFixture({
     phase_id,
     season_id,
@@ -75,7 +83,7 @@ export const matchService = {
     return data;
   },
 
-  // Entri hasil historis/manual (dengan skor) → 'submitted' atau 'verified'
+  // Entri hasil historis (dengan skor) → 'submitted' atau 'verified'
   async createMatch({
     phase_id,
     season_id,
@@ -131,5 +139,20 @@ export const matchService = {
       p_action: action,
     });
     if (error) throw error;
+  },
+
+  async playerStats(seasonId) {
+    const { data, error } = await supabase.rpc("get_player_stats", {
+      p_season_id: seasonId,
+    });
+    if (error) throw error;
+    return data;
+  },
+  async goalkeeperStats(seasonId) {
+    const { data, error } = await supabase.rpc("get_goalkeeper_stats", {
+      p_season_id: seasonId,
+    });
+    if (error) throw error;
+    return data;
   },
 };

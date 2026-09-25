@@ -42,7 +42,7 @@ export default function LeaderboardPage({ role }) {
     <div className="animate-fade-up">
       <PageHeader
         title="Papan Peringkat Nakal"
-        description="Top 10 santri dengan akumulasi poin pelanggaran terbanyak bulan ini. Poin yang sudah dibatalkan (klarifikasi diterima) tidak dihitung."
+        description="Top 10 santri dengan akumulasi poin pelanggaran terbanyak bulan ini. Poin yang dibatalkan tidak dihitung."
         actions={
           <Link to={`${base}/leaderboard/detail`}>
             <Button variant="secondary" icon={ChevronRight}>
@@ -57,7 +57,7 @@ export default function LeaderboardPage({ role }) {
           <EmptyState
             icon={Flame}
             title="Data belum cukup"
-            description="Papan peringkat akan tampil setelah ada minimal 3 santri dengan catatan pelanggaran bulan ini."
+            description="Papan tampil setelah ada minimal 3 santri berpoin bulan ini."
           />
         </Card>
       ) : (
@@ -66,7 +66,7 @@ export default function LeaderboardPage({ role }) {
           <Card className="mt-4">
             <CardHeader
               title="Peringkat 4–10"
-              description="Diurutkan dari total poin pelanggaran terbanyak — bulan berjalan"
+              description="Diurutkan dari poin terbanyak — bulan berjalan"
             />
             <LeaderboardList
               entries={entries.slice(3, 10)}
@@ -86,16 +86,13 @@ export default function LeaderboardPage({ role }) {
                   </p>
                   <p className="text-slate-500 text-xs">
                     {fmtNum(entries[myIndex].score)} poin ·{" "}
-                    {fmtNum(entries[myIndex].violation_count)} pelanggaran bulan
-                    ini
-                    {myIndex >= 10 && " — masuk 10 besar aja dulu!"}
+                    {fmtNum(entries[myIndex].violation_count)} pelanggaran
                   </p>
                 </div>
               </Card>
             ) : (
               <Card className="mt-4 p-5 text-slate-400 text-sm">
-                Kamu belum memiliki poin pelanggaran bulan ini. Pertahankan —
-                jangan masuk papan ini ya! 😄
+                Kamu belum memiliki poin pelanggaran bulan ini. Pertahankan! 😄
               </Card>
             ))}
         </>

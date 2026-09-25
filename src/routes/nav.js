@@ -17,6 +17,7 @@ import {
   Settings,
   ClipboardList,
   Ban,
+  Printer,
 } from "lucide-react";
 
 export const NAV = {
@@ -42,7 +43,7 @@ export const NAV = {
     },
   ],
 
-  // ---------- QISM IBADAH ----------
+  // ---------- QISM IBADAH (tanpa calon admin) ----------
   qism_ibadah: [
     {
       section: "Ikhtisar",
@@ -59,7 +60,6 @@ export const NAV = {
         { to: "/ibadah/rules", label: "Aturan Poin", icon: Scale },
         { to: "/ibadah/suspensions", label: "Suspensi", icon: Ban },
         { to: "/ibadah/zikir", label: "Jadwal Zikir", icon: CalendarClock },
-        { to: "/ibadah/admins", label: "Daftar Email", icon: ShieldCheck },
       ],
     },
     {
@@ -73,7 +73,7 @@ export const NAV = {
     },
   ],
 
-  // ---------- QISM RIYADHAH ----------
+  // ---------- QISM RIYADHAH (tanpa calon admin) ----------
   qism_riyadhah: [
     {
       section: "Pertandingan",
@@ -106,7 +106,7 @@ export const NAV = {
         { to: "/riyadhah/teams", label: "Tim & Pemain", icon: Users },
         { to: "/riyadhah/seasons", label: "Fase & Musim", icon: ClipboardList },
         { to: "/riyadhah/suspensions", label: "Daftar Suspensi", icon: Ban },
-        { to: "/riyadhah/recap", label: "Rekap Liga", icon: FileBarChart },
+        { to: "/riyadhah/recap", label: "Rekap Liga", icon: Printer },
       ],
     },
     {
@@ -115,13 +115,14 @@ export const NAV = {
     },
   ],
 
-  // ---------- SUPER ADMIN (SEMUA GABUNGAN) ----------
+  // ---------- SUPER ADMIN ----------
   super_admin: [
     {
       section: "Super Admin",
       items: [
         { to: "/admin", label: "Ringkasan", icon: LayoutDashboard, end: true },
         { to: "/admin/users", label: "Pengguna & Peran", icon: Users },
+        { to: "/admin/admins", label: "Calon Admin", icon: ShieldCheck },
         { to: "/admin/audit", label: "Log Audit", icon: History },
         { to: "/admin/settings", label: "Pengaturan Liga", icon: Settings },
       ],
@@ -137,7 +138,6 @@ export const NAV = {
         { to: "/ibadah/rules", label: "Aturan Poin", icon: Scale },
         { to: "/ibadah/suspensions", label: "Suspensi", icon: Ban },
         { to: "/ibadah/zikir", label: "Jadwal Zikir", icon: CalendarClock },
-        { to: "/ibadah/admins", label: "Daftar Email", icon: ShieldCheck },
         { to: "/ibadah/leaderboard", label: "Leaderboard", icon: Trophy },
         { to: "/ibadah/recap", label: "Rekap Ibadah", icon: FileBarChart },
       ],
@@ -164,7 +164,7 @@ export const NAV = {
         { to: "/riyadhah/teams", label: "Tim & Pemain", icon: Users },
         { to: "/riyadhah/seasons", label: "Fase & Musim", icon: ClipboardList },
         { to: "/riyadhah/suspensions", label: "Daftar Suspensi", icon: Ban },
-        { to: "/riyadhah/recap", label: "Rekap Liga", icon: FileBarChart },
+        { to: "/riyadhah/recap", label: "Rekap Liga", icon: Printer },
       ],
     },
 

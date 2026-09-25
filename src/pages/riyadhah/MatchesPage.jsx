@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Eye, History } from "lucide-react";
+import { Plus, Eye, History, Trash2, Target } from "lucide-react";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Badge } from "../../components/ui/Badge";
@@ -7,6 +7,7 @@ import { Button } from "../../components/ui/Button";
 import { Field, Input, Select, Textarea } from "../../components/ui/Field";
 import { Modal } from "../../components/ui/Modal";
 import { TableWrap, Table, Th, Td, Tr } from "../../components/ui/Table";
+import { Avatar } from "../../components/ui/Avatar";
 import {
   LoadingState,
   ErrorState,
@@ -21,6 +22,14 @@ import {
 import { leagueService } from "../../services/leagueService";
 import { matchService } from "../../services/matchService";
 import { fmtDate } from "../../lib/date";
+
+const EVENT_LABEL = {
+  goal: "Gol",
+  own_goal: "Gol Bunuh Diri",
+  yellow: "Kartu Kuning",
+  red: "Kartu Merah",
+  substitution: "Pergantian",
+};
 
 export default function MatchesPage() {
   const [ctx, setCtx] = useState(null);
@@ -50,7 +59,7 @@ export default function MatchesPage() {
     <div className="animate-fade-up">
       <PageHeader
         title="Kelola Pertandingan"
-        description="Entri hasil historis (liga sudah berjalan sebelum aplikasi ini ada), verifikasi, dan detail."
+        description="Entri hasil historis, verifikasi, dan catat event gol/kartu per pemain."
         actions={
           <Button
             variant="primary"
@@ -135,15 +144,12 @@ export default function MatchesPage() {
           load();
         }}
       />
-      <MatchDetailModal
-        match={detail}
-        onClose={() => setDetail(null)}
-        onChanged={load}
-      />
+      <MatchDetailModal match={detail} onClose={() => setDetail(null)} />
     </div>
   );
 }
 
+// ================= Modal: entri hasil historis =================
 function HistoricalModal({ open, onClose, phases, currentSeason, onSaved }) {
   const { push } = useToast();
   const [seasons, setSeasons] = useState([]);
@@ -338,14 +344,19 @@ function HistoricalModal({ open, onClose, phases, currentSeason, onSaved }) {
   );
 }
 
-function MatchDetailModal({ match, onClose, onChanged }) {
+// ================= Modal: detail + event =================
+function MatchDetailModal({ match, onClose }) {
   const [detail, setDetail] = useState(null);
   const [events, setEvents] = useState([]);
+  const reloadEvents = useCallback(() => {
+    if (!match) return;
+    matchService.events(match.id).then(setEvents);
+  }, [match]);
   useEffect(() => {
     if (!match) return;
     matchService.detail(match.id).then(setDetail);
-    matchService.events(match.id).then(setEvents);
-  }, [match]);
+    reloadEvents();
+  }, [match, reloadEvents]);
   if (!match) return null;
 
   return (
@@ -355,7 +366,7 @@ function MatchDetailModal({ match, onClose, onChanged }) {
       title={`Detail — Pekan ${match.week}`}
       size="lg">
       {detail && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="flex justify-between items-center bg-white/[0.02] p-4 border border-white/[0.06] rounded-xl">
             <p className="font-display font-semibold text-slate-100 text-base">
               {detail.home_name}{" "}
@@ -369,24 +380,12 @@ function MatchDetailModal({ match, onClose, onChanged }) {
             </Badge>
           </div>
 
+          <EventPanel match={detail} events={events} onChanged={reloadEvents} />
+
           <div>
             <p className="mb-2 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
-              Events (opsional)
+              Kelayakan Pemain
             </p>
-            {events.length === 0 ? (
-              <p className="text-slate-600 text-xs">
-                Belum ada event tercatat.
-              </p>
-            ) : (
-              <ul className="space-y-1 text-slate-300 text-xs">
-                {events.map((e) => (
-                  <li key={e.id}>
-                    {e.minute != null ? `${e.minute}'` : "—"} · {e.player_name}{" "}
-                    ({e.team_name}) — {e.event_type}
-                  </li>
-                ))}
-              </ul>
-            )}
             <EligibilityPanel matchId={detail.id} />
           </div>
 
@@ -401,18 +400,217 @@ function MatchDetailModal({ match, onClose, onChanged }) {
   );
 }
 
+// ================= Panel event cepat =================
+function EventPanel({ match, events, onChanged }) {
+  const { push } = useToast();
+  const [elig, setElig] = useState(null);
+  const [minute, setMinute] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    matchService
+      .eligibility(match.id)
+      .then(setElig)
+      .catch(() => setElig([]));
+  }, [match.id]);
+
+  // Hitung event per pemain (dari daftar event yang ada)
+  const counts = {};
+  for (const e of events) {
+    const k = `${e.player_name}|${e.event_type}`;
+    counts[k] = (counts[k] || 0) + 1;
+  }
+
+  const add = async (player, eventType) => {
+    if (player.suspended) {
+      return push(
+        "error",
+        "Pemain ter-suspensi",
+        `${player.full_name} — ${player.suspension_info}. Pemain berstatus suspensi tidak dapat dicatat bermain.`,
+      );
+    }
+    setBusy(true);
+    try {
+      await matchService.addEvent(
+        match.id,
+        player.team_id,
+        player.student_id,
+        eventType,
+        minute ? Number(minute) : null,
+      );
+      onChanged();
+    } catch (e) {
+      push("error", "Gagal menambah event", e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async (ev) => {
+    setBusy(true);
+    try {
+      await matchService.removeEvent(match.id, ev.id);
+      onChanged();
+    } catch (e) {
+      push("error", "Gagal menghapus event", e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const byTeam = {};
+  for (const p of elig ?? []) {
+    if (!byTeam[p.team_name]) byTeam[p.team_name] = [];
+    byTeam[p.team_name].push(p);
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
+        <p className="font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+          Event Pertandingan{" "}
+          <span className="text-slate-600">
+            (opsional — klik tombol per pemain)
+          </span>
+        </p>
+        <div className="flex items-center gap-2">
+          <span className="text-slate-500 text-xs">Menit:</span>
+          <Input
+            type="number"
+            min="0"
+            max="130"
+            placeholder="—"
+            value={minute}
+            onChange={(e) => setMinute(e.target.value)}
+            className="py-1 w-20"
+          />
+        </div>
+      </div>
+
+      {!elig ? (
+        <LoadingState rows={3} />
+      ) : (
+        <div className="gap-3 grid sm:grid-cols-2">
+          {Object.entries(byTeam).map(([teamName, players]) => (
+            <div
+              key={teamName}
+              className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
+              <p className="mb-2 font-semibold text-slate-200 text-sm">
+                {teamName}
+              </p>
+              <ul className="space-y-1.5">
+                {players.map((p) => {
+                  const g = counts[`${p.full_name}|goal`] ?? 0;
+                  const y = counts[`${p.full_name}|yellow`] ?? 0;
+                  const r = counts[`${p.full_name}|red`] ?? 0;
+                  return (
+                    <li
+                      key={p.student_id}
+                      className="flex items-center gap-2 bg-white/[0.02] px-2.5 py-1.5 border border-white/[0.05] rounded-lg">
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className={`truncate text-xs font-medium ${p.suspended ? "text-slate-500" : "text-slate-200"}`}>
+                          {p.full_name}
+                          {p.suspended && (
+                            <span className="ml-1.5 text-rose-300">
+                              ⚠ Suspended
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-[10px] text-slate-500">
+                          {g > 0 && `⚽ ${g} `}
+                          {y > 0 && `🟨 ${y} `}
+                          {r > 0 && `🟥 ${r}`}
+                          {g === 0 && y === 0 && r === 0 && "—"}
+                        </p>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <button
+                          type="button"
+                          disabled={busy || p.suspended}
+                          onClick={() => add(p, "goal")}
+                          title="Tambah gol"
+                          className="place-items-center grid bg-emerald-400/10 hover:bg-emerald-400/20 disabled:opacity-40 border border-emerald-400/25 rounded-md size-7 font-bold text-[11px] text-emerald-300 transition-colors">
+                          ⚽
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busy || p.suspended}
+                          onClick={() => add(p, "yellow")}
+                          title="Kartu kuning"
+                          className="place-items-center grid bg-amber-400/10 hover:bg-amber-400/20 disabled:opacity-40 border border-amber-400/25 rounded-md size-7 font-bold text-[11px] text-amber-300 transition-colors">
+                          🟨
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busy || p.suspended}
+                          onClick={() => add(p, "red")}
+                          title="Kartu merah"
+                          className="place-items-center grid bg-rose-400/10 hover:bg-rose-400/20 disabled:opacity-40 border border-rose-400/25 rounded-md size-7 font-bold text-[11px] text-rose-300 transition-colors">
+                          🟥
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Daftar event tercatat */}
+      <div className="mt-3">
+        <p className="mb-1.5 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+          Tercatat ({events.length})
+        </p>
+        {events.length === 0 ? (
+          <p className="text-slate-600 text-xs italic">Belum ada event.</p>
+        ) : (
+          <ul className="border border-white/[0.06] rounded-xl divide-y divide-white/[0.04]">
+            {events.map((e) => (
+              <li key={e.id} className="flex items-center gap-3 px-3 py-2">
+                <span className="w-8 font-mono text-[11px] text-slate-500 shrink-0">
+                  {e.minute != null ? `${e.minute}'` : "—"}
+                </span>
+                <span className="flex-1 min-w-0 text-slate-300 text-xs truncate">
+                  {e.player_name}{" "}
+                  <span className="text-slate-500">({e.team_name})</span> —{" "}
+                  {EVENT_LABEL[e.event_type] ?? e.event_type}
+                </span>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => remove(e)}
+                  className="place-items-center grid hover:bg-rose-500/10 rounded-md size-6 text-slate-500 hover:text-rose-300 transition-colors">
+                  <Trash2 size={12} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="mt-2 text-[10px] text-slate-600 leading-relaxed">
+          Statistik pemain &amp; klasemen hanya dihitung dari pertandingan
+          berstatus <span className="font-medium text-slate-400">Resmi</span>.
+          Skor akhir tetap diisi lewat “Input Hasil”.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ================= Panel kelayakan =================
 function EligibilityPanel({ matchId }) {
   const [elig, setElig] = useState(null);
-  const load = () => matchService.eligibility(matchId).then(setElig);
   useEffect(() => {
-    load();
+    matchService
+      .eligibility(matchId)
+      .then(setElig)
+      .catch(() => setElig([]));
   }, [matchId]);
 
   return (
-    <div className="mt-4">
-      <p className="mb-2 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
-        Kelayakan Pemain
-      </p>
+    <div>
       {!elig ? (
         <p className="text-slate-600 text-xs">Memuat…</p>
       ) : (
