@@ -9,8 +9,6 @@ import LoginPage from "../pages/auth/LoginPage";
 import ClaimPage from "../pages/auth/ClaimPage";
 import GuestLayout from "../pages/auth/GuestLayout";
 import GuestDashboard from "../pages/auth/GuestDashboard";
-import GuestIbadahPage from "../pages/auth/GuestIbadahPage";
-import GuestLeaderboardPage from "../pages/auth/GuestLeaderboardPage";
 
 // ---------- Santri ----------
 import SantriDashboard from "../pages/santri/SantriDashboard";
@@ -23,6 +21,7 @@ import ZikirSchedulePage from "../pages/shared/ZikirSchedulePage";
 import GuestZikirPage from "../pages/shared/GuestZikirPage";
 import LeaderboardPage from "../pages/shared/LeaderboardPage";
 import LeaderboardDetailPage from "../pages/shared/LeaderboardDetailPage";
+import LeagueStandingsPage from "../pages/shared/LeagueStandingsPage";
 import RecapPage from "../pages/shared/RecapPage";
 import ProfilePage from "../pages/shared/ProfilePage";
 
@@ -93,6 +92,7 @@ function ClaimGate() {
   return <Outlet />;
 }
 
+// Pelindung peran — super_admin boleh masuk SEMUA area.
 function RoleRoute({ role }) {
   const { profile } = useAuth();
   if (profile === undefined) return <FullPageLoader />;
@@ -145,6 +145,7 @@ export default function AppRoutes() {
             <Route path="/santri/violations" element={<SantriViolations />} />
             <Route path="/santri/reports" element={<SantriReports />} />
             <Route path="/santri/team" element={<SantriTeamPage />} />
+            <Route path="/santri/standings" element={<LeagueStandingsPage />} />
             <Route path="/santri/matches" element={<SantriTeamPage />} />
             <Route
               path="/santri/leaderboard"

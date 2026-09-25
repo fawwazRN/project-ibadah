@@ -35,6 +35,7 @@ export const NAV = {
           icon: MessageSquareWarning,
         },
         { to: "/santri/team", label: "Tim Saya", icon: Volleyball },
+        { to: "/santri/standings", label: "Klasemen Liga", icon: Table2 },
         { to: "/santri/matches", label: "Pertandingan", icon: CalendarDays },
         { to: "/santri/leaderboard", label: "Leaderboard", icon: Trophy },
         { to: "/santri/recap", label: "Rekap", icon: FileBarChart },
@@ -43,7 +44,7 @@ export const NAV = {
     },
   ],
 
-  // ---------- QISM IBADAH (tanpa calon admin) ----------
+  // ---------- QISM IBADAH ----------
   qism_ibadah: [
     {
       section: "Ikhtisar",
@@ -73,7 +74,7 @@ export const NAV = {
     },
   ],
 
-  // ---------- QISM RIYADHAH (tanpa calon admin) ----------
+  // ---------- QISM RIYADHAH ----------
   qism_riyadhah: [
     {
       section: "Pertandingan",

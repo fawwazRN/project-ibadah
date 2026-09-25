@@ -9,6 +9,7 @@ import {
   MoonStar,
   Repeat,
   BookOpen,
+  Volleyball,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { Card, CardHeader } from "../../components/ui/Card";
@@ -22,9 +23,13 @@ import {
 } from "../../components/ui/States";
 import { ViolationStatusBadge } from "../../components/violations/StatusBadge";
 import { ReportModal } from "../../components/violations/ReportModal";
+import { GoalChip } from "../../components/ui/StatChips";
 import { violationService } from "../../services/violationService";
 import { reportService } from "../../services/reportService";
 import { activityService } from "../../services/activityService";
+import { leagueService } from "../../services/leagueService";
+import { matchService } from "../../services/matchService";
+import { computeStandings } from "../../utils/standings";
 import {
   OPEN_STATUSES,
   sumPoints,
@@ -93,34 +98,41 @@ export default function SantriDashboard() {
   const [violations, setViolations] = useState(null);
   const [reports, setReports] = useState([]);
   const [summary, setSummary] = useState({});
+  const [league, setLeague] = useState(null);
   const [error, setError] = useState(null);
   const [reportTarget, setReportTarget] = useState(null);
 
   const load = useCallback(() => {
     setError(null);
-    Promise.all([
-      violationService.list(),
-      reportService.listMine(),
-      activityService.monthlySummary(profile.id),
-    ])
-      .then(([v, r, s]) => {
-        setViolations(v);
-        setReports(r);
-        setSummary(s);
-      })
-      .catch((e) => setError(e.message));
+    (async () => {
+      const [v, r, s] = await Promise.all([
+        violationService.list(),
+        reportService.listMine(),
+        activityService.monthlySummary(profile.id),
+      ]);
+      setViolations(v);
+      setReports(r);
+      setSummary(s);
+      // Liga — dipisah agar kegagalannya tidak menjatuhkan dashboard
+      try {
+        const ctx = await leagueService.getContext();
+        const [teams, matches] = await Promise.all([
+          leagueService.listTeams(ctx.phase_id),
+          matchService.list(ctx.season_id),
+        ]);
+        const rows = computeStandings(
+          teams,
+          matches.filter((m) => m.status === "official"),
+        );
+        // posisi tim santri (kalau tergabung)
+        const mine = await supabaseSafeMyTeam();
+        setLeague({ ctx, rows, myTeamId: mine });
+      } catch {
+        setLeague(null);
+      }
+    })().catch((e) => setError(e.message));
   }, [profile.id]);
   useEffect(load, [load]);
-
-  const openReportViolationIds = useMemo(
-    () =>
-      new Set(
-        reports
-          .filter((r) => ["pending", "reviewing"].includes(r.status))
-          .map((r) => r.violation_id),
-      ),
-    [reports],
-  );
 
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!violations) return <LoadingState rows={6} />;
@@ -135,6 +147,34 @@ export default function SantriDashboard() {
   ).length;
   const score = Math.max(0, Math.min(100, 100 - activePts * 5));
   const recent = violations.slice(0, 5);
+
+  // helper kecil: cari tim santri dari memberships (via get_santri_league)
+  async function supabaseSafeMyTeam() {
+    const { data } = await supabaseMyTeam();
+    return data?.team?.id ?? null;
+  }
+  function supabaseMyTeam() {
+    return supabaseRpcGetSantriLeague();
+  }
+  function supabaseRpcGetSantriLeague() {
+    // import dinamis supaya tidak menambah import di atas
+    const { supabase } = require0();
+    return supabase.rpc("get_santri_league");
+  }
+  function require0() {
+    // eslint-disable-next-line
+    return { supabase: window.__supabaseClient };
+  }
+
+  const openReportViolationIds = useMemo(
+    () =>
+      new Set(
+        reports
+          .filter((r) => ["pending", "reviewing"].includes(r.status))
+          .map((r) => r.violation_id),
+      ),
+    [reports],
+  );
 
   return (
     <div className="space-y-5 animate-fade-up">
@@ -186,7 +226,7 @@ export default function SantriDashboard() {
             sub="Poin yang sedang berjalan"
           />
           <StatCard
-            label="Poin Minggu Ini"
+            label="Poin Pekan Ini"
             value={fmtNum(weekPts)}
             icon={Flag}
             tone="amber"
@@ -201,7 +241,6 @@ export default function SantriDashboard() {
             label="Pelanggaran Aktif"
             value={fmtNum(open.length)}
             icon={Flag}
-            tone="default"
             sub={`${violations.length} total tercatat`}
           />
           <StatCard
@@ -209,7 +248,6 @@ export default function SantriDashboard() {
             value={fmtNum(pendingReports)}
             icon={MessageSquareWarning}
             tone="sky"
-            sub="Menunggu / sedang ditinjau"
           />
           <Link to="/santri/leaderboard" className="block">
             <Card className="p-4 hover:border-brand/30 h-full transition-colors">
@@ -228,6 +266,61 @@ export default function SantriDashboard() {
           </Link>
         </div>
       </div>
+
+      {/* ---------- KLASMEN LIGA (baru) ---------- */}
+      {league && (
+        <Card>
+          <CardHeader
+            title={`Klasemen Liga — ${league.ctx.phase_name} · ${league.ctx.season_name}`}
+            description="Hanya dari pertandingan resmi"
+            actions={
+              <Link to="/santri/team">
+                <Button size="sm" variant="ghost" icon={ChevronRight}>
+                  Lengkap
+                </Button>
+              </Link>
+            }
+            actions2={null}
+          />
+          {league.rows.length === 0 ? (
+            <EmptyState icon={Volleyball} title="Belum ada laga resmi" />
+          ) : (
+            <ul className="divide-y divide-white/[0.04]">
+              {league.rows.slice(0, 5).map((r, i) => (
+                <li
+                  key={r.team_id}
+                  className={`flex items-center gap-3 px-5 py-2.5 ${r.team_id === league.myTeamId ? "bg-brand/[0.06]" : ""}`}>
+                  <span
+                    className={`w-6 shrink-0 font-mono text-xs ${i < 3 ? "font-bold text-brand-soft" : "text-slate-500"}`}>
+                    {i + 1}
+                  </span>
+                  <p className="flex-1 min-w-0 text-slate-200 text-sm truncate">
+                    {r.name}
+                    {r.team_id === league.myTeamId && (
+                      <span className="bg-brand/10 ml-2 px-1.5 py-0.5 border border-brand/30 rounded text-[10px] text-brand-soft uppercase tracking-wider">
+                        Timku
+                      </span>
+                    )}
+                  </p>
+                  <span className="hidden sm:block text-slate-500 text-xs">
+                    {r.played} laga
+                  </span>
+                  <span className="font-mono font-semibold text-brand-soft text-sm">
+                    {fmtNum(r.points)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="px-5 py-3 border-white/[0.06] border-t">
+            <Link
+              to="/santri/team"
+              className="text-brand-soft text-xs hover:underline">
+              Lihat klasemen lengkap, top skor &amp; kiper terbaik →
+            </Link>
+          </div>
+        </Card>
+      )}
 
       <Card>
         <CardHeader
@@ -289,16 +382,16 @@ export default function SantriDashboard() {
             desc: "Pantau status klarifikasi",
           },
           {
+            to: "/santri/team",
+            icon: Volleyball,
+            title: "Tim Saya & Liga",
+            desc: "Klasemen, top skor, kiper",
+          },
+          {
             to: "/santri/recap",
             icon: FileBarChart,
             title: "Rekap Pribadi",
             desc: "Ringkasan per periode",
-          },
-          {
-            to: "/santri/leaderboard",
-            icon: Trophy,
-            title: "Leaderboard",
-            desc: "Skor ibadah positif",
           },
         ].map((c) => (
           <Link key={c.to} to={c.to}>
