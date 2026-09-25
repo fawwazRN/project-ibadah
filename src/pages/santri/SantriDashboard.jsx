@@ -12,6 +12,7 @@ import {
   Volleyball,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { supabase } from "../../lib/supabaseClient";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { StatCard } from "../../components/ui/StatCard";
 import { Badge } from "../../components/ui/Badge";
@@ -23,7 +24,6 @@ import {
 } from "../../components/ui/States";
 import { ViolationStatusBadge } from "../../components/violations/StatusBadge";
 import { ReportModal } from "../../components/violations/ReportModal";
-import { GoalChip } from "../../components/ui/StatChips";
 import { violationService } from "../../services/violationService";
 import { reportService } from "../../services/reportService";
 import { activityService } from "../../services/activityService";
@@ -95,6 +95,8 @@ const ACT_META = {
 
 export default function SantriDashboard() {
   const { profile } = useAuth();
+
+  // ================= SEMUA HOOKS DULU =================
   const [violations, setViolations] = useState(null);
   const [reports, setReports] = useState([]);
   const [summary, setSummary] = useState({});
@@ -113,20 +115,20 @@ export default function SantriDashboard() {
       setViolations(v);
       setReports(r);
       setSummary(s);
-      // Liga — dipisah agar kegagalannya tidak menjatuhkan dashboard
+
+      // Liga — dipisah try/catch: kalau gagal, dashboard tetap jalan tanpa kartu klasemen
       try {
         const ctx = await leagueService.getContext();
-        const [teams, matches] = await Promise.all([
+        const [teams, matches, mine] = await Promise.all([
           leagueService.listTeams(ctx.phase_id),
           matchService.list(ctx.season_id),
+          supabase.rpc("get_santri_league"),
         ]);
         const rows = computeStandings(
           teams,
           matches.filter((m) => m.status === "official"),
         );
-        // posisi tim santri (kalau tergabung)
-        const mine = await supabaseSafeMyTeam();
-        setLeague({ ctx, rows, myTeamId: mine });
+        setLeague({ ctx, rows, myTeamId: mine.data?.team?.id ?? null });
       } catch {
         setLeague(null);
       }
@@ -134,9 +136,22 @@ export default function SantriDashboard() {
   }, [profile.id]);
   useEffect(load, [load]);
 
+  // useMemo SEBELUM early return — wajib agar jumlah hook konsisten
+  const openReportViolationIds = useMemo(
+    () =>
+      new Set(
+        (reports ?? [])
+          .filter((r) => ["pending", "reviewing"].includes(r.status))
+          .map((r) => r.violation_id),
+      ),
+    [reports],
+  );
+
+  // ================= EARLY RETURN (setelah semua hooks) =================
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!violations) return <LoadingState rows={6} />;
 
+  // ================= TAMPILAN =================
   const now = new Date();
   const open = violations.filter((v) => OPEN_STATUSES.includes(v.status));
   const activePts = sumPoints(open);
@@ -147,34 +162,6 @@ export default function SantriDashboard() {
   ).length;
   const score = Math.max(0, Math.min(100, 100 - activePts * 5));
   const recent = violations.slice(0, 5);
-
-  // helper kecil: cari tim santri dari memberships (via get_santri_league)
-  async function supabaseSafeMyTeam() {
-    const { data } = await supabaseMyTeam();
-    return data?.team?.id ?? null;
-  }
-  function supabaseMyTeam() {
-    return supabaseRpcGetSantriLeague();
-  }
-  function supabaseRpcGetSantriLeague() {
-    // import dinamis supaya tidak menambah import di atas
-    const { supabase } = require0();
-    return supabase.rpc("get_santri_league");
-  }
-  function require0() {
-    // eslint-disable-next-line
-    return { supabase: window.__supabaseClient };
-  }
-
-  const openReportViolationIds = useMemo(
-    () =>
-      new Set(
-        reports
-          .filter((r) => ["pending", "reviewing"].includes(r.status))
-          .map((r) => r.violation_id),
-      ),
-    [reports],
-  );
 
   return (
     <div className="space-y-5 animate-fade-up">
@@ -267,20 +254,19 @@ export default function SantriDashboard() {
         </div>
       </div>
 
-      {/* ---------- KLASMEN LIGA (baru) ---------- */}
+      {/* ---------- KLASMEN LIGA ---------- */}
       {league && (
         <Card>
           <CardHeader
             title={`Klasemen Liga — ${league.ctx.phase_name} · ${league.ctx.season_name}`}
             description="Hanya dari pertandingan resmi"
             actions={
-              <Link to="/santri/team">
+              <Link to="/santri/standings">
                 <Button size="sm" variant="ghost" icon={ChevronRight}>
                   Lengkap
                 </Button>
               </Link>
             }
-            actions2={null}
           />
           {league.rows.length === 0 ? (
             <EmptyState icon={Volleyball} title="Belum ada laga resmi" />
@@ -314,7 +300,7 @@ export default function SantriDashboard() {
           )}
           <div className="px-5 py-3 border-white/[0.06] border-t">
             <Link
-              to="/santri/team"
+              to="/santri/standings"
               className="text-brand-soft text-xs hover:underline">
               Lihat klasemen lengkap, top skor &amp; kiper terbaik →
             </Link>
