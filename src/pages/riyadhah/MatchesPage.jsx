@@ -1,4 +1,3 @@
-import { Badge } from "../../components/ui/Badge";
 import { useCallback, useEffect, useState } from "react";
 import { Eye, History, Trash2, Flag, CalendarDays } from "lucide-react";
 import { Card, CardHeader } from "../../components/ui/Card";
