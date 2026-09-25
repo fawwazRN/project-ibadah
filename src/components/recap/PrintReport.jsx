@@ -1,248 +1,403 @@
-import { useCallback, useEffect, useState } from "react";
-import { createPortal } from "react-dom";
+import { BrandMark } from "../ui/BrandMark";
+import { byRule, fmtNum, sumPoints } from "../../lib/calc";
+import { fmtDate, fmtDateTime } from "../../lib/date";
 import {
-  Volleyball,
-  Table2,
-  Gavel,
-  Ban,
-  Printer,
-  ChevronLeft,
-  ChevronRight,
-  SlidersHorizontal,
-} from "lucide-react";
-import { Card, CardHeader } from "../../components/ui/Card";
-import { PageHeader } from "../../components/ui/PageHeader";
-import { StatCard } from "../../components/ui/StatCard";
-import { Button } from "../../components/ui/Button";
-import { Badge } from "../../components/ui/Badge";
-import { LoadingState, ErrorState } from "../../components/ui/States";
-import {
-  PrintOptionsModal,
-  RIYADHAH_SECTIONS,
-  loadPrintOptions,
-} from "../../components/recap/PrintOptionsModal";
-import PrintPoster from "../../components/riyadhah/PrintPoster";
-import { leagueService } from "../../services/leagueService";
-import { matchService } from "../../services/matchService";
-import { suspensionService } from "../../services/suspensionService";
-import { computeStandings } from "../../utils/standings";
+  VIOLATION_STATUS_LABELS,
+  REPORT_STATUS_LABELS,
+} from "../../lib/constants";
 
-export default function RiyadhahRecapPage() {
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
-  const [weekOffset, setWeekOffset] = useState(0);
-  const [optionsOpen, setOptionsOpen] = useState(false);
-  const [printSections, setPrintSections] = useState(null);
-  const [pendingPrint, setPendingPrint] = useState(false);
+const TH =
+  "border border-slate-400 bg-slate-100 px-2 py-1.5 text-left text-[10px] font-bold uppercase tracking-wide text-slate-800";
+const TD =
+  "border border-slate-300 px-2 py-1.5 align-top text-[11px] text-slate-900";
 
-  const load = useCallback(() => {
-    setError(null);
-    (async () => {
-      const ctx = await leagueService.getContext();
-      const [matches, teams, susp] = await Promise.all([
-        matchService.list(ctx.season_id),
-        leagueService.listTeams(ctx.phase_id),
-        suspensionService.list(),
-      ]);
-      setData({
-        ctx,
-        matches,
-        rows: computeStandings(
-          teams,
-          matches.filter((m) => m.status === "official"),
-        ),
-        suspActive: susp.filter((s) => s.status === "active"),
-        pending: matches.filter((m) => m.status === "submitted").length,
-      });
-    })().catch((e) => setError(e.message));
-  }, []);
-  useEffect(load, [load]);
-
-  // Cetak: preferensi tersimpan → langsung; belum → buka dialog
-  useEffect(() => {
-    if (!pendingPrint) return;
-    const saved = loadPrintOptions("riyadhah");
-    if (saved) {
-      setPrintSections(Object.keys(saved).filter((k) => saved[k]));
-      const t = setTimeout(() => {
-        window.print();
-        setPendingPrint(false);
-      }, 150);
-      return () => clearTimeout(t);
-    }
-    setPendingPrint(false);
-    setOptionsOpen(true);
-  }, [pendingPrint]);
-
-  const handlePrintWithSections = (sections) => {
-    setPrintSections(sections);
-    setTimeout(() => window.print(), 150);
-  };
-
-  if (error) return <ErrorState message={error} onRetry={load} />;
-  if (!data) return <LoadingState rows={7} />;
-
-  const curWeek = data.ctx.current_week ?? 1;
-  const selectedWeek = Math.max(1, curWeek - weekOffset);
-  const weekMatches = data.matches.filter((m) => m.week === selectedWeek);
-  const official = weekMatches.filter((m) => m.status === "official");
-  const goals = official.reduce(
-    (s, m) => s + (m.home_score ?? 0) + (m.away_score ?? 0),
-    0,
+function Section({ no, title, children }) {
+  return (
+    <section className="mt-6 break-inside-avoid">
+      <h2 className="mb-2 pb-1 border-slate-800 border-b-2 font-bold text-[12px] text-slate-900 uppercase tracking-wider">
+        {no}. {title}
+      </h2>
+      {children}
+    </section>
   );
-  const draws = official.filter((m) => m.home_score === m.away_score).length;
-  const decisive = official.length - draws;
+}
+
+function SummaryCell({ label, value }) {
+  return (
+    <div className="px-3 py-2 border border-slate-300">
+      <p className="font-semibold text-[9.5px] text-slate-600 uppercase tracking-wide">
+        {label}
+      </p>
+      <p className="mt-0.5 font-display font-bold text-slate-900 text-lg">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+export default function PrintReport({
+  preset,
+  range,
+  filterLabel,
+  violations,
+  reports,
+  isOsis,
+  sections,
+}) {
+  // sections = array key yang dicetak (dari "Atur Isi Laporan");
+  // null/undefined = cetak semua (fallback aman)
+  const show = (key) => !sections || sections.includes(key);
+  // Pengaman: yang dibatalkan (klarifikasi diterima) tidak dicetak
+  const real = (violations ?? []).filter((v) => v.status !== "revoked");
+
+  const TITLES = {
+    today: "REKAP HARIAN",
+    week: "REKAP MINGGUAN",
+    prev_week: "REKAP MINGGUAN — PEKAN LALU",
+    month: "REKAP BULANAN",
+    custom: "REKAP PELANGGARAN",
+  };
+  const title = TITLES[preset] ?? "REKAP PELANGGARAN";
+  const period = `${fmtDate(range[0])} s.d. ${fmtDate(range[1])}`;
+  const printedAt = fmtDateTime(new Date());
+
+  // ---------- Agregasi ----------
+  // Rekap per santri
+  const perSantri = new Map();
+  for (const v of real) {
+    const cur = perSantri.get(v.santri_id) ?? {
+      nama: v.santri?.full_name ?? "—",
+      kelas: v.santri?.class_name ?? "—",
+      total: 0,
+      poin: 0,
+    };
+    cur.total += 1;
+    cur.poin += v.rule?.points ?? 0;
+    perSantri.set(v.santri_id, cur);
+  }
+  const santriRows = [...perSantri.values()].sort(
+    (a, b) =>
+      b.poin - a.poin || b.total - a.total || a.nama.localeCompare(b.nama),
+  );
+
+  // Rekap per kelas
+  const perClass = new Map();
+  for (const v of real) {
+    const k = v.santri?.class_name ?? "—";
+    const cur = perClass.get(k) ?? { total: 0, poin: 0 };
+    cur.total += 1;
+    cur.poin += v.rule?.points ?? 0;
+    perClass.set(k, cur);
+  }
+  const classRows = [...perClass.entries()].sort(
+    (a, b) => b[1].poin - a[1].poin,
+  );
+
+  const ruleRows = byRule(real);
+  const detail = real.slice(0, 200);
+  const reportRows = (reports ?? []).slice(0, 100);
+
+  // Penomoran section dinamis — hanya untuk bagian yang dicetak
+  let sec = 0;
+  const next = () => String.fromCharCode(65 + sec++);
+  const has = (key) => show(key);
 
   return (
-    <div className="space-y-5 animate-fade-up">
-      <PageHeader
-        title="Rekap Liga"
-        description={`${data.ctx.phase_name} · ${data.ctx.season_name}`}
-        actions={
-          <>
-            <Button
-              variant="secondary"
-              icon={SlidersHorizontal}
-              onClick={() => setOptionsOpen(true)}>
-              Atur Isi Laporan
-            </Button>
-            <Button
-              variant="primary"
-              icon={Printer}
-              onClick={() => setPendingPrint(true)}>
-              Cetak Poster Pekan {selectedWeek}
-            </Button>
-          </>
-        }
-      />
-
-      <div className="flex flex-wrap items-center gap-2">
-        {[0, 1].map((off) => {
-          const wk = curWeek - off;
-          const label =
-            off === 0 ? `Pekan ini (P${wk})` : `Pekan lalu (P${wk})`;
-          return (
-            <button
-              key={off}
-              disabled={wk < 1}
-              onClick={() => setWeekOffset(off)}
-              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-                weekOffset === off
-                  ? "border-brand/40 bg-brand/10 text-brand-soft"
-                  : "border-white/10 bg-white/[0.03] text-slate-400 hover:text-slate-200"
-              } disabled:cursor-not-allowed disabled:opacity-40`}>
-              {off === 0 ? (
-                <ChevronRight size={12} />
-              ) : (
-                <ChevronLeft size={12} />
-              )}{" "}
-              {label}
-            </button>
-          );
-        })}
-      </div>
-
-      <Card>
-        <CardHeader
-          title={`Rekap Pekan ${selectedWeek}`}
-          description={
-            selectedWeek === curWeek
-              ? "Pekan yang sedang berjalan"
-              : "Pekan yang sudah berlalu"
-          }
-        />
-        <div className="gap-4 grid grid-cols-2 lg:grid-cols-5 p-4">
-          <StatCard
-            label="Laga Resmi"
-            value={official.length}
-            icon={Volleyball}
-            tone="emerald"
-          />
-          <StatCard
-            label="Total Gol"
-            value={goals}
-            icon={Volleyball}
-            tone="amber"
-          />
-          <StatCard label="Menang/Kalah" value={decisive} icon={Table2} />
-          <StatCard label="Imbang" value={draws} icon={Table2} />
-          <StatCard
-            label="Belum Resmi"
-            value={weekMatches.length - official.length}
-            icon={Gavel}
-            tone="sky"
-          />
+    <div className="bg-white mx-auto w-full font-sans text-slate-900 print-doc">
+      {/* Kop laporan */}
+      <header className="flex justify-between items-start pb-3 border-slate-900 border-b-[3px]">
+        <div className="flex items-center gap-3">
+          <BrandMark className="size-10 text-slate-900" />
+          <div>
+            <p className="font-display font-bold text-[15px] text-slate-900 tracking-tight">
+              IBADAH OSIS
+            </p>
+            <p className="font-semibold text-[9.5px] text-slate-600 uppercase tracking-[0.2em]">
+              Qism Ibadah · OSIS
+            </p>
+          </div>
         </div>
-        {official.length === 0 ? (
-          <p className="px-4 pb-4 text-slate-500 text-xs italic">
-            Belum ada laga resmi pada pekan ini — hasil yang masih
-            draft/verifikasi tidak dihitung.
+        <div className="text-[9.5px] text-slate-600 text-right leading-relaxed">
+          <p>Dicetak: {printedAt}</p>
+          <p>Dokumen internal madrasah</p>
+        </div>
+      </header>
+
+      <h1 className="mt-5 font-display font-bold text-slate-900 text-lg text-center tracking-wide">
+        {title}
+      </h1>
+      <p className="mt-1 font-medium text-[11px] text-slate-700 text-center">
+        Periode: {period}
+      </p>
+      <p className="mt-0.5 text-[10px] text-slate-500 text-center">
+        Filter: {filterLabel}
+      </p>
+
+      {/* A. Ringkasan */}
+      {has("summary") && (
+        <Section no={next()} title="Ringkasan">
+          <div className="gap-2 grid grid-cols-3">
+            <SummaryCell
+              label="Jumlah Pelanggaran"
+              value={fmtNum(real.length)}
+            />
+            <SummaryCell label="Total Poin" value={fmtNum(sumPoints(real))} />
+            {isOsis && (
+              <SummaryCell
+                label="Santri Terlibat"
+                value={fmtNum(santriRows.length)}
+              />
+            )}
+            <SummaryCell
+              label="Klarifikasi Masuk"
+              value={fmtNum(reports.length)}
+            />
+            <SummaryCell
+              label="Klarifikasi Diterima"
+              value={fmtNum(
+                reports.filter((r) => r.status === "accepted").length,
+              )}
+            />
+            <SummaryCell
+              label="Klarifikasi Ditolak"
+              value={fmtNum(
+                reports.filter((r) => r.status === "rejected").length,
+              )}
+            />
+          </div>
+          <p className="mt-2 text-[9px] text-slate-500 italic">
+            Catatan: pelanggaran yang telah dibatalkan (klarifikasi santri
+            diterima) tidak dicantumkan dalam laporan ini.
           </p>
-        ) : (
-          <ul className="border-white/[0.06] border-t divide-y divide-white/[0.04]">
-            {official.map((m) => (
-              <li
-                key={m.id}
-                className="flex items-center gap-3 px-5 py-2.5 text-sm">
-                <p className="flex-1 min-w-0 text-slate-200 truncate">
-                  {m.home_name}{" "}
-                  <span className="font-mono font-semibold text-brand-soft">
-                    {m.home_score} - {m.away_score}
-                  </span>{" "}
-                  {m.away_name}
-                </p>
-                <Badge tone="emerald">Resmi</Badge>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
-
-      <div className="gap-4 grid grid-cols-2 lg:grid-cols-3">
-        <StatCard
-          label="Pending Verifikasi (musim)"
-          value={data.pending}
-          icon={Gavel}
-          tone="sky"
-        />
-        <StatCard
-          label="Suspensi Aktif"
-          value={data.suspActive.length}
-          icon={Ban}
-          tone="rose"
-        />
-        <StatCard label="Total Tim" value={data.rows.length} icon={Table2} />
-      </div>
-
-      <Card>
-        <CardHeader
-          title="Klasemen sementara (musim)"
-          description="Hanya pertandingan resmi"
-        />
-        <StandingsTable rows={data.rows} />
-      </Card>
-
-      {createPortal(
-        <div className="print-only">
-          <PrintPoster
-            ctx={data.ctx}
-            week={selectedWeek}
-            matches={data.matches}
-            standings={data.rows}
-            suspensions={data.suspActive}
-            sections={printSections}
-          />
-        </div>,
-        document.body,
+        </Section>
       )}
 
-      <PrintOptionsModal
-        open={optionsOpen}
-        onClose={() => setOptionsOpen(false)}
-        module="riyadhah"
-        sections={RIYADHAH_SECTIONS}
-        onPrint={handlePrintWithSections}
-      />
+      {/* Rekap per Santri */}
+      {has("perSantri") && (
+        <Section no={next()} title="Rekap per Santri">
+          {santriRows.length === 0 ? (
+            <p className="text-[11px] text-slate-500 italic">
+              Tidak ada data pada periode ini.
+            </p>
+          ) : (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className={`${TH} w-10`}>No</th>
+                  <th className={TH}>Nama</th>
+                  <th className={TH}>Kelas</th>
+                  <th className={TH}>Jumlah Pelanggaran</th>
+                  <th className={TH}>Total Poin</th>
+                </tr>
+              </thead>
+              <tbody>
+                {santriRows.map((s, i) => (
+                  <tr key={`${s.nama}-${i}`}>
+                    <td className={TD}>{i + 1}</td>
+                    <td className={`${TD} font-medium`}>{s.nama}</td>
+                    <td className={TD}>{s.kelas}</td>
+                    <td className={TD}>{fmtNum(s.total)}</td>
+                    <td className={`${TD} font-bold`}>{fmtNum(s.poin)}</td>
+                  </tr>
+                ))}
+                <tr>
+                  <td className={`${TD} font-bold`} colSpan={3}>
+                    Jumlah
+                  </td>
+                  <td className={`${TD} font-bold`}>{fmtNum(real.length)}</td>
+                  <td className={`${TD} font-bold`}>
+                    {fmtNum(sumPoints(real))}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          )}
+        </Section>
+      )}
+
+      {/* Rekap per Kelas */}
+      {has("perClass") && classRows.length > 0 && (
+        <Section no={next()} title="Rekap per Kelas">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr>
+                <th className={`${TH} w-10`}>No</th>
+                <th className={TH}>Kelas</th>
+                <th className={TH}>Jumlah Pelanggaran</th>
+                <th className={TH}>Total Poin</th>
+              </tr>
+            </thead>
+            <tbody>
+              {classRows.map(([kelas, d], i) => (
+                <tr key={kelas}>
+                  <td className={TD}>{i + 1}</td>
+                  <td className={`${TD} font-medium`}>{kelas}</td>
+                  <td className={TD}>{fmtNum(d.total)}</td>
+                  <td className={`${TD} font-semibold`}>{fmtNum(d.poin)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Section>
+      )}
+
+      {/* Rekap per Aturan */}
+      {has("perRule") && (
+        <Section no={next()} title="Rekap per Aturan">
+          {ruleRows.length === 0 ? (
+            <p className="text-[11px] text-slate-500 italic">
+              Tidak ada data pada periode ini.
+            </p>
+          ) : (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className={`${TH} w-10`}>No</th>
+                  <th className={TH}>Aturan</th>
+                  <th className={TH}>Kategori</th>
+                  <th className={TH}>Kejadian</th>
+                  <th className={TH}>Poin per Kejadian</th>
+                  <th className={TH}>Total Poin</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ruleRows.map((r, i) => (
+                  <tr key={r.rule_id}>
+                    <td className={TD}>{i + 1}</td>
+                    <td className={`${TD} font-medium`}>{r.name}</td>
+                    <td className={TD}>{r.category ?? "—"}</td>
+                    <td className={TD}>{fmtNum(r.total)}</td>
+                    <td className={TD}>+{r.points}</td>
+                    <td className={`${TD} font-semibold`}>{fmtNum(r.poin)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </Section>
+      )}
+
+      {/* Detail Pelanggaran */}
+      {has("detail") && (
+        <Section no={next()} title="Detail Pelanggaran">
+          {detail.length === 0 ? (
+            <p className="text-[11px] text-slate-500 italic">
+              Tidak ada data pada periode ini.
+            </p>
+          ) : (
+            <>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className={`${TH} w-10`}>No</th>
+                    <th className={TH}>Tanggal</th>
+                    <th className={TH}>Nama</th>
+                    <th className={TH}>Kelas</th>
+                    <th className={TH}>Pelanggaran</th>
+                    <th className={TH}>Poin</th>
+                    <th className={TH}>Status</th>
+                    <th className={TH}>Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {detail.map((v, i) => (
+                    <tr key={v.id}>
+                      <td className={TD}>{i + 1}</td>
+                      <td className={`${TD} whitespace-nowrap`}>
+                        {fmtDate(v.occurred_at)}
+                      </td>
+                      <td className={`${TD} font-medium`}>
+                        {v.santri?.full_name}
+                      </td>
+                      <td className={TD}>{v.santri?.class_name}</td>
+                      <td className={TD}>{v.rule?.name}</td>
+                      <td className={`${TD} font-semibold`}>
+                        +{v.rule?.points}
+                      </td>
+                      <td className={TD}>
+                        {VIOLATION_STATUS_LABELS[v.status] ?? v.status}
+                      </td>
+                      <td className={`${TD} text-[10px] text-slate-600`}>
+                        {v.note || "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {real.length > 200 && (
+                <p className="mt-1 text-[9.5px] text-slate-500 italic">
+                  Menampilkan 200 dari {real.length} catatan. Sisanya dapat
+                  dilihat pada aplikasi.
+                </p>
+              )}
+            </>
+          )}
+        </Section>
+      )}
+
+      {/* Klarifikasi Santri */}
+      {has("reports") && (
+        <Section no={next()} title="Klarifikasi Santri">
+          {reportRows.length === 0 ? (
+            <p className="text-[11px] text-slate-500 italic">
+              Tidak ada klarifikasi pada periode ini.
+            </p>
+          ) : (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className={`${TH} w-10`}>No</th>
+                  <th className={TH}>Diajukan</th>
+                  <th className={TH}>Nama</th>
+                  <th className={TH}>Pelanggaran</th>
+                  <th className={TH}>Alasan</th>
+                  <th className={TH}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reportRows.map((r, i) => (
+                  <tr key={r.id}>
+                    <td className={TD}>{i + 1}</td>
+                    <td className={`${TD} whitespace-nowrap`}>
+                      {fmtDate(r.created_at)}
+                    </td>
+                    <td className={`${TD} font-medium`}>
+                      {r.violation?.santri?.full_name ?? r.santri?.full_name}
+                    </td>
+                    <td className={TD}>{r.violation?.rule?.name ?? "—"}</td>
+                    <td className={`${TD} text-[10px]`}>{r.reason}</td>
+                    <td className={TD}>
+                      {REPORT_STATUS_LABELS[r.status] ?? r.status}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </Section>
+      )}
+
+      {/* Tanda tangan */}
+      {has("signatures") && (
+        <div className="flex justify-between mt-10 text-[11px] text-slate-900 break-inside-avoid">
+          <div className="text-center">
+            <p>Mengetahui,</p>
+            <p>Pembina OSIS Qism Ibadah</p>
+            <div className="h-16" />
+            <p className="px-8 pt-1 border-slate-500 border-t">
+              (……………………………………)
+            </p>
+          </div>
+          <div className="text-center">
+            <p>…………………, {fmtDate(new Date())}</p>
+            <p>OSIS Qism Ibadah</p>
+            <div className="h-16" />
+            <p className="px-8 pt-1 border-slate-500 border-t">
+              (……………………………………)
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
