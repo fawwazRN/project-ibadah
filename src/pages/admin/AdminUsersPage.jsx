@@ -22,6 +22,7 @@ const ROLES = [
   "qism_ibadah",
   "qism_riyadhah",
   "nadzhofah",
+  "lughah",
   "super_admin",
 ];
 const ROLE_TONES = {
@@ -29,6 +30,7 @@ const ROLE_TONES = {
   qism_ibadah: "emerald",
   qism_riyadhah: "sky",
   nadzhofah: "amber",
+  lughah: "teal",
   super_admin: "violet",
 };
 
@@ -59,7 +61,6 @@ export default function AdminUsersPage() {
   }, []);
   useEffect(load, [load]);
 
-  // useMemo SEBELUM early return — wajib, agar jumlah hook konsisten
   const counts = useMemo(
     () =>
       ROLES.reduce(
@@ -76,7 +77,7 @@ export default function AdminUsersPage() {
     if (role === p.role) return;
     const ok = await confirm({
       title: "Ubah peran?",
-      message: `${p.full_name} → ${ROLE_LABELS[role]}.\n\nPerubahan langsung berlaku (akses menu & dashboard menyesuaikan) dan tercatat di log audit.`,
+      message: `${p.full_name} → ${ROLE_LABELS[role]}.\n\nPerubahan langsung berlaku dan tercatat di log audit.`,
       confirmText: "Ya, ubah peran",
       tone: role === "super_admin" ? "danger" : "default",
     });
@@ -102,7 +103,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  // ================= EARLY RETURN (setelah semua hooks) =================
+  // ================= EARLY RETURN SETELAH HOOKS =================
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!profiles) return <LoadingState rows={8} />;
 
@@ -112,15 +113,13 @@ export default function AdminUsersPage() {
       (!fRole || p.role === fRole),
   );
 
-  // ================= TAMPILAN =================
   return (
     <div className="animate-fade-up">
       <PageHeader
         title="Pengguna & Peran"
-        description="Tunjuk siapa yang Full Admin, Qism Ibadah saja, Qism Riyadhah saja, Qism Nadzhofah saja, atau Santri biasa. Peran ditentukan di database (RPC + RLS), bukan di aplikasi."
+        description="Tunjuk peran: Santri, Qism Ibadah, Qism Riyadhah, Qism Nadzhofah, Qism Lughah, atau Full Admin. Ditentukan di database (RPC + RLS)."
       />
 
-      {/* Filter per peran + pencarian */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
         {ROLES.map((r) => (
           <button

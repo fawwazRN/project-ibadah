@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Footprints, CalendarDays, Medal, Shirt, Trophy } from "lucide-react";
+import {
+  Footprints,
+  CalendarDays,
+  Medal,
+  Shirt,
+  Trophy,
+  Wallet,
+  CircleCheck,
+  CircleDashed,
+} from "lucide-react";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { StatCard } from "../../components/ui/StatCard";
@@ -14,6 +23,8 @@ import {
 import { nyekerService } from "../../services/nyekerService";
 import { fmtDate, startOfMonth } from "../../lib/date";
 import { fmtNum } from "../../lib/calc";
+
+const rp = (n) => `Rp ${fmtNum(n)}`;
 
 const PODIUM = {
   0: {
@@ -43,26 +54,28 @@ const PODIUM_ORDER = [1, 0, 2];
 export default function SantriNadzhofahPage() {
   // ================= SEMUA HOOKS DULU =================
   const [myRecords, setMyRecords] = useState(null);
+  const [clothing, setClothing] = useState(null);
   const [board, setBoard] = useState(null);
   const [error, setError] = useState(null);
 
-  // Detail santri saat podium/daftar diklik (hanya angka — RLS-safe)
   const [detail, setDetail] = useState(null);
 
   const load = useCallback(() => {
     setError(null);
     (async () => {
-      const [mine, board] = await Promise.all([
+      const [mine, cl, board] = await Promise.all([
         nyekerService.list(),
+        nyekerService.listClothing(), // RLS: santri hanya menerima miliknya
         nyekerService.naughtyLeaderboard(),
       ]);
       setMyRecords(mine ?? []);
+      setClothing(cl ?? []);
       setBoard(board ?? []);
     })().catch((e) => setError(e.message));
   }, []);
   useEffect(load, [load]);
 
-  // Statistik pribadi
+  // Statistik nyeker pribadi
   const stats = useMemo(() => {
     const list = myRecords ?? [];
     const monthStart = startOfMonth();
@@ -75,6 +88,32 @@ export default function SantriNadzhofahPage() {
     };
   }, [myRecords]);
 
+  // ===== TAGIHAN DENDA (dari riwayat nyeker pribadi) =====
+  const fines = useMemo(() => {
+    const list = myRecords ?? [];
+    const unpaid = list
+      .filter((r) => !r.fine_paid)
+      .reduce((s, r) => s + (r.fine_amount ?? 5000), 0);
+    const paid = list
+      .filter((r) => r.fine_paid)
+      .reduce((s, r) => s + (r.fine_amount ?? 5000), 0);
+    return { unpaid, paid, total: unpaid + paid };
+  }, [myRecords]);
+
+  // ===== BAJU DISITA (pribadi) =====
+  const clothingStats = useMemo(() => {
+    const list = clothing ?? [];
+    return {
+      items: list.reduce((s, r) => s + (r.quantity ?? 0), 0),
+      records: list.length,
+      value: list.reduce(
+        (s, r) => s + (r.current_value ?? r.quantity * 5000),
+        0,
+      ),
+      auctioned: list.filter((r) => r.auction_price != null).length,
+    };
+  }, [clothing]);
+
   // Peringkat saya di leaderboard
   const myRank = useMemo(() => {
     if (!board || !myRecords) return null;
@@ -84,9 +123,10 @@ export default function SantriNadzhofahPage() {
     return idx >= 0 ? { rank: idx + 1, ...board[idx] } : null;
   }, [board, myRecords]);
 
-  // ================= EARLY RETURN (setelah semua hooks) =================
+  // ================= EARLY RETURN SETELAH HOOKS =================
   if (error) return <ErrorState message={error} onRetry={load} />;
-  if (myRecords === null || board === null) return <LoadingState rows={6} />;
+  if (myRecords === null || board === null || clothing === null)
+    return <LoadingState rows={6} />;
 
   const top3 = board.slice(0, 3);
   const top3Filled = top3.length >= 3;
@@ -96,10 +136,10 @@ export default function SantriNadzhofahPage() {
     <div className="space-y-5 animate-fade-up">
       <PageHeader
         title="Qism Nadzhofah"
-        description="Riwayat nyeker & baju disitamu, plus papan peringkat nakal."
+        description="Riwayat nyeker, tagihan denda, baju disita, dan papan peringkat nakal."
       />
 
-      {/* ===== Statistik pribadi ===== */}
+      {/* ===== NYEKER ===== */}
       <div className="gap-4 grid grid-cols-2 lg:grid-cols-3">
         <StatCard
           label="Nyeker Total"
@@ -120,6 +160,149 @@ export default function SantriNadzhofahPage() {
           tone="sky"
         />
       </div>
+
+      {/* ===== TAGIHAN DENDA ===== */}
+      <Card>
+        <CardHeader
+          title="Tagihan Denda Nyeker"
+          description="Denda 5.000 per catatan — status pembayaran diatur oleh Qism Nadzhofah"
+          actions={<Wallet size={15} className="text-brand-soft" />}
+        />
+        <div className="gap-4 grid grid-cols-1 sm:grid-cols-3 p-5">
+          <div className="bg-rose-500/[0.06] p-4 border border-rose-400/25 rounded-xl text-center">
+            <p className="flex justify-center items-center gap-1.5 text-[10px] text-rose-300 uppercase tracking-wider">
+              <CircleDashed size={12} /> Belum Lunas
+            </p>
+            <p className="mt-1 font-display font-bold text-rose-300 text-2xl">
+              {rp(fines.unpaid)}
+            </p>
+            <p className="text-[11px] text-slate-500">
+              {fmtNum((myRecords ?? []).filter((r) => !r.fine_paid).length)}{" "}
+              catatan
+            </p>
+          </div>
+          <div className="bg-emerald-500/[0.06] p-4 border border-emerald-400/25 rounded-xl text-center">
+            <p className="flex justify-center items-center gap-1.5 text-[10px] text-emerald-300 uppercase tracking-wider">
+              <CircleCheck size={12} /> Sudah Lunas
+            </p>
+            <p className="mt-1 font-display font-bold text-emerald-300 text-2xl">
+              {rp(fines.paid)}
+            </p>
+            <p className="text-[11px] text-slate-500">
+              {fmtNum((myRecords ?? []).filter((r) => r.fine_paid).length)}{" "}
+              catatan
+            </p>
+          </div>
+          <div className="bg-white/[0.02] p-4 border border-white/[0.06] rounded-xl text-center">
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+              Total Tagihan
+            </p>
+            <p className="mt-1 font-display font-bold text-slate-100 text-2xl">
+              {rp(fines.total)}
+            </p>
+            <p className="text-[11px] text-slate-500">sepanjang masa</p>
+          </div>
+        </div>
+
+        {/* Rincian tagihan per catatan */}
+        {(myRecords ?? []).length > 0 && (
+          <ul className="border-white/[0.06] border-t divide-y divide-white/[0.04]">
+            {(myRecords ?? []).slice(0, 10).map((r) => (
+              <li
+                key={r.id}
+                className="flex flex-wrap items-center gap-3 px-5 py-2.5">
+                <div className="flex-1 min-w-0">
+                  <p className="text-slate-200 text-sm">
+                    {fmtDate(r.nyeker_date)}
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    {String(r.nyeker_time).slice(0, 5)}
+                    {r.note ? ` · ${r.note}` : ""}
+                  </p>
+                </div>
+                <span
+                  className={`font-mono text-sm font-semibold ${r.fine_paid ? "text-emerald-300" : "text-rose-300"}`}>
+                  {rp(r.fine_amount ?? 5000)}
+                </span>
+                {r.fine_paid ? (
+                  <Badge tone="emerald">
+                    <CircleCheck size={11} /> Lunas
+                  </Badge>
+                ) : (
+                  <Badge tone="amber">
+                    <CircleDashed size={11} /> Belum Lunas
+                  </Badge>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      {/* ===== BAJU DISITA ===== */}
+      <Card>
+        <CardHeader
+          title="Baju Disita"
+          description="Riwayat penyitaan baju atas namamu"
+          actions={<Shirt size={15} className="text-sky-300" />}
+        />
+        {clothing.length === 0 ? (
+          <EmptyState
+            icon={Shirt}
+            title="Tidak ada penyitaan"
+            description="Belum ada baju yang disita atas namamu."
+          />
+        ) : (
+          <>
+            <div className="gap-4 grid grid-cols-2 lg:grid-cols-3 p-5">
+              <StatCard
+                label="Total Baju"
+                value={`${fmtNum(clothingStats.items)} baju`}
+                icon={Shirt}
+                tone="sky"
+              />
+              <StatCard
+                label="Nilai"
+                value={rp(clothingStats.value)}
+                icon={Wallet}
+                tone="amber"
+              />
+              <StatCard
+                label="Dilelang"
+                value={`${fmtNum(clothingStats.auctioned)} catatan`}
+                icon={Gavel}
+              />
+            </div>
+            <ul className="border-white/[0.06] border-t divide-y divide-white/[0.04]">
+              {clothing.map((c) => (
+                <li
+                  key={c.id}
+                  className="flex flex-wrap items-center gap-3 px-5 py-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-slate-200 text-sm">
+                      {c.quantity} baju{c.note ? ` · ${c.note}` : ""}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      {fmtDate(c.created_at)}
+                      {c.auction_price != null
+                        ? ` · dilelang ${fmtDate(c.auction_date)}`
+                        : ""}
+                    </p>
+                  </div>
+                  <span className="font-mono font-semibold text-slate-200 text-sm">
+                    {rp(c.current_value)}
+                  </span>
+                  {c.auction_price != null ? (
+                    <Badge tone="emerald">Terjual Lelang</Badge>
+                  ) : (
+                    <Badge tone="neutral">Standar 5rb</Badge>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </Card>
 
       {/* ===== Peringkat saya ===== */}
       {myRank && (
@@ -142,7 +325,7 @@ export default function SantriNadzhofahPage() {
         </Card>
       )}
 
-      {/* ===== Leaderboard: PODIUM (Top 3) ===== */}
+      {/* ===== Leaderboard: PODIUM ===== */}
       <Card>
         <CardHeader
           title="Papan Peringkat Nakal"
@@ -244,42 +427,6 @@ export default function SantriNadzhofahPage() {
           </ul>
         </Card>
       )}
-
-      {/* ===== Riwayat pribadi ===== */}
-      <Card>
-        <CardHeader
-          title="Riwayat Nyeker Saya"
-          description="Seluruh catatan atas namamu"
-        />
-        {myRecords.length === 0 ? (
-          <EmptyState
-            icon={Footprints}
-            title="Belum ada catatan"
-            description="Pertahankan — jangan berjalan tanpa sandal/sepatu ya."
-          />
-        ) : (
-          <ul className="divide-y divide-white/[0.04]">
-            {myRecords.map((r) => (
-              <li key={r.id} className="flex items-center gap-3 px-5 py-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-slate-200 text-sm">
-                    {fmtDate(r.nyeker_date)}
-                  </p>
-                  <p className="text-slate-500 text-xs">
-                    {String(r.nyeker_time).slice(0, 5)}
-                    {r.note ? ` · ${r.note}` : ""}
-                  </p>
-                </div>
-                {r.recorder_name && (
-                  <span className="text-[11px] text-slate-600 shrink-0">
-                    dicatat: {r.recorder_name}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
 
       {/* ===== Modal detail (ringkasan angka — RLS-safe) ===== */}
       <Modal

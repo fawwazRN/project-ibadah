@@ -11,8 +11,6 @@ import GuestLayout from "../pages/auth/GuestLayout";
 import GuestDashboard from "../pages/auth/GuestDashboard";
 import GuestIbadahPage from "../pages/auth/GuestIbadahPage";
 import GuestLeaderboardPage from "../pages/auth/GuestLeaderboardPage";
-// 1) Import tambahan:
-import GuestNadzhofahPage from "../pages/auth/GuestNadzhofahPage";
 
 // ---------- Santri ----------
 import SantriDashboard from "../pages/santri/SantriDashboard";
@@ -20,6 +18,7 @@ import SantriViolations from "../pages/santri/SantriViolations";
 import SantriReports from "../pages/santri/SantriReports";
 import SantriTeamPage from "../pages/santri/SantriTeamPage";
 import SantriNadzhofahPage from "../pages/santri/SantriNadzhofahPage";
+import SantriLughahPage from "../pages/santri/Lughah";
 
 // ---------- Shared ----------
 import ZikirSchedulePage from "../pages/shared/ZikirSchedulePage";
@@ -29,8 +28,6 @@ import LeaderboardDetailPage from "../pages/shared/LeaderboardDetailPage";
 import LeagueStandingsPage from "../pages/shared/LeagueStandingsPage";
 import RecapPage from "../pages/shared/RecapPage";
 import ProfilePage from "../pages/shared/ProfilePage";
-// Import tambahan di atas:
-import SantriNaughtyLeaderboardPage from "../pages/santri/SantriNaughtyLeaderboardPage";
 
 // ---------- Qism Ibadah ----------
 import IbadahDashboard from "../pages/ibadah/IbadahDashboard";
@@ -58,6 +55,12 @@ import NadzhofahRekapPage from "../pages/nadzhofah/Rekap";
 import NadzhofahPakaianPage from "../pages/nadzhofah/Pakaian";
 import NadzhofahLeaderboardPage from "../pages/nadzhofah/Leaderboard";
 
+// ---------- Qism Lughah ----------
+import LughahDashboard from "../pages/lughah/Dashboard";
+import LughahKelengkapanPage from "../pages/lughah/Kelengkapan";
+import LughahNilaiPage from "../pages/lughah/Nilai";
+import LughahRekapPage from "../pages/lughah/Rekap";
+
 // ---------- Super Admin ----------
 import AdminHome from "../pages/admin/AdminHome";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
@@ -72,6 +75,7 @@ const HOME = {
   qism_ibadah: "/ibadah",
   qism_riyadhah: "/riyadhah",
   nadzhofah: "/nadzhofah",
+  lughah: "/lughah",
   super_admin: "/admin",
 };
 export const homeFor = (role) => HOME[role] ?? "/santri";
@@ -141,7 +145,6 @@ export default function AppRoutes() {
         <Route path="/guest/ibadah" element={<GuestIbadahPage />} />
         <Route path="/guest/leaderboard" element={<GuestLeaderboardPage />} />
         <Route path="/guest/zikir" element={<GuestZikirPage />} />
-        <Route path="/guest/nadzhofah" element={<GuestNadzhofahPage />} />
       </Route>
 
       {/* Pilih kelas & nama — untuk sesi yang belum terhubung profil */}
@@ -159,15 +162,12 @@ export default function AppRoutes() {
               element={<ZikirSchedulePage role="santri" />}
             />
             <Route path="/santri/violations" element={<SantriViolations />} />
-            <Route
-              path="/santri/nadzhofah/leaderboard"
-              element={<SantriNaughtyLeaderboardPage />}
-            />
             <Route path="/santri/reports" element={<SantriReports />} />
             <Route path="/santri/team" element={<SantriTeamPage />} />
             <Route path="/santri/standings" element={<LeagueStandingsPage />} />
             <Route path="/santri/matches" element={<SantriTeamPage />} />
             <Route path="/santri/nadzhofah" element={<SantriNadzhofahPage />} />
+            <Route path="/santri/lughah" element={<SantriLughahPage />} />
             <Route
               path="/santri/leaderboard"
               element={<LeaderboardPage role="santri" />}
@@ -267,6 +267,21 @@ export default function AppRoutes() {
             <Route
               path="/nadzhofah/profile"
               element={<ProfilePage role="nadzhofah" />}
+            />
+          </Route>
+
+          {/* ---------------- QISM LUGHAH ---------------- */}
+          <Route element={<RoleRoute role="lughah" />}>
+            <Route path="/lughah" element={<LughahDashboard />} />
+            <Route
+              path="/lughah/kelengkapan"
+              element={<LughahKelengkapanPage />}
+            />
+            <Route path="/lughah/nilai" element={<LughahNilaiPage />} />
+            <Route path="/lughah/rekap" element={<LughahRekapPage />} />
+            <Route
+              path="/lughah/profile"
+              element={<ProfilePage role="lughah" />}
             />
           </Route>
 

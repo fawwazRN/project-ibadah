@@ -31,6 +31,16 @@ export const REPORT_STATUS_LABELS = {
   rejected: "Ditolak",
 };
 
+// ---------- Peran ----------
+export const ROLE_LABELS = {
+  santri: "Santri",
+  qism_ibadah: "Qism Ibadah",
+  qism_riyadhah: "Qism Riyadhah",
+  nadzhofah: "Qism Nadzhofah",
+  lughah: "Qism Lughah",
+  super_admin: "Super Admin",
+};
+
 // ---------- Waktu shalat ----------
 export const PRAYER_TIMES = ["subuh", "zuhur", "ashar", "maghrib", "isya"];
 
@@ -42,8 +52,6 @@ export const PRAYER_LABELS = {
   isya: "Isya",
 };
 
-// Jam acuan per shalat (WIB) — dipakai sebagai jam internal `occurred_at`
-// agar filter/grafik per hari tetap berfungsi. Sesuaikan bila perlu.
 export const PRAYER_CLOCK = {
   subuh: "05:00",
   zuhur: "12:15",
@@ -52,7 +60,6 @@ export const PRAYER_CLOCK = {
   isya: "19:30",
 };
 
-// Kata kunci deteksi dari catatan
 const PRAYER_KEYWORDS = {
   subuh: ["subuh", "fajar", "fajr"],
   zuhur: ["zuhur", "dzuhur", "zuhor", "lohor", "luhur"],
@@ -61,8 +68,6 @@ const PRAYER_KEYWORDS = {
   isya: ["isya", "isyak"],
 };
 
-// Deteksi waktu shalat dari teks. Bila beberapa disebut, yang disebut
-// PALING AKHIR yang dipakai (mis. "terlambat maghrib dan isya" → isya).
 export function detectPrayer(text) {
   const t = (text ?? "").toLowerCase();
   let best = null;
@@ -78,15 +83,6 @@ export function detectPrayer(text) {
   }
   return best;
 }
-
-// ---------- Peran ----------
-export const ROLE_LABELS = {
-  santri: "Santri",
-  qism_ibadah: "Qism Ibadah",
-  qism_riyadhah: "Qism Riyadhah",
-  nadzhofah: "Qism Nadzhofah",
-  super_admin: "Super Admin",
-};
 
 // ---------- Liga ----------
 export const MATCH_STATUS_LABELS = {

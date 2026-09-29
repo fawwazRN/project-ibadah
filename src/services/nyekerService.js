@@ -106,6 +106,38 @@ export const nyekerService = {
     return data;
   },
 
+  // Tandai denda lunas / belum lunas
+  async setFinePaid(id, paid) {
+    const { error } = await supabase
+      .from("nyeker_records")
+      .update({ fine_paid: paid })
+      .eq("id", id);
+    if (error) throw error;
+    await auditService.log(
+      paid ? "nyeker_fine_paid" : "nyeker_fine_unpaid",
+      "nyeker",
+      id,
+      null,
+    );
+  },
+
+  // Ubah nominal denda (mis. santri nyeker berulang → denda lebih besar)
+  async setFineAmount(id, amount) {
+    const { error } = await supabase
+      .from("nyeker_records")
+      .update({ fine_amount: Number(amount) })
+      .eq("id", id);
+    if (error) throw error;
+    await auditService.log("nyeker_fine_updated", "nyeker", id, `Rp ${amount}`);
+  },
+
+  // Statistik denda
+  async fineStats() {
+    const { data, error } = await supabase.rpc("get_nyeker_fine_stats");
+    if (error) throw error;
+    return data?.[0] ?? { total_fine: 0, unpaid: 0, paid: 0 };
+  },
+
   // Set hasil lelang (harga akhir) — menggantikan harga standar utk baris ini
   async setAuction(id, auctionPrice, auctionDate) {
     const { error } = await supabase

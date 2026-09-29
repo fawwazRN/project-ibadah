@@ -30,11 +30,10 @@ export default function NadzhofahNyekerPage() {
   }, []);
   useEffect(load, [load]);
 
-  // Hapus catatan salah — dengan konfirmasi
   const removeRecord = async (r) => {
     const ok = await confirm({
       title: "Hapus catatan nyeker?",
-      message: `Catatan ${r.full_name} (${fmtDateLocal(r.nyeker_date)}${r.note ? ` · ${r.note}` : ""}) akan dihapus permanen. Lakukan hanya bila pencatatan keliru.`,
+      message: `Catatan ${r.full_name} akan dihapus permanen. Lakukan hanya bila pencatatan keliru.`,
       confirmText: "Ya, hapus",
       tone: "danger",
     });
@@ -48,15 +47,19 @@ export default function NadzhofahNyekerPage() {
     }
   };
 
-  function fmtDateLocal(d) {
-    return new Date(`${d}T00:00:00`).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  }
+  const togglePaid = async (r) => {
+    try {
+      await nyekerService.setFinePaid(r.id, !r.fine_paid);
+      push(
+        "success",
+        r.fine_paid ? "Denda ditandai belum lunas" : "Denda ditandai LUNAS",
+      );
+      load();
+    } catch (e) {
+      push("error", "Gagal", e.message);
+    }
+  };
 
-  // Hooks dulu — filter setelahnya
   const scoped = useMemo(() => {
     let list = rows ?? [];
     if (q)
@@ -83,7 +86,7 @@ export default function NadzhofahNyekerPage() {
     <div className="space-y-5 animate-fade-up">
       <PageHeader
         title="Catat Nyeker"
-        description="Rekam santri yang ditemukan berjalan tanpa sandal/sepatu. Catatan yang keliru dapat dihapus."
+        description="Rekam santri yang ditemukan berjalan tanpa sandal/sepatu. Denda standar 5.000 otomatis tercatat."
       />
 
       <div className="gap-5 grid lg:grid-cols-2">
@@ -124,20 +127,13 @@ export default function NadzhofahNyekerPage() {
                 onChange={(e) => setFDate(e.target.value)}
               />
             </div>
-            {fDate && (
-              <button
-                type="button"
-                onClick={() => setFDate("")}
-                className="text-slate-500 text-xs underline">
-                hapus filter tanggal
-              </button>
-            )}
           </div>
           <div className="p-5 pt-3">
             <NyekerTable
               rows={scoped.slice(0, 50)}
               onStudentClick={(r) => setStudent(r)}
               onDelete={removeRecord}
+              onTogglePaid={togglePaid}
             />
           </div>
         </Card>

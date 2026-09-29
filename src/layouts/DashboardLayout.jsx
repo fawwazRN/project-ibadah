@@ -13,28 +13,67 @@ const ROLE_LABELS = {
   qism_ibadah: "Qism Ibadah",
   qism_riyadhah: "Qism Riyadhah",
   nadzhofah: "Qism Nadzhofah",
+  lughah: "Qism Lughah",
   super_admin: "Super Admin",
+};
+
+const ROLE_SUBTITLES = {
+  santri: (p) => `Santri · ${p?.class_name ?? ""}`,
+  qism_ibadah: () => "Qism Ibadah",
+  qism_riyadhah: () => "Qism Riyadhah",
+  nadzhofah: () => "Qism Nadzhofah",
+  lughah: () => "Qism Lughah",
+  super_admin: () => "Super Admin · Akses Penuh",
 };
 
 function Brand() {
   return (
     <div className="flex items-center gap-3 px-5 py-5">
-      <span className="place-items-center grid bg-brand/10 border border-brand/25 rounded-xl size-10 text-brand-soft">
-        <BrandMark className="size-5.5" />
+      <span className="place-items-center grid bg-gradient-to-b from-brand/20 to-brand/5 shadow-card border border-brand/25 rounded-2xl size-11 text-brand-soft">
+        <BrandMark className="size-6" />
       </span>
       <div>
         <p className="font-display font-bold text-[15px] text-slate-50 tracking-tight">
           OSIS Management
         </p>
-        <p className="font-medium text-[10px] text-slate-500 uppercase tracking-[0.18em]">
-          Qism Ibadah · Qism Riyadhah
+        <p className="font-semibold text-[9px] text-slate-500 uppercase tracking-[0.22em]">
+          Ibadah · Riyadhah · Nadzhofah · Lughah
         </p>
       </div>
     </div>
   );
 }
 
-// Item parent yang bisa dibuka-tutup (punya children)
+function NavItem({ to, end, icon: Icon, label, onNavigate }) {
+  return (
+    <NavLink
+      to={to}
+      end={end}
+      onClick={onNavigate}
+      className={({ isActive }) =>
+        `relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors ${
+          isActive
+            ? "bg-white/[0.05] font-medium text-slate-100"
+            : "text-slate-400 hover:bg-white/[0.03] hover:text-slate-200"
+        }`
+      }>
+      {({ isActive }) => (
+        <>
+          {isActive && (
+            <span className="top-1/2 -left-3 absolute bg-brand rounded-r-full w-1 h-5 -translate-y-1/2" />
+          )}
+          <Icon
+            size={15}
+            className={isActive ? "text-brand-soft" : "text-slate-500"}
+          />
+          {label}
+        </>
+      )}
+    </NavLink>
+  );
+}
+
+// Item parent dengan children — buka/tutup
 function NavParentItem({ item, onNavigate }) {
   const [open, setOpen] = useState(false);
   return (
@@ -59,7 +98,7 @@ function NavParentItem({ item, onNavigate }) {
               end
               onClick={onNavigate}
               className={({ isActive }) =>
-                `relative flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[13px] transition-colors ${
+                `relative flex items-center rounded-lg px-2.5 py-1.5 text-[13px] transition-colors ${
                   isActive
                     ? "bg-white/[0.05] font-medium text-slate-100"
                     : "text-slate-400 hover:bg-white/[0.03] hover:text-slate-200"
@@ -98,33 +137,14 @@ function NavList({ groups, onNavigate }) {
                   onNavigate={onNavigate}
                 />
               ) : (
-                <NavLink
-                  key={it.to}
+                <NavItem
+                  key={it.to ?? `${g.section}-${idx}`}
                   to={it.to}
                   end={it.end}
-                  onClick={onNavigate}
-                  className={({ isActive }) =>
-                    `relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors ${
-                      isActive
-                        ? "bg-white/[0.05] font-medium text-slate-100"
-                        : "text-slate-400 hover:bg-white/[0.03] hover:text-slate-200"
-                    }`
-                  }>
-                  {({ isActive }) => (
-                    <>
-                      {isActive && (
-                        <span className="top-1/2 -left-3 absolute bg-brand rounded-r-full w-1 h-5 -translate-y-1/2" />
-                      )}
-                      <it.icon
-                        size={15}
-                        className={
-                          isActive ? "text-brand-soft" : "text-slate-500"
-                        }
-                      />
-                      {it.label}
-                    </>
-                  )}
-                </NavLink>
+                  icon={it.icon}
+                  label={it.label}
+                  onNavigate={onNavigate}
+                />
               ),
             )}
           </div>
@@ -171,16 +191,14 @@ export default function DashboardLayout() {
         onNavigate={mobile ? () => setMobileOpen(false) : undefined}
       />
       <div className="p-3 border-white/[0.06] border-t">
-        <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl">
+        <div className="flex items-center gap-2.5 bg-white/[0.02] px-2 py-2 border border-white/[0.05] rounded-xl">
           <Avatar name={profile?.full_name ?? ""} size="sm" />
           <div className="flex-1 min-w-0">
             <p className="font-medium text-slate-200 text-sm truncate">
               {profile?.full_name}
             </p>
             <p className="text-[11px] text-slate-500">
-              {profile?.role === "santri"
-                ? `Santri · ${profile?.class_name ?? ""}`
-                : (ROLE_LABELS[profile?.role] ?? "—")}
+              {ROLE_SUBTITLES[profile?.role]?.(profile) ?? "—"}
             </p>
           </div>
           <button

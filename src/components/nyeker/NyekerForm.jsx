@@ -22,6 +22,7 @@ export default function NyekerForm({ onSaved }) {
   const [date, setDate] = useState(localToday());
   const [time, setTime] = useState(localNowTime());
   const [note, setNote] = useState("");
+  const [fine, setFine] = useState(5000);
   const [saving, setSaving] = useState(false);
   const [booting, setBooting] = useState(false);
 
@@ -54,17 +55,19 @@ export default function NyekerForm({ onSaved }) {
         nyeker_date: date,
         nyeker_time: time,
         note: note.trim() || null,
+        fine_amount: Number(fine) || 5000,
       });
       push(
         "success",
         "Catatan nyeker berhasil ditambahkan",
-        `${selected.full_name} · ${date}`,
+        `${selected.full_name} · ${date} · denda Rp ${Number(fine).toLocaleString("id-ID")}`,
       );
       setSelected(null);
       setQ("");
       setNote("");
       setDate(localToday());
       setTime(localNowTime());
+      setFine(5000);
       onSaved?.();
     } catch (e) {
       push("error", "Gagal menyimpan", e.message);
@@ -163,6 +166,17 @@ export default function NyekerForm({ onSaved }) {
                 />
               </Field>
             </div>
+
+            <Field label="Denda (Rp)" hint="Standar 5.000 — ubah bila perlu.">
+              <Input
+                type="number"
+                min="0"
+                max="1000000"
+                value={fine}
+                onChange={(e) => setFine(e.target.value)}
+              />
+            </Field>
+
             <Field label="Catatan (opsional)">
               <Textarea
                 rows={2}
@@ -171,6 +185,7 @@ export default function NyekerForm({ onSaved }) {
                 placeholder="Mis. Masjid, Koridor…"
               />
             </Field>
+
             <Button
               variant="primary"
               icon={Plus}

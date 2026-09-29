@@ -20,6 +20,9 @@ import {
   Printer,
   Footprints,
   Shirt,
+  BookOpenCheck,
+  CheckCircle2,
+  ClipboardCheck,
 } from "lucide-react";
 
 export const NAV = {
@@ -38,13 +41,11 @@ export const NAV = {
         },
         { to: "/santri/team", label: "Tim Saya", icon: Volleyball },
         { to: "/santri/matches", label: "Pertandingan", icon: CalendarDays },
+        { to: "/santri/nadzhofah", label: "Nadzhofah Saya", icon: Footprints },
         {
-          label: "Nadzhofah",
-          icon: Footprints,
-          children: [
-            { to: "/santri/nadzhofah", label: "Riwayat Nyeker Saya" },
-            { to: "/santri/nadzhofah/leaderboard", label: "Santri Nakal" },
-          ],
+          to: "/santri/lughah",
+          label: "Kelengkapan & Nilai",
+          icon: BookOpenCheck,
         },
         {
           label: "Leaderboard",
@@ -169,6 +170,23 @@ export const NAV = {
     },
   ],
 
+  // ---------- QISM LUGHAH ----------
+  lughah: [
+    {
+      section: "Lughah",
+      items: [
+        { to: "/lughah", label: "Dashboard", icon: LayoutDashboard, end: true },
+        { to: "/lughah/kelengkapan", label: "Kelengkapan", icon: CheckCircle2 },
+        { to: "/lughah/nilai", label: "Nilai", icon: ClipboardCheck },
+        { to: "/lughah/rekap", label: "Rekap", icon: FileBarChart },
+      ],
+    },
+    {
+      section: "Akun",
+      items: [{ to: "/lughah/profile", label: "Profil", icon: UserRound }],
+    },
+  ],
+
   // ---------- SUPER ADMIN ----------
   super_admin: [
     {
@@ -236,6 +254,21 @@ export const NAV = {
           label: "Santri Nakal",
           icon: Footprints,
         },
+      ],
+    },
+
+    {
+      section: "Qism Lughah",
+      items: [
+        {
+          to: "/lughah",
+          label: "Dashboard Lughah",
+          icon: BookOpenCheck,
+          end: true,
+        },
+        { to: "/lughah/kelengkapan", label: "Kelengkapan", icon: CheckCircle2 },
+        { to: "/lughah/nilai", label: "Nilai", icon: ClipboardCheck },
+        { to: "/lughah/rekap", label: "Rekap Lughah", icon: FileBarChart },
       ],
     },
 
