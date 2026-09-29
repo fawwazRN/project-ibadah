@@ -10,6 +10,8 @@ import {
   Repeat,
   BookOpen,
   Volleyball,
+  Footprints,
+  BookOpenCheck,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
@@ -101,6 +103,8 @@ export default function SantriDashboard() {
   const [reports, setReports] = useState([]);
   const [summary, setSummary] = useState({});
   const [league, setLeague] = useState(null);
+  const [lughah, setLughah] = useState(null);
+  const [nyeker, setNyeker] = useState(null);
   const [error, setError] = useState(null);
   const [reportTarget, setReportTarget] = useState(null);
 
@@ -116,7 +120,7 @@ export default function SantriDashboard() {
       setReports(r);
       setSummary(s);
 
-      // Liga — dipisah try/catch: kalau gagal, dashboard tetap jalan tanpa kartu klasemen
+      // Liga — gagal-aman
       try {
         const ctx = await leagueService.getContext();
         const [teams, matches, mine] = await Promise.all([
@@ -132,11 +136,31 @@ export default function SantriDashboard() {
       } catch {
         setLeague(null);
       }
+
+      // Lughah — gagal-aman
+      try {
+        const periods = await lughahService.listPeriods();
+        const pick = periods.find((p) => p.is_current) ?? periods[0];
+        if (pick) {
+          const rec = await lughahService.myRecord(pick.id);
+          setLughah(rec);
+        }
+      } catch {
+        setLughah(null);
+      }
+
+      // Nyeker — gagal-aman
+      try {
+        const n = await nyekerService.list();
+        setNyeker(n ?? []);
+      } catch {
+        setNyeker([]);
+      }
     })().catch((e) => setError(e.message));
   }, [profile.id]);
   useEffect(load, [load]);
 
-  // useMemo SEBELUM early return — wajib agar jumlah hook konsisten
+  // useMemo SEBELUM early return
   const openReportViolationIds = useMemo(
     () =>
       new Set(
@@ -147,11 +171,10 @@ export default function SantriDashboard() {
     [reports],
   );
 
-  // ================= EARLY RETURN (setelah semua hooks) =================
+  // ================= EARLY RETURN SETELAH HOOKS =================
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!violations) return <LoadingState rows={6} />;
 
-  // ================= TAMPILAN =================
   const now = new Date();
   const open = violations.filter((v) => OPEN_STATUSES.includes(v.status));
   const activePts = sumPoints(open);
@@ -307,6 +330,123 @@ export default function SantriDashboard() {
           </div>
         </Card>
       )}
+
+      {/* ---------- NADZHOFah & LUGHAH (2 kartu baru) ---------- */}
+      <div className="gap-4 grid lg:grid-cols-2">
+        {/* Nadzhofah */}
+        <Card>
+          <CardHeader
+            title="Qism Nadzhofah"
+            description="Riwayat nyeker & baju disitamu"
+            actions={<Footprints size={15} className="text-brand-soft" />}
+          />
+          <div className="gap-3 grid grid-cols-2 p-5">
+            <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl text-center">
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+                Nyeker
+              </p>
+              <p
+                className={`mt-1 font-display text-xl font-bold ${nyeker && nyeker.length > 0 ? "text-rose-300" : "text-emerald-300"}`}>
+                {nyeker ? nyeker.length : 0}
+              </p>
+            </div>
+            <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl text-center">
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+                Denda Belum Lunas
+              </p>
+              <p className="mt-1 font-mono font-bold text-amber-300 text-sm">
+                {nyeker
+                  ? `Rp ${fmtNum(nyeker.filter((r) => !r.fine_paid).reduce((s, r) => s + (r.fine_amount ?? 5000), 0))}`
+                  : "Rp 0"}
+              </p>
+            </div>
+          </div>
+          <div className="px-5 pb-5">
+            <Link to="/santri/nadzhofah">
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={ChevronRight}
+                className="w-full">
+                Lihat Riwayat &amp; Peringkat
+              </Button>
+            </Link>
+          </div>
+        </Card>
+
+        {/* Lughah */}
+        <Card>
+          <CardHeader
+            title="Qism Lughah"
+            description="Kelengkapan ujian & nilai"
+            actions={<BookOpenCheck size={15} className="text-brand-soft" />}
+          />
+          <div className="p-5 pb-0">
+            {lughah ? (
+              <>
+                <div className="flex justify-between items-center mb-3">
+                  <p className="font-medium text-slate-200 text-sm">
+                    Status Kelengkapan
+                  </p>
+                  {lughah.is_complete ? (
+                    <Badge tone="emerald">Lengkap</Badge>
+                  ) : (
+                    <Badge tone="amber">Belum Lengkap</Badge>
+                  )}
+                </div>
+                <ul className="space-y-1.5">
+                  {[
+                    ["sudah_setor", "Sudah setor"],
+                    ["sudah_tanda_tangan", "Sudah tanda tangan"],
+                    ["sudah_bawa_buku", "Sudah bawa buku"],
+                    ["sudah_lengkap_tulisan", "Sudah lengkap tulisan"],
+                  ].map(([k, l]) => (
+                    <li key={k} className="flex items-center gap-2 text-xs">
+                      <span
+                        className={`size-1.5 rounded-full ${lughah[k] ? "bg-emerald-400" : "bg-slate-600"}`}
+                      />
+                      <span
+                        className={
+                          lughah[k] ? "text-slate-300" : "text-slate-500"
+                        }>
+                        {l}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex justify-between items-center mt-3 pt-3 border-white/[0.06] border-t">
+                  <span className="text-slate-500 text-xs">Nilai</span>
+                  {lughah.score != null ? (
+                    <span
+                      className={`font-mono text-lg font-bold ${lughah.score >= 75 ? "text-emerald-300" : lughah.score >= 60 ? "text-amber-300" : "text-rose-300"}`}>
+                      {lughah.score}
+                    </span>
+                  ) : (
+                    <span className="text-slate-600 text-xs">
+                      Belum dinilai
+                    </span>
+                  )}
+                </div>
+              </>
+            ) : (
+              <p className="py-4 text-slate-500 text-xs text-center italic">
+                Belum ada data kelengkapan untuk pekan ujian ini.
+              </p>
+            )}
+          </div>
+          <div className="px-5 pb-5">
+            <Link to="/santri/lughah">
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={ChevronRight}
+                className="w-full">
+                Lihat Detail Lengkap
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader
