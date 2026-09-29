@@ -11,12 +11,15 @@ import GuestLayout from "../pages/auth/GuestLayout";
 import GuestDashboard from "../pages/auth/GuestDashboard";
 import GuestIbadahPage from "../pages/auth/GuestIbadahPage";
 import GuestLeaderboardPage from "../pages/auth/GuestLeaderboardPage";
+// 1) Import tambahan:
+import GuestNadzhofahPage from "../pages/auth/GuestNadzhofahPage";
 
 // ---------- Santri ----------
 import SantriDashboard from "../pages/santri/SantriDashboard";
 import SantriViolations from "../pages/santri/SantriViolations";
 import SantriReports from "../pages/santri/SantriReports";
 import SantriTeamPage from "../pages/santri/SantriTeamPage";
+import SantriNadzhofahPage from "../pages/santri/SantriNadzhofahPage";
 
 // ---------- Shared ----------
 import ZikirSchedulePage from "../pages/shared/ZikirSchedulePage";
@@ -26,6 +29,8 @@ import LeaderboardDetailPage from "../pages/shared/LeaderboardDetailPage";
 import LeagueStandingsPage from "../pages/shared/LeagueStandingsPage";
 import RecapPage from "../pages/shared/RecapPage";
 import ProfilePage from "../pages/shared/ProfilePage";
+// Import tambahan di atas:
+import SantriNaughtyLeaderboardPage from "../pages/santri/SantriNaughtyLeaderboardPage";
 
 // ---------- Qism Ibadah ----------
 import IbadahDashboard from "../pages/ibadah/IbadahDashboard";
@@ -33,7 +38,6 @@ import SantriManagement from "../pages/ibadah/SantriManagement";
 import ViolationsManagement from "../pages/ibadah/ViolationsManagement";
 import ReportsReview from "../pages/ibadah/ReportsReview";
 import RulesManagement from "../pages/ibadah/RulesManagement";
-import AdminManagement from "../pages/admin/AdminManagement";
 import AuditLog from "../pages/ibadah/AuditLog";
 import RiyadhahSuspensionsPage from "../pages/riyadhah/RiyadhahSuspensionsPage";
 
@@ -47,9 +51,17 @@ import TeamsPage from "../pages/riyadhah/TeamsPage";
 import SeasonsPage from "../pages/riyadhah/SeasonsPage";
 import RiyadhahRecapPage from "../pages/riyadhah/RiyadhahRecapPage";
 
+// ---------- Qism Nadzhofah ----------
+import NadzhofahDashboard from "../pages/nadzhofah/Dashboard";
+import NadzhofahNyekerPage from "../pages/nadzhofah/Nyeker";
+import NadzhofahRekapPage from "../pages/nadzhofah/Rekap";
+import NadzhofahPakaianPage from "../pages/nadzhofah/Pakaian";
+import NadzhofahLeaderboardPage from "../pages/nadzhofah/Leaderboard";
+
 // ---------- Super Admin ----------
 import AdminHome from "../pages/admin/AdminHome";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
+import AdminManagement from "../pages/admin/AdminManagement";
 import LeagueSettingsPage from "../pages/admin/LeagueSettingsPage";
 
 // ============================================================
@@ -59,6 +71,7 @@ const HOME = {
   santri: "/santri",
   qism_ibadah: "/ibadah",
   qism_riyadhah: "/riyadhah",
+  nadzhofah: "/nadzhofah",
   super_admin: "/admin",
 };
 export const homeFor = (role) => HOME[role] ?? "/santri";
@@ -128,6 +141,7 @@ export default function AppRoutes() {
         <Route path="/guest/ibadah" element={<GuestIbadahPage />} />
         <Route path="/guest/leaderboard" element={<GuestLeaderboardPage />} />
         <Route path="/guest/zikir" element={<GuestZikirPage />} />
+        <Route path="/guest/nadzhofah" element={<GuestNadzhofahPage />} />
       </Route>
 
       {/* Pilih kelas & nama — untuk sesi yang belum terhubung profil */}
@@ -145,10 +159,15 @@ export default function AppRoutes() {
               element={<ZikirSchedulePage role="santri" />}
             />
             <Route path="/santri/violations" element={<SantriViolations />} />
+            <Route
+              path="/santri/nadzhofah/leaderboard"
+              element={<SantriNaughtyLeaderboardPage />}
+            />
             <Route path="/santri/reports" element={<SantriReports />} />
             <Route path="/santri/team" element={<SantriTeamPage />} />
             <Route path="/santri/standings" element={<LeagueStandingsPage />} />
             <Route path="/santri/matches" element={<SantriTeamPage />} />
+            <Route path="/santri/nadzhofah" element={<SantriNadzhofahPage />} />
             <Route
               path="/santri/leaderboard"
               element={<LeaderboardPage role="santri" />}
@@ -229,6 +248,25 @@ export default function AppRoutes() {
             <Route
               path="/riyadhah/profile"
               element={<ProfilePage role="qism_riyadhah" />}
+            />
+          </Route>
+
+          {/* ---------------- QISM NADZHOFah ---------------- */}
+          <Route element={<RoleRoute role="nadzhofah" />}>
+            <Route path="/nadzhofah" element={<NadzhofahDashboard />} />
+            <Route path="/nadzhofah/nyeker" element={<NadzhofahNyekerPage />} />
+            <Route path="/nadzhofah/rekap" element={<NadzhofahRekapPage />} />
+            <Route
+              path="/nadzhofah/pakaian"
+              element={<NadzhofahPakaianPage />}
+            />
+            <Route
+              path="/nadzhofah/leaderboard"
+              element={<NadzhofahLeaderboardPage readOnly={false} />}
+            />
+            <Route
+              path="/nadzhofah/profile"
+              element={<ProfilePage role="nadzhofah" />}
             />
           </Route>
 

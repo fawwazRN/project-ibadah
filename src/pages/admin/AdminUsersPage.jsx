@@ -17,11 +17,18 @@ import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { ROLE_LABELS } from "../../lib/constants";
 
-const ROLES = ["santri", "qism_ibadah", "qism_riyadhah", "super_admin"];
+const ROLES = [
+  "santri",
+  "qism_ibadah",
+  "qism_riyadhah",
+  "nadzhofah",
+  "super_admin",
+];
 const ROLE_TONES = {
   santri: "neutral",
   qism_ibadah: "emerald",
   qism_riyadhah: "sky",
+  nadzhofah: "amber",
   super_admin: "violet",
 };
 
@@ -110,7 +117,7 @@ export default function AdminUsersPage() {
     <div className="animate-fade-up">
       <PageHeader
         title="Pengguna & Peran"
-        description="Tunjuk siapa yang Full Admin, Qism Ibadah saja, Qism Riyadhah saja, atau Santri biasa. Peran ditentukan di database (RPC + RLS), bukan di aplikasi."
+        description="Tunjuk siapa yang Full Admin, Qism Ibadah saja, Qism Riyadhah saja, Qism Nadzhofah saja, atau Santri biasa. Peran ditentukan di database (RPC + RLS), bukan di aplikasi."
       />
 
       {/* Filter per peran + pencarian */}

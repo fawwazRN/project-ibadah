@@ -20,11 +20,13 @@ import { profileService } from "../../services/profileService";
 const ROLE_TONES = {
   qism_ibadah: "emerald",
   qism_riyadhah: "sky",
+  nadzhofah: "amber",
   super_admin: "violet",
 };
 const ROLE_LABELS = {
   qism_ibadah: "Qism Ibadah",
   qism_riyadhah: "Qism Riyadhah",
+  nadzhofah: "Qism Nadzhofah",
   super_admin: "Super Admin",
 };
 
@@ -139,7 +141,7 @@ export default function AdminManagement() {
           <div className="flex-1">
             <Field
               error={emailError}
-              hint="Alurnya: daftarkan email di sini → orang tsb membuat akun → memilih namanya → otomatis menjadi admin sesuai peran.">
+              hint="Alurnya: daftarkan email di sini → orang tsb membuat akun → memilih namanya → otomatis menjadi admin sesuai peran. Email bebas domain (boleh bukan @student).">
               <Input
                 value={email}
                 onChange={(e) => {
@@ -158,6 +160,7 @@ export default function AdminManagement() {
                 options={[
                   { value: "qism_ibadah", label: "Qism Ibadah" },
                   { value: "qism_riyadhah", label: "Qism Riyadhah" },
+                  { value: "nadzhofah", label: "Qism Nadzhofah" },
                   { value: "super_admin", label: "Super Admin" },
                 ]}
               />
@@ -174,9 +177,8 @@ export default function AdminManagement() {
         </div>
         <p className="flex items-start gap-2 mt-3 text-slate-500 text-xs leading-relaxed">
           <Info size={13} className="mt-0.5 text-slate-600 shrink-0" />
-          Email di sini juga dibebaskan dari batasan domain saat mendaftar —
-          boleh bukan @student. Gunakan peran Super Admin secukupnya; aksesnya
-          penuh ke semua divisi.
+          Gunakan peran Super Admin secukupnya — aksesnya penuh ke semua divisi
+          (Ibadah, Riyadhah, Nadzhofah).
         </p>
       </Card>
 

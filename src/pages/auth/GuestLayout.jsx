@@ -9,6 +9,7 @@ import {
   Flag,
   Trophy,
   Menu,
+  Footprints,
 } from "lucide-react";
 import { BrandMark } from "../../components/ui/BrandMark";
 import { useAuth } from "../../context/AuthContext";
@@ -17,6 +18,7 @@ const NAV = [
   { to: "/guest", label: "Match Center", icon: Volleyball, end: true },
   { to: "/guest/ibadah", label: "Qism Ibadah", icon: Flag },
   { to: "/guest/leaderboard", label: "Leaderboard", icon: Trophy },
+  { to: "/guest/nadzhofah", label: "Santri Nakal", icon: Footprints },
   { to: "/guest/zikir", label: "Jadwal Zikir", icon: CalendarClock },
 ];
 
@@ -100,7 +102,7 @@ export default function GuestLayout() {
 
   return (
     <div className="bg-ink-950 min-h-screen">
-      {/* Banner full-width */}
+      {/* Banner mode guest */}
       <div
         className="flex flex-wrap justify-center items-center gap-2 bg-brand/15 px-4 py-2 text-brand-soft text-xs text-center"
         style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
@@ -116,7 +118,7 @@ export default function GuestLayout() {
         </button>
       </div>
 
-      {/* [FIX] Sidebar FIXED di tepi kiri layar — TIDAK dibungkus max-w/mx-auto */}
+      {/* Sidebar FIXED di tepi kiri layar */}
       <aside className="hidden lg:block left-0 z-40 fixed inset-y-0 bg-ink-900/70 backdrop-blur-sm border-white/[0.06] border-r w-60">
         {sidebarInner(false)}
       </aside>
@@ -133,7 +135,6 @@ export default function GuestLayout() {
         </>
       )}
 
-      {/* Konten — geser karena sidebar, lebar konten dibatasi di dalam */}
       <div className="lg:pl-60">
         <header className="lg:hidden top-0 z-30 sticky flex items-center gap-3 bg-ink-950/85 backdrop-blur-sm px-4 border-white/[0.06] border-b h-14">
           <button

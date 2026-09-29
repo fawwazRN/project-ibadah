@@ -79,13 +79,16 @@ export function detectPrayer(text) {
   return best;
 }
 
+// ---------- Peran ----------
 export const ROLE_LABELS = {
   santri: "Santri",
   qism_ibadah: "Qism Ibadah",
   qism_riyadhah: "Qism Riyadhah",
+  nadzhofah: "Qism Nadzhofah",
   super_admin: "Super Admin",
 };
 
+// ---------- Liga ----------
 export const MATCH_STATUS_LABELS = {
   scheduled: "Terjadwal",
   draft: "Draf",

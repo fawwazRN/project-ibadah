@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Menu, LogOut, X } from "lucide-react";
+import { Menu, LogOut, X, ChevronDown } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useConfirm } from "../context/ConfirmContext";
 import { NAV, pageTitleFor } from "../routes/nav";
@@ -12,6 +12,7 @@ const ROLE_LABELS = {
   santri: "Santri",
   qism_ibadah: "Qism Ibadah",
   qism_riyadhah: "Qism Riyadhah",
+  nadzhofah: "Qism Nadzhofah",
   super_admin: "Super Admin",
 };
 
@@ -33,6 +34,53 @@ function Brand() {
   );
 }
 
+// Item parent yang bisa dibuka-tutup (punya children)
+function NavParentItem({ item, onNavigate }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2.5 hover:bg-white/[0.03] px-2.5 py-2 rounded-lg w-full text-slate-400 hover:text-slate-200 text-sm transition-colors">
+        <item.icon size={15} className="text-slate-500" />
+        <span className="flex-1 text-left">{item.label}</span>
+        <ChevronDown
+          size={14}
+          className={`transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && (
+        <div className="space-y-0.5 mt-0.5 ml-4 pl-2 border-white/10 border-l">
+          {item.children.map((c) => (
+            <NavLink
+              key={c.to}
+              to={c.to}
+              end
+              onClick={onNavigate}
+              className={({ isActive }) =>
+                `relative flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[13px] transition-colors ${
+                  isActive
+                    ? "bg-white/[0.05] font-medium text-slate-100"
+                    : "text-slate-400 hover:bg-white/[0.03] hover:text-slate-200"
+                }`
+              }>
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <span className="top-1/2 -left-2 absolute bg-brand rounded-r-full w-0.5 h-4 -translate-y-1/2" />
+                  )}
+                  {c.label}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function NavList({ groups, onNavigate }) {
   return (
     <nav className="flex-1 space-y-5 px-3 py-2 overflow-y-auto">
@@ -42,36 +90,43 @@ function NavList({ groups, onNavigate }) {
             {g.section}
           </p>
           <div className="space-y-0.5">
-            {g.items.map((it) => (
-              <NavLink
-                key={it.to}
-                to={it.to}
-                end={it.end}
-                onClick={onNavigate}
-                className={({ isActive }) =>
-                  `relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors ${
-                    isActive
-                      ? "bg-white/[0.05] font-medium text-slate-100"
-                      : "text-slate-400 hover:bg-white/[0.03] hover:text-slate-200"
-                  }`
-                }>
-                {({ isActive }) => (
-                  <>
-                    {/* Indikator nempel garis tepi sidebar (sama dengan guest) */}
-                    {isActive && (
-                      <span className="top-1/2 -left-3 absolute bg-brand rounded-r-full w-1 h-5 -translate-y-1/2" />
-                    )}
-                    <it.icon
-                      size={15}
-                      className={
-                        isActive ? "text-brand-soft" : "text-slate-500"
-                      }
-                    />
-                    {it.label}
-                  </>
-                )}
-              </NavLink>
-            ))}
+            {g.items.map((it, idx) =>
+              it.children ? (
+                <NavParentItem
+                  key={`${g.section}-${idx}`}
+                  item={it}
+                  onNavigate={onNavigate}
+                />
+              ) : (
+                <NavLink
+                  key={it.to}
+                  to={it.to}
+                  end={it.end}
+                  onClick={onNavigate}
+                  className={({ isActive }) =>
+                    `relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors ${
+                      isActive
+                        ? "bg-white/[0.05] font-medium text-slate-100"
+                        : "text-slate-400 hover:bg-white/[0.03] hover:text-slate-200"
+                    }`
+                  }>
+                  {({ isActive }) => (
+                    <>
+                      {isActive && (
+                        <span className="top-1/2 -left-3 absolute bg-brand rounded-r-full w-1 h-5 -translate-y-1/2" />
+                      )}
+                      <it.icon
+                        size={15}
+                        className={
+                          isActive ? "text-brand-soft" : "text-slate-500"
+                        }
+                      />
+                      {it.label}
+                    </>
+                  )}
+                </NavLink>
+              ),
+            )}
           </div>
         </div>
       ))}
