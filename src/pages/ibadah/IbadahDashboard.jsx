@@ -17,6 +17,7 @@ import { ViolationDetailModal } from "../../components/violations/ViolationDetai
 import { violationService } from "../../services/violationService";
 import { ruleService } from "../../services/ruleService";
 import { fmtOccurred } from "../../lib/date";
+import InvitationCard from "../../components/event/InvitationCard";
 
 export default function ViolationsManagement() {
   const [violations, setViolations] = useState(null);
@@ -60,6 +61,7 @@ export default function ViolationsManagement() {
 
   return (
     <div className="animate-fade-up">
+      <InvitationCard />
       <PageHeader
         title="Manajemen Pelanggaran"
         description="Catat, tinjau, dan kelola pelanggaran ranah Qism Ibadah."

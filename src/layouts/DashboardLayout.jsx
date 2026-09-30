@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Menu, LogOut, X, ChevronDown } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -6,6 +6,7 @@ import { useConfirm } from "../context/ConfirmContext";
 import { NAV, pageTitleFor } from "../routes/nav";
 import { BrandMark } from "../components/ui/BrandMark";
 import { Avatar } from "../components/ui/Avatar";
+import { eventService } from "../services/eventService";
 import { fmtFullDate, hijriToday } from "../lib/date";
 
 const ROLE_LABELS = {
@@ -73,7 +74,6 @@ function NavItem({ to, end, icon: Icon, label, onNavigate }) {
   );
 }
 
-// Item parent dengan children — buka/tutup
 function NavParentItem({ item, onNavigate }) {
   const [open, setOpen] = useState(false);
   return (
@@ -120,7 +120,22 @@ function NavParentItem({ item, onNavigate }) {
   );
 }
 
-function NavList({ groups, onNavigate }) {
+function NavList({ groups, onNavigate, invVisible }) {
+  // Filter item Undangan saat undangan disembunyikan
+  const filterItems = (items) =>
+    items
+      .filter((it) => invVisible || !it.invitationItem)
+      .map((it) =>
+        it.children
+          ? {
+              ...it,
+              children: it.children.filter(
+                (c) => invVisible || c.to !== "/undangan",
+              ),
+            }
+          : it,
+      );
+
   return (
     <nav className="flex-1 space-y-5 px-3 py-2 overflow-y-auto">
       {groups.map((g) => (
@@ -129,7 +144,7 @@ function NavList({ groups, onNavigate }) {
             {g.section}
           </p>
           <div className="space-y-0.5">
-            {g.items.map((it, idx) =>
+            {filterItems(g.items).map((it, idx) =>
               it.children ? (
                 <NavParentItem
                   key={`${g.section}-${idx}`}
@@ -161,6 +176,15 @@ export default function DashboardLayout() {
   const { pathname } = useLocation();
   const groups = NAV[profile?.role] ?? [];
 
+  // Visibilitas undangan — menu ikut hilang saat hidden
+  const [invVisible, setInvVisible] = useState(true);
+  useEffect(() => {
+    eventService
+      .getSettings()
+      .then((s) => setInvVisible(s.invitation_visible))
+      .catch(() => {});
+  }, []);
+
   const doSignOut = async () => {
     if (
       await confirm({
@@ -189,6 +213,7 @@ export default function DashboardLayout() {
       <NavList
         groups={groups}
         onNavigate={mobile ? () => setMobileOpen(false) : undefined}
+        invVisible={invVisible}
       />
       <div className="p-3 border-white/[0.06] border-t">
         <div className="flex items-center gap-2.5 bg-white/[0.02] px-2 py-2 border border-white/[0.05] rounded-xl">

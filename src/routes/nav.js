@@ -23,6 +23,7 @@ import {
   BookOpenCheck,
   CheckCircle2,
   ClipboardCheck,
+  Sparkles,
 } from "lucide-react";
 
 export const NAV = {
@@ -195,6 +196,7 @@ export const NAV = {
         { to: "/admin", label: "Ringkasan", icon: LayoutDashboard, end: true },
         { to: "/admin/users", label: "Pengguna & Peran", icon: Users },
         { to: "/admin/admins", label: "Calon Admin", icon: ShieldCheck },
+        { to: "/admin/invitation", label: "Undangan", icon: Sparkles },
         { to: "/admin/audit", label: "Log Audit", icon: History },
         { to: "/admin/settings", label: "Pengaturan Liga", icon: Settings },
       ],

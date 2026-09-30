@@ -1,8 +1,10 @@
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { BrandMark } from "../components/ui/BrandMark";
+import { eventService } from "../services/eventService";
 
 // ---------- Auth ----------
 import LoginPage from "../pages/auth/LoginPage";
@@ -11,6 +13,8 @@ import GuestLayout from "../pages/auth/GuestLayout";
 import GuestDashboard from "../pages/auth/GuestDashboard";
 import GuestIbadahPage from "../pages/auth/GuestIbadahPage";
 import GuestLeaderboardPage from "../pages/auth/GuestLeaderboardPage";
+import GuestNadzhofahPage from "../pages/auth/GuestNadzhofahPage";
+import InvitationPage from "../pages/event/InvitationPage";
 
 // ---------- Santri ----------
 import SantriDashboard from "../pages/santri/SantriDashboard";
@@ -65,6 +69,7 @@ import LughahRekapPage from "../pages/lughah/Rekap";
 import AdminHome from "../pages/admin/AdminHome";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminManagement from "../pages/admin/AdminManagement";
+import InvitationSettingsPage from "../pages/admin/InvitationSettings";
 import LeagueSettingsPage from "../pages/admin/LeagueSettingsPage";
 
 // ============================================================
@@ -79,6 +84,14 @@ const HOME = {
   super_admin: "/admin",
 };
 export const homeFor = (role) => HOME[role] ?? "/santri";
+
+// Titik masuk: sesi baru → undangan dulu · sudah pernah → dashboard
+export function entryPath(roleOrGuest) {
+  if (sessionStorage.getItem("invite_seen")) {
+    return roleOrGuest === "guest" ? "/guest" : homeFor(roleOrGuest);
+  }
+  return "/undangan";
+}
 
 // ============================================================
 // Helper routes
@@ -104,10 +117,10 @@ function ProtectedRoute() {
 function ClaimGate() {
   const { session, profile, booting, isGuest } = useAuth();
   if (booting) return <FullPageLoader />;
-  if (isGuest) return <Navigate to="/guest" replace />;
+  if (isGuest) return <Navigate to={entryPath("guest")} replace />;
   if (!session) return <Navigate to="/auth/login" replace />;
   if (profile === undefined) return <FullPageLoader />;
-  if (profile) return <Navigate to={homeFor(profile.role)} replace />;
+  if (profile) return <Navigate to={entryPath(profile.role)} replace />;
   return <Outlet />;
 }
 
@@ -124,11 +137,41 @@ function RoleRoute({ role }) {
 function RootRedirect() {
   const { session, profile, booting, isGuest } = useAuth();
   if (booting) return <FullPageLoader />;
-  if (isGuest) return <Navigate to="/guest" replace />;
+  if (isGuest) return <Navigate to={entryPath("guest")} replace />;
   if (!session) return <Navigate to="/auth/login" replace />;
   if (profile === undefined) return <FullPageLoader />;
   if (!profile) return <Navigate to="/claim" replace />;
-  return <Navigate to={homeFor(profile.role)} replace />;
+  return <Navigate to={entryPath(profile.role)} replace />;
+}
+
+// Gerbang visibilitas undangan — memeriksa site_settings
+function InvitationGate() {
+  const [visible, setVisible] = useState(null);
+  useEffect(() => {
+    eventService
+      .getSettings()
+      .then((s) => setVisible(s.invitation_visible))
+      .catch(() => setVisible(true));
+  }, []);
+  if (visible === null) return <FullPageLoader />;
+  if (!visible) {
+    return (
+      <div className="place-items-center grid bg-ink-950 px-6 min-h-screen text-center">
+        <div>
+          <span className="place-items-center grid bg-white/[0.03] mx-auto border border-white/10 rounded-2xl size-14 text-slate-500">
+            <EyeOff size={24} />
+          </span>
+          <h1 className="mt-4 font-display font-bold text-slate-100 text-xl">
+            Undangan Dinonaktifkan
+          </h1>
+          <p className="mt-2 text-slate-500 text-sm">
+            Halaman undangan sedang tidak ditayangkan.
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return <Outlet />;
 }
 
 // ============================================================
@@ -139,11 +182,18 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/auth/login" element={<LoginPage />} />
 
+      {/* ---------- UNDANGAN ACARA (gerbang visibilitas) ---------- */}
+      <Route element={<InvitationGate />}>
+        <Route path="/undangan" element={<InvitationPage />} />
+        <Route path="/guest/undangan" element={<InvitationPage />} />
+      </Route>
+
       {/* ---------- MODE TAMU (tanpa login, read-only) ---------- */}
       <Route element={<GuestLayout />}>
         <Route path="/guest" element={<GuestDashboard />} />
         <Route path="/guest/ibadah" element={<GuestIbadahPage />} />
         <Route path="/guest/leaderboard" element={<GuestLeaderboardPage />} />
+        <Route path="/guest/nadzhofah" element={<GuestNadzhofahPage />} />
         <Route path="/guest/zikir" element={<GuestZikirPage />} />
       </Route>
 
@@ -290,6 +340,10 @@ export default function AppRoutes() {
             <Route path="/admin" element={<AdminHome />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/admins" element={<AdminManagement />} />
+            <Route
+              path="/admin/invitation"
+              element={<InvitationSettingsPage />}
+            />
             <Route path="/admin/audit" element={<AuditLog />} />
             <Route path="/admin/settings" element={<LeagueSettingsPage />} />
             <Route

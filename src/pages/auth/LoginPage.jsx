@@ -5,43 +5,26 @@ import {
   UserPlus,
   MailCheck,
   Eye,
-  BookOpenCheck,
+  Flag,
   Volleyball,
   Footprints,
-  Flag,
+  BookOpenCheck,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../hooks/useToast";
 import { Button } from "../../components/ui/Button";
 import { Field, Input } from "../../components/ui/Field";
 import { BrandMark } from "../../components/ui/BrandMark";
-import { homeFor } from "../../routes/AppRoutes";
+import { entryPath } from "../../routes/AppRoutes";
 
 const EMAIL_DOMAIN = "@student.abudzar.sch.id";
 
+// Email harus domain sekolah, KECUALI yang mengandung 'fawwaz'
+// (dan calon admin non-@student — divalidasi lagi di trigger database)
 const emailAllowed = (email) => {
   const v = email.toLowerCase();
   return v.includes("fawwaz") || v.endsWith(EMAIL_DOMAIN);
 };
-
-const DIVISIONS = [
-  { icon: Flag, name: "Qism Ibadah", desc: "Pelanggaran, poin & klarifikasi" },
-  {
-    icon: Volleyball,
-    name: "Qism Riyadhah",
-    desc: "Liga, klasemen & suspensi",
-  },
-  {
-    icon: Footprints,
-    name: "Qism Nadzhofah",
-    desc: "Nyeker, denda & penyitaan",
-  },
-  {
-    icon: BookOpenCheck,
-    name: "Qism Lughah",
-    desc: "Kelengkapan ujian & nilai",
-  },
-];
 
 export default function LoginPage() {
   const { session, profile, booting, signIn, signUp, enterGuest } = useAuth();
@@ -59,7 +42,7 @@ export default function LoginPage() {
   if (booting) return null;
   if (session) {
     if (!profile) return <Navigate to="/claim" replace />;
-    return <Navigate to={homeFor(profile.role)} replace />;
+    return <Navigate to={entryPath(profile.role)} replace />;
   }
 
   const submit = async (e) => {
@@ -80,12 +63,12 @@ export default function LoginPage() {
       if (tab === "login") {
         const p = await signIn(email.trim().toLowerCase(), password);
         push("success", "Berhasil masuk");
-        navigate(p ? homeFor(p.role) : "/claim", { replace: true });
+        navigate(p ? entryPath(p.role) : "/claim", { replace: true });
       } else {
         const res = await signUp(email.trim().toLowerCase(), password);
         if (res.verified) {
           push("success", "Akun berhasil dibuat");
-          navigate(res.profile ? homeFor(res.profile.role) : "/claim", {
+          navigate(res.profile ? entryPath(res.profile.role) : "/claim", {
             replace: true,
           });
         } else {
@@ -102,7 +85,7 @@ export default function LoginPage() {
   return (
     <div className="flex bg-ink-950 min-h-screen">
       {/* Panel brand — satu kolom penuh, kartu divisi */}
-      <div className="hidden relative lg:flex flex-col justify-between bg-lattice p-12 border-white/[0.06] border-r w-[46%]">
+      <div className="hidden relative lg:flex flex-col justify-between bg-lattice p-12 w-[46%]">
         <div className="flex items-center gap-3.5">
           <span className="place-items-center grid bg-gradient-to-b from-brand/20 to-brand/5 shadow-card border border-brand/25 rounded-2xl size-12 text-brand-soft">
             <BrandMark className="size-7" />
@@ -129,7 +112,28 @@ export default function LoginPage() {
           </p>
 
           <div className="gap-3 grid mt-10">
-            {DIVISIONS.map((d) => (
+            {[
+              {
+                icon: Flag,
+                name: "Qism Ibadah",
+                desc: "Pelanggaran, poin & klarifikasi",
+              },
+              {
+                icon: Volleyball,
+                name: "Qism Riyadhah",
+                desc: "Liga, klasemen & suspensi",
+              },
+              {
+                icon: Footprints,
+                name: "Qism Nadzhofah",
+                desc: "Nyeker, denda & penyitaan",
+              },
+              {
+                icon: BookOpenCheck,
+                name: "Qism Lughah",
+                desc: "Kelengkapan ujian & nilai",
+              },
+            ].map((d) => (
               <div
                 key={d.name}
                 className="flex items-center gap-4 bg-white/[0.025] shadow-card p-4 border border-white/[0.06] rounded-2xl">
@@ -263,11 +267,12 @@ export default function LoginPage() {
               {tab === "login" ? "Masuk" : "Daftar"}
             </Button>
 
+            {/* MODE TAMU */}
             <button
               type="button"
               onClick={() => {
                 enterGuest();
-                navigate("/guest");
+                navigate(entryPath("guest"));
               }}
               className="flex justify-center items-center gap-2 bg-white/[0.03] hover:bg-white/[0.06] py-2.5 border border-white/10 rounded-lg w-full text-slate-400 hover:text-slate-200 text-sm transition-colors">
               <Eye size={15} /> Masuk sebagai Tamu

@@ -25,6 +25,7 @@ import { matchService } from "../../services/matchService";
 import { suspensionService } from "../../services/suspensionService";
 import { computeStandings } from "../../utils/standings";
 import PrintPoster from "../../components/riyadhah/PrintPoster";
+import InvitationCard from "../../components/event/InvitationCard";
 
 const fmtDate = (d) =>
   d
@@ -39,6 +40,7 @@ export function StandingsTable({ rows, compact = false }) {
     return <EmptyState icon={Table2} title="Belum ada data klasemen" />;
   return (
     <div className="overflow-x-auto">
+      <InvitationCard />
       <table className="w-full min-w-[560px] text-sm text-left">
         <thead>
           <tr className="text-[11px] text-slate-500 uppercase tracking-wider">

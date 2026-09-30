@@ -110,3 +110,59 @@
     display: block !important;
   }
 }
+
+/* Undangan: scroll halus hanya di halaman undangan */
+.invitation-scroll {
+  scroll-behavior: smooth;
+}
+
+/* ===== Undangan: keyframes animasi dekor ===== */
+@keyframes FloatY {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-24px) rotate(3deg);
+  }
+}
+@keyframes Spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Glow emerald lembut untuk highlight */
+@keyframes GlowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 80px rgba(16, 185, 129, 0.18);
+  }
+}
+.glow-pulse {
+  animation: GlowPulse 5s ease-in-out infinite;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Semua section undangan dikunci clip — animasi keluar layar tidak meluber */
+[data-invitation] {
+  overflow-x: clip;
+}
+
+/* Kunci horizontal scroll global */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}

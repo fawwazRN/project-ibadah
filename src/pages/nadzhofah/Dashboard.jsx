@@ -21,6 +21,7 @@ import { LoadingState, ErrorState } from "../../components/ui/States";
 import { useToast } from "../../hooks/useToast";
 import { nyekerService } from "../../services/nyekerService";
 import { fmtNum } from "../../lib/calc";
+import InvitationCard from "../../components/event/InvitationCard";
 
 const rp = (n) => `Rp ${fmtNum(n)}`;
 
@@ -67,6 +68,7 @@ export default function NadzhofahDashboard() {
 
   return (
     <div className="space-y-5 animate-fade-up">
+      <InvitationCard />
       <PageHeader
         title="Qism Nadzhofah"
         description="Monitoring kebersihan, ketertiban, dan denda nyeker."

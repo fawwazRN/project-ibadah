@@ -17,6 +17,7 @@ import { LoadingState, ErrorState } from "../../components/ui/States";
 import ExamSelector from "../../components/lughah/ExamSelector";
 import { lughahService } from "../../services/lughahService";
 import { fmtNum } from "../../lib/calc";
+import InvitationCard from "../../components/event/InvitationCard";
 
 const FIELD_LABELS = {
   sudah_setor: "Setor",
@@ -111,6 +112,7 @@ export default function LughahDashboard() {
 
   return (
     <div className="space-y-5 animate-fade-up">
+      <InvitationCard />
       <PageHeader
         title="Qism Lughah"
         description="Monitoring kelengkapan ujian dan nilai santri."
