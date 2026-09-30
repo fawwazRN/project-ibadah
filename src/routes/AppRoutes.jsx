@@ -68,6 +68,7 @@ import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminManagement from "../pages/admin/AdminManagement";
 import InvitationSettingsPage from "../pages/admin/InvitationSettings";
 import LeagueSettingsPage from "../pages/admin/LeagueSettingsPage";
+import InvitationPage from "../pages/event/InvitationPage";
 
 // ============================================================
 // Home per peran
