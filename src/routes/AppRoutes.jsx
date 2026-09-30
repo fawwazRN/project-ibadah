@@ -1,8 +1,10 @@
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { BrandMark } from "../components/ui/BrandMark";
+import { eventService } from "../services/eventService";
 
 // ---------- Auth ----------
 import LoginPage from "../pages/auth/LoginPage";
@@ -68,10 +70,9 @@ import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminManagement from "../pages/admin/AdminManagement";
 import InvitationSettingsPage from "../pages/admin/InvitationSettings";
 import LeagueSettingsPage from "../pages/admin/LeagueSettingsPage";
-import InvitationPage from "../pages/event/InvitationPage";
 
 // ============================================================
-// Home per peran
+// Home & entry per peran
 // ============================================================
 const HOME = {
   santri: "/santri",
@@ -83,12 +84,9 @@ const HOME = {
 };
 export const homeFor = (role) => HOME[role] ?? "/santri";
 
-// ============================================================
 // Titik masuk sesi:
-// - 'invite_seen' ada di sessionStorage → langsung dashboard
-// - belum → gerbang undangan dulu (hanya bila undangan aktif;
-//   pengecekan aktif/tidak dilakukan di gerbang itu sendiri)
-// ============================================================
+// - 'invite_seen' ada → undangan sudah pernah dilewati → dashboard
+// - belum → cek gerbang undangan (yang akan me-redirect jika nonaktif)
 export function entryPath(roleOrGuest) {
   if (sessionStorage.getItem("invite_seen")) {
     return roleOrGuest === "guest" ? "/guest" : homeFor(roleOrGuest);
@@ -127,7 +125,6 @@ function ClaimGate() {
   return <Outlet />;
 }
 
-// Pelindung peran — super_admin boleh masuk SEMUA area.
 function RoleRoute({ role }) {
   const { profile } = useAuth();
   if (profile === undefined) return <FullPageLoader />;
@@ -147,6 +144,39 @@ function RootRedirect() {
   return <Navigate to={entryPath(profile.role)} replace />;
 }
 
+/* ============================================================
+   INVITATION GATE — sesuai alur yang diminta:
+   /undangan dibuka
+     → cek status undangan di database
+       → status false (nonaktif) → TIDAK DIRENDER → REDIRECT
+         (login/guest → dashboard sesuai peran)
+       → status true (aktif) → render halaman undangan
+   ============================================================ */
+function InvitationGate() {
+  const [visible, setVisible] = useState(null);
+  const { session, isGuest } = useAuth();
+
+  useEffect(() => {
+    eventService
+      .getSettings()
+      .then((s) => setVisible(s.invitation_visible))
+      .catch(() => setVisible(true)); // bila cek gagal, tampilkan (aman)
+  }, [session, isGuest]);
+
+  // Masih mengecek status
+  if (visible === null) return <FullPageLoader />;
+
+  // STATUS = FALSE → TIDAK DIRENDER → REDIRECT
+  if (!visible) {
+    if (isGuest) return <Navigate to="/guest" replace />;
+    if (session) return <Navigate to={homeFor("/ibadah") && "/"} replace />;
+    return <Navigate to="/auth/login" replace />;
+  }
+
+  // STATUS = TRUE → render halaman undangan
+  return <Outlet />;
+}
+
 // ============================================================
 // Routes
 // ============================================================
@@ -155,14 +185,15 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/auth/login" element={<LoginPage />} />
 
-      {/* ---------- UNDANGAN: gerbang sesi baru ---------- */}
-      {/* Halaman ini sendiri yang memeriksa: bila undangan nonaktif
-          (site_settings), ia otomatis melempar ke dashboard/login. */}
-      <Route element={<ProtectedRoute />}>
+      {/* ============ UNDANGAN ============
+          Gerbang: cek status → nonaktif = REDIRECT,
+          aktif = render halaman undangan */}
+      <Route element={<InvitationGate />}>
         <Route path="/undangan" element={<InvitationPage />} />
+        <Route path="/guest/undangan" element={<InvitationPage />} />
       </Route>
 
-      {/* ---------- MODE TAMU (tanpa login, read-only) ---------- */}
+      {/* ---------- MODE TAMU ---------- */}
       <Route element={<GuestLayout />}>
         <Route path="/guest" element={<GuestDashboard />} />
         <Route path="/guest/ibadah" element={<GuestIbadahPage />} />
@@ -171,7 +202,6 @@ export default function AppRoutes() {
         <Route path="/guest/zikir" element={<GuestZikirPage />} />
       </Route>
 
-      {/* Pilih kelas & nama — untuk sesi yang belum terhubung profil */}
       <Route element={<ClaimGate />}>
         <Route path="/claim" element={<ClaimPage />} />
       </Route>
