@@ -26,6 +26,14 @@ export default function InvitationSettingsPage() {
     setBusy(true);
     try {
       await eventService.setInvitationVisible(!visible);
+      // Sinkronkan sesi browser ini:
+      // - ditayangkan → sesi dianggap "belum lihat undangan" (gerbang akan muncul lagi)
+      // - disembunyikan → tandai sudah, agar tak ada yang terjebak layar kosong
+      if (!visible) {
+        sessionStorage.setItem("invite_seen", "1");
+      } else {
+        sessionStorage.removeItem("invite_seen");
+      }
       push(
         "success",
         visible ? "Undangan disembunyikan" : "Undangan ditayangkan",
@@ -45,7 +53,7 @@ export default function InvitationSettingsPage() {
     <div className="max-w-2xl animate-fade-up">
       <PageHeader
         title="Undangan Acara"
-        description="Kendalikan tayang-tidaknya halaman undangan. Saat disembunyikan, halaman menolak akses dan menu menghilang dari semua sidebar."
+        description="Kendalikan tayang-tidaknya halaman undangan. Saat dinonaktifkan, pengguna tidak akan melihat undangan sama sekali — langsung ke aplikasi."
       />
 
       <Card>
@@ -76,8 +84,8 @@ export default function InvitationSettingsPage() {
               </p>
               <p className="mt-0.5 text-slate-500 text-xs leading-relaxed">
                 {visible
-                  ? "Halaman /undangan dapat diakses semua peran & tamu, dan menu muncul di semua sidebar."
-                  : "Halaman /undangan menampilkan pesan dinonaktifkan, dan menu hilang dari semua sidebar — termasuk guest."}
+                  ? "Saat web dibuka (login/guest), gerbang undangan tampil terlebih dahulu."
+                  : "Saat web dibuka, pengguna langsung menuju dashboard/login — undangan tidak muncul sama sekali."}
               </p>
             </div>
             <Button
@@ -90,7 +98,7 @@ export default function InvitationSettingsPage() {
           <p className="flex items-start gap-2 text-slate-500 text-xs leading-relaxed">
             <Sparkles size={13} className="mt-0.5 text-slate-600 shrink-0" />
             Data acara & RSVP tidak terpengaruh — yang disembunyikan hanya
-            halamannya.
+            gerbangnya.
           </p>
         </div>
       </Card>
