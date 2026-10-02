@@ -165,7 +165,12 @@ function InvitationGate() {
   useEffect(() => {
     eventService
       .getSettings()
-      .then((s) => setVisible(s.invitation_visible))
+      .then((s) => {
+        // Undangan nonaktif → tandai "sudah dilewati" supaya entryPath()
+        // tidak mengirim balik ke /undangan (penyebab loop redirect).
+        if (!s.invitation_visible) sessionStorage.setItem("invite_seen", "1");
+        setVisible(s.invitation_visible);
+      })
       .catch(() => setVisible(true)); // bila cek gagal, tampilkan (aman)
   }, [session, isGuest]);
 
