@@ -156,16 +156,16 @@ html[data-qism="lughah"] {
   --color-ink-500: #44355d;
 }
 html[data-qism="super_admin"] {
-  --color-brand: #ec4899;
-  --color-brand-soft: #f472b6;
-  --color-brand-dim: #be185d;
-  --color-ink-950: #0d0509;
-  --color-ink-900: #190a12;
-  --color-ink-850: #210d17;
-  --color-ink-800: #2b111e;
-  --color-ink-700: #361a28;
-  --color-ink-600: #492537;
-  --color-ink-500: #5d3549;
+  --color-brand: #eab308;
+  --color-brand-soft: #facc15;
+  --color-brand-dim: #a16207;
+  --color-ink-950: #0b0a07;
+  --color-ink-900: #15130e;
+  --color-ink-850: #1c1912;
+  --color-ink-800: #242118;
+  --color-ink-700: #2f2c21;
+  --color-ink-600: #403c2e;
+  --color-ink-500: #534e3f;
 }
 
 /* ============================ PRINT ============================ */

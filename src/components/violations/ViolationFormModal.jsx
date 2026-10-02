@@ -152,7 +152,7 @@ export function ViolationFormModal({
                     type="button"
                     key={s.id}
                     onClick={() => toggle(s.id)}
-                    className="inline-flex items-center gap-1 bg-gradient-to-r from-brand/20 to-sky-400/20 px-2 py-1 border border-brand/30 hover:border-rose-400/50 rounded-full text-emerald-200 text-xs transition-colors">
+                    className="inline-flex items-center gap-1 bg-brand/15 px-2 py-1 border border-brand/30 hover:border-rose-400/50 rounded-full text-emerald-200 text-xs transition-colors">
                     {s.full_name}
                     <X size={11} />
                   </button>

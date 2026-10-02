@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react";
 
 const VARIANTS = {
   primary:
-    "bg-brand font-semibold text-ink-950 hover:bg-brand-soft shadow-[0_0_0_1px_color-mix(in_oklab,var(--color-brand)_35%,transparent)]",
+    "bg-gradient-to-r from-emerald-400 to-teal-300 font-semibold text-ink-950 hover:brightness-110 shadow-[0_4px_18px_rgba(16,185,129,.25)]",
   secondary:
     "border border-white/10 bg-white/[0.05] text-slate-200 hover:bg-white/[0.09]",
   ghost: "text-slate-400 hover:bg-white/[0.05] hover:text-slate-100",
