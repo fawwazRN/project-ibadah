@@ -12,7 +12,8 @@ export function CardHeader({ title, description, actions }) {
   return (
     <div className="flex flex-wrap justify-between items-center gap-3 px-5 py-4 border-white/[0.06] border-b">
       <div>
-        <h3 className="font-display font-semibold text-slate-100 text-sm">
+        <h3 className="flex items-center gap-2 font-display font-semibold text-slate-100 text-sm">
+          <span className="bg-brand rounded-full size-2 shrink-0" />
           {title}
         </h3>
         {description && (

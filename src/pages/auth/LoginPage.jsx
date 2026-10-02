@@ -87,7 +87,7 @@ export default function LoginPage() {
       {/* Panel brand — satu kolom penuh, kartu divisi */}
       <div className="hidden relative lg:flex flex-col justify-between bg-lattice p-12 w-[46%]">
         <div className="flex items-center gap-3.5">
-          <span className="place-items-center grid bg-gradient-to-b from-brand/20 to-brand/5 shadow-card border border-brand/25 rounded-2xl size-12 text-brand-soft">
+          <span className="place-items-center grid bg-brand/15 shadow-card border border-brand/25 rounded-2xl size-12 text-brand-soft">
             <BrandMark className="size-7" />
           </span>
           <div>

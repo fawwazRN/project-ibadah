@@ -58,23 +58,6 @@
     color-scheme: dark;
   }
   body {
-    background-image:
-      radial-gradient(
-        900px 500px at 8% -5%,
-        rgba(16, 185, 129, 0.1),
-        transparent 60%
-      ),
-      radial-gradient(
-        800px 500px at 95% 0%,
-        rgba(139, 92, 246, 0.09),
-        transparent 60%
-      ),
-      radial-gradient(
-        700px 500px at 60% 110%,
-        rgba(56, 189, 248, 0.07),
-        transparent 60%
-      );
-    background-attachment: fixed;
     @apply bg-ink-950 font-sans text-slate-300;
     font-variant-numeric: tabular-nums;
   }
@@ -104,6 +87,85 @@
 /* Pola bintang-8 titik yang sangat halus — khusus panel branding halaman login */
 .bg-lattice {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52' viewBox='0 0 52 52'%3E%3Cg fill='none' stroke='%2310B981' stroke-opacity='0.10'%3E%3Crect x='15' y='15' width='22' height='22'/%3E%3Crect x='15' y='15' width='22' height='22' transform='rotate(45 26 26)'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   TEMA PER QISM (solid, tanpa gradient)
+   Diset lewat <html data-qism="..."> oleh DashboardLayout.
+   Semua kelas bg-brand / text-brand-soft / border-brand/* ikut berubah,
+   termasuk modal & toast (karena atribut ada di <html>).
+   ============================================================ */
+html[data-qism="santri"] {
+  --color-brand: #14b8a6;
+  --color-brand-soft: #2dd4bf;
+  --color-brand-dim: #0f766e;
+  --color-ink-950: #050d0c;
+  --color-ink-900: #0a1917;
+  --color-ink-850: #0d211e;
+  --color-ink-800: #112b27;
+  --color-ink-700: #1a3633;
+  --color-ink-600: #254944;
+  --color-ink-500: #355d58;
+}
+html[data-qism="qism_ibadah"] {
+  --color-brand: #10b981;
+  --color-brand-soft: #34d399;
+  --color-brand-dim: #0b7a5c;
+  --color-ink-950: #050d0a;
+  --color-ink-900: #0a1914;
+  --color-ink-850: #0d211a;
+  --color-ink-800: #112b22;
+  --color-ink-700: #1a362d;
+  --color-ink-600: #25493d;
+  --color-ink-500: #355d50;
+}
+html[data-qism="qism_riyadhah"] {
+  --color-brand: #f97316;
+  --color-brand-soft: #fb923c;
+  --color-brand-dim: #c2410c;
+  --color-ink-950: #0d0805;
+  --color-ink-900: #19100a;
+  --color-ink-850: #21150d;
+  --color-ink-800: #2b1b11;
+  --color-ink-700: #36251a;
+  --color-ink-600: #493325;
+  --color-ink-500: #5d4535;
+}
+html[data-qism="nadzhofah"] {
+  --color-brand: #0ea5e9;
+  --color-brand-soft: #38bdf8;
+  --color-brand-dim: #0369a1;
+  --color-ink-950: #050a0d;
+  --color-ink-900: #0a1319;
+  --color-ink-850: #0d1921;
+  --color-ink-800: #11212b;
+  --color-ink-700: #1a2b36;
+  --color-ink-600: #253b49;
+  --color-ink-500: #354d5d;
+}
+html[data-qism="lughah"] {
+  --color-brand: #8b5cf6;
+  --color-brand-soft: #a78bfa;
+  --color-brand-dim: #6d28d9;
+  --color-ink-950: #08050d;
+  --color-ink-900: #0f0a19;
+  --color-ink-850: #140d21;
+  --color-ink-800: #1b112b;
+  --color-ink-700: #241a36;
+  --color-ink-600: #322549;
+  --color-ink-500: #44355d;
+}
+html[data-qism="super_admin"] {
+  --color-brand: #ec4899;
+  --color-brand-soft: #f472b6;
+  --color-brand-dim: #be185d;
+  --color-ink-950: #0d0509;
+  --color-ink-900: #190a12;
+  --color-ink-850: #210d17;
+  --color-ink-800: #2b111e;
+  --color-ink-700: #361a28;
+  --color-ink-600: #492537;
+  --color-ink-500: #5d3549;
 }
 
 /* ============================ PRINT ============================ */

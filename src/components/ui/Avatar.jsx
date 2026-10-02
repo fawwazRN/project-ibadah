@@ -4,6 +4,10 @@ const TINTS = [
   "text-sky-300 bg-sky-500/10",
   "text-violet-300 bg-violet-500/10",
   "text-amber-300 bg-amber-500/10",
+  "text-pink-300 bg-pink-500/10",
+  "text-orange-300 bg-orange-500/10",
+  "text-cyan-300 bg-cyan-500/10",
+  "text-indigo-300 bg-indigo-500/10",
 ];
 const SIZES = {
   sm: "size-8 text-[10px]",

@@ -45,7 +45,7 @@ export default function InvitationCard() {
   };
 
   return (
-    <div className="relative bg-gradient-to-r from-brand/[0.12] via-brand/[0.06] to-transparent shadow-card border border-brand/25 rounded-2xl overflow-hidden animate-fade-up">
+    <div className="relative bg-brand/10 shadow-card border border-brand/25 rounded-2xl overflow-hidden animate-fade-up">
       {/* Aksen dekor */}
       <div className="-top-10 -right-10 absolute border border-brand/15 rounded-full size-40 pointer-events-none" />
       <div className="-top-4 -right-4 absolute border border-brand/10 rounded-full size-24 pointer-events-none" />

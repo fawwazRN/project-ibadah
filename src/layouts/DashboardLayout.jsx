@@ -27,10 +27,33 @@ const ROLE_SUBTITLES = {
   super_admin: () => "Super Admin · Akses Penuh",
 };
 
+// Warna ikon menu — bergilir supaya sidebar berwarna-warni (solid)
+const ICON_TINTS = [
+  "text-sky-300 bg-sky-400/10",
+  "text-violet-300 bg-violet-400/10",
+  "text-pink-300 bg-pink-400/10",
+  "text-orange-300 bg-orange-400/10",
+  "text-cyan-300 bg-cyan-400/10",
+  "text-indigo-300 bg-indigo-400/10",
+  "text-amber-300 bg-amber-400/10",
+  "text-emerald-300 bg-emerald-400/10",
+];
+
+function IconBox({ icon: Icon, idx = 0, active }) {
+  return (
+    <span
+      className={`grid size-7 shrink-0 place-items-center rounded-md ${
+        active ? "bg-brand text-ink-950" : ICON_TINTS[idx % ICON_TINTS.length]
+      }`}>
+      <Icon size={14} />
+    </span>
+  );
+}
+
 function Brand() {
   return (
     <div className="flex items-center gap-3 px-5 py-5">
-      <span className="place-items-center grid bg-gradient-to-b from-brand/20 to-brand/5 shadow-card border border-brand/25 rounded-2xl size-11 text-brand-soft">
+      <span className="place-items-center grid bg-brand/15 shadow-card border border-brand/25 rounded-2xl size-11 text-brand-soft">
         <BrandMark className="size-6" />
       </span>
       <div>
@@ -45,7 +68,7 @@ function Brand() {
   );
 }
 
-function NavItem({ to, end, icon: Icon, label, onNavigate }) {
+function NavItem({ to, end, icon: Icon, label, onNavigate, idx }) {
   return (
     <NavLink
       to={to}
@@ -63,10 +86,7 @@ function NavItem({ to, end, icon: Icon, label, onNavigate }) {
           {isActive && (
             <span className="top-1/2 -left-3 absolute bg-brand rounded-r-full w-1 h-5 -translate-y-1/2" />
           )}
-          <Icon
-            size={15}
-            className={isActive ? "text-brand-soft" : "text-slate-500"}
-          />
+          <IconBox icon={Icon} idx={idx} active={isActive} />
           {label}
         </>
       )}
@@ -74,7 +94,7 @@ function NavItem({ to, end, icon: Icon, label, onNavigate }) {
   );
 }
 
-function NavParentItem({ item, onNavigate }) {
+function NavParentItem({ item, onNavigate, idx }) {
   const [open, setOpen] = useState(false);
   return (
     <div>
@@ -82,7 +102,7 @@ function NavParentItem({ item, onNavigate }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-2.5 hover:bg-white/[0.03] px-2.5 py-2 rounded-lg w-full text-slate-400 hover:text-slate-200 text-sm transition-colors">
-        <item.icon size={15} className="text-slate-500" />
+        <IconBox icon={item.icon} idx={idx} />
         <span className="flex-1 text-left">{item.label}</span>
         <ChevronDown
           size={14}
@@ -138,9 +158,9 @@ function NavList({ groups, onNavigate, invVisible }) {
 
   return (
     <nav className="flex-1 space-y-5 px-3 py-2 overflow-y-auto">
-      {groups.map((g) => (
+      {groups.map((g, gi) => (
         <div key={g.section}>
-          <p className="mb-1.5 px-2 font-semibold text-[10px] text-slate-600 uppercase tracking-[0.16em]">
+          <p className="mb-1.5 px-2 font-semibold text-[10px] text-brand-soft/70 uppercase tracking-[0.16em]">
             {g.section}
           </p>
           <div className="space-y-0.5">
@@ -148,11 +168,13 @@ function NavList({ groups, onNavigate, invVisible }) {
               it.children ? (
                 <NavParentItem
                   key={`${g.section}-${idx}`}
+                  idx={idx + gi}
                   item={it}
                   onNavigate={onNavigate}
                 />
               ) : (
                 <NavItem
+                  idx={idx + gi}
                   key={it.to ?? `${g.section}-${idx}`}
                   to={it.to}
                   end={it.end}
@@ -175,6 +197,15 @@ export default function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { pathname } = useLocation();
   const groups = NAV[profile?.role] ?? [];
+
+  // Tema warna per qism — dipasang di <html> supaya modal/toast (portal) ikut.
+  useEffect(() => {
+    if (!profile?.role) return;
+    document.documentElement.dataset.qism = profile.role;
+    return () => {
+      delete document.documentElement.dataset.qism;
+    };
+  }, [profile?.role]);
 
   // Visibilitas undangan — menu ikut hilang saat hidden
   const [invVisible, setInvVisible] = useState(true);
@@ -262,6 +293,9 @@ export default function DashboardLayout() {
             className="lg:hidden place-items-center grid hover:bg-white/5 rounded-lg size-9 text-slate-400 hover:text-slate-200">
             <Menu size={18} />
           </button>
+          <span className="bg-brand/15 px-2.5 py-1 border border-brand/30 rounded-full font-semibold text-[11px] text-brand-soft">
+            {ROLE_LABELS[profile?.role] ?? ""}
+          </span>
           <p className="font-medium text-slate-300 text-sm">
             {pageTitleFor(pathname, groups)}
           </p>
