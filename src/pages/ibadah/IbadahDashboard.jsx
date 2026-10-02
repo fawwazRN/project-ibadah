@@ -61,7 +61,6 @@ export default function ViolationsManagement() {
 
   return (
     <div className="animate-fade-up">
-      <InvitationCard />
       <PageHeader
         title="Manajemen Pelanggaran"
         description="Catat, tinjau, dan kelola pelanggaran ranah Qism Ibadah."

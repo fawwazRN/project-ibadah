@@ -112,7 +112,6 @@ export default function LughahDashboard() {
 
   return (
     <div className="space-y-5 animate-fade-up">
-      <InvitationCard />
       <PageHeader
         title="Qism Lughah"
         description="Monitoring kelengkapan ujian dan nilai santri."

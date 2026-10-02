@@ -7,6 +7,7 @@ import { NAV, pageTitleFor } from "../routes/nav";
 import { BrandMark } from "../components/ui/BrandMark";
 import { Avatar } from "../components/ui/Avatar";
 import { eventService } from "../services/eventService";
+import InvitationCard from "../components/event/InvitationCard";
 import { fmtFullDate, hijriToday } from "../lib/date";
 
 const ROLE_LABELS = {
@@ -310,6 +311,9 @@ export default function DashboardLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Kartu undangan — fixed, ikut di semua halaman */}
+      <InvitationCard sidebarClass="lg:left-64" />
     </div>
   );
 }

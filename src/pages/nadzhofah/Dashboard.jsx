@@ -68,7 +68,6 @@ export default function NadzhofahDashboard() {
 
   return (
     <div className="space-y-5 animate-fade-up">
-      <InvitationCard />
       <PageHeader
         title="Qism Nadzhofah"
         description="Monitoring kebersihan, ketertiban, dan denda nyeker."

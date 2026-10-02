@@ -189,7 +189,6 @@ export default function SantriDashboard() {
 
   return (
     <div className="space-y-5 animate-fade-up">
-      <InvitationCard />
       <div>
         <p className="text-slate-500 text-sm">Assalamu’alaikum,</p>
         <h1 className="font-display font-semibold text-slate-50 text-2xl">

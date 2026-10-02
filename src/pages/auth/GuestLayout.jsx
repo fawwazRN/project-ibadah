@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { BrandMark } from "../../components/ui/BrandMark";
 import { useAuth } from "../../context/AuthContext";
+import InvitationCard from "../../components/event/InvitationCard";
 
 const NAV = [
   { to: "/guest", label: "Match Center", icon: Volleyball, end: true },
@@ -151,6 +152,9 @@ export default function GuestLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Kartu undangan — fixed, ikut di semua halaman */}
+      <InvitationCard sidebarClass="lg:left-60" />
     </div>
   );
 }
