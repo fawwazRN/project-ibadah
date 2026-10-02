@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   CalendarDays,
   MapPin,
@@ -14,7 +14,11 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../hooks/useToast";
-import { useCountUp, useReveal } from "../../hooks/useReveal";
+import {
+  useCountUp,
+  useReveal,
+  useScrollProgress,
+} from "../../hooks/useReveal";
 import DrawOrnament from "../../components/event/DrawOrnament";
 import { eventService } from "../../services/eventService";
 import { Card } from "../../components/ui/Card";
