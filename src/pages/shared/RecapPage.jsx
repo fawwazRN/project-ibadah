@@ -36,7 +36,7 @@ const PRESETS = [
 ];
 
 export default function RecapPage({ role }) {
-  const isOsis = role === "osis_ibadah";
+  const isOsis = role === "qism_ibadah" || role === "super_admin";
   const [violations, setViolations] = useState(null);
   const [reports, setReports] = useState([]);
   const [rules, setRules] = useState([]);

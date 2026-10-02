@@ -34,7 +34,7 @@ const dayLabel = (iso) =>
 const timeLabel = (t) => (t ?? "").slice(0, 5);
 
 export default function ZikirSchedulePage({ role }) {
-  const canManage = role === "osis_ibadah";
+  const canManage = role === "qism_ibadah" || role === "super_admin";
   const { push } = useToast();
   const confirm = useConfirm();
 
