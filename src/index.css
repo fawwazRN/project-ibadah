@@ -90,82 +90,47 @@
 }
 
 /* ============================================================
-   TEMA PER QISM (solid, tanpa gradient)
+   TEMA PER QISM (solid, tanpa gradient, latar tetap netral)
    Diset lewat <html data-qism="..."> oleh DashboardLayout.
-   Semua kelas bg-brand / text-brand-soft / border-brand/* ikut berubah,
-   termasuk modal & toast (karena atribut ada di <html>).
+   Hanya warna AKSEN yang berubah; latar gelap sengaja tidak
+   di-tint supaya nyaman di mata (kuning/merah di latar gelap
+   jadi kecoklatan & melelahkan kalau dipakai untuk latar).
    ============================================================ */
-html[data-qism="santri"] {
-  --color-brand: #14b8a6;
-  --color-brand-soft: #2dd4bf;
-  --color-brand-dim: #0f766e;
-  --color-ink-950: #050d0c;
-  --color-ink-900: #0a1917;
-  --color-ink-850: #0d211e;
-  --color-ink-800: #112b27;
-  --color-ink-700: #1a3633;
-  --color-ink-600: #254944;
-  --color-ink-500: #355d58;
-}
+/* Ibadah = biru */
 html[data-qism="qism_ibadah"] {
-  --color-brand: #10b981;
-  --color-brand-soft: #34d399;
-  --color-brand-dim: #0b7a5c;
-  --color-ink-950: #050d0a;
-  --color-ink-900: #0a1914;
-  --color-ink-850: #0d211a;
-  --color-ink-800: #112b22;
-  --color-ink-700: #1a362d;
-  --color-ink-600: #25493d;
-  --color-ink-500: #355d50;
+  --color-brand: #3b82f6;
+  --color-brand-soft: #60a5fa;
+  --color-brand-dim: #1d4ed8;
 }
+/* Riyadhah = merah */
 html[data-qism="qism_riyadhah"] {
-  --color-brand: #f97316;
-  --color-brand-soft: #fb923c;
-  --color-brand-dim: #c2410c;
-  --color-ink-950: #0d0805;
-  --color-ink-900: #19100a;
-  --color-ink-850: #21150d;
-  --color-ink-800: #2b1b11;
-  --color-ink-700: #36251a;
-  --color-ink-600: #493325;
-  --color-ink-500: #5d4535;
+  --color-brand: #ef4444;
+  --color-brand-soft: #f87171;
+  --color-brand-dim: #b91c1c;
 }
+/* Nadzhofah (kebersihan) = hijau */
 html[data-qism="nadzhofah"] {
-  --color-brand: #0ea5e9;
-  --color-brand-soft: #38bdf8;
-  --color-brand-dim: #0369a1;
-  --color-ink-950: #050a0d;
-  --color-ink-900: #0a1319;
-  --color-ink-850: #0d1921;
-  --color-ink-800: #11212b;
-  --color-ink-700: #1a2b36;
-  --color-ink-600: #253b49;
-  --color-ink-500: #354d5d;
+  --color-brand: #22c55e;
+  --color-brand-soft: #4ade80;
+  --color-brand-dim: #15803d;
 }
+/* Lughah = kuning */
 html[data-qism="lughah"] {
-  --color-brand: #8b5cf6;
-  --color-brand-soft: #a78bfa;
-  --color-brand-dim: #6d28d9;
-  --color-ink-950: #08050d;
-  --color-ink-900: #0f0a19;
-  --color-ink-850: #140d21;
-  --color-ink-800: #1b112b;
-  --color-ink-700: #241a36;
-  --color-ink-600: #322549;
-  --color-ink-500: #44355d;
-}
-html[data-qism="super_admin"] {
   --color-brand: #eab308;
   --color-brand-soft: #facc15;
   --color-brand-dim: #a16207;
-  --color-ink-950: #0b0a07;
-  --color-ink-900: #15130e;
-  --color-ink-850: #1c1912;
-  --color-ink-800: #242118;
-  --color-ink-700: #2f2c21;
-  --color-ink-600: #403c2e;
-  --color-ink-500: #534e3f;
+}
+/* Santri = ungu */
+html[data-qism="santri"] {
+  --color-brand: #8b5cf6;
+  --color-brand-soft: #a78bfa;
+  --color-brand-dim: #6d28d9;
+}
+/* Super Admin = abu perak */
+html[data-qism="super_admin"] {
+  --color-brand: #94a3b8;
+  --color-brand-soft: #cbd5e1;
+  --color-brand-dim: #475569;
 }
 
 /* ============================ PRINT ============================ */

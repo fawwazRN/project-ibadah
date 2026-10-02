@@ -152,7 +152,7 @@ export function ViolationFormModal({
                     type="button"
                     key={s.id}
                     onClick={() => toggle(s.id)}
-                    className="inline-flex items-center gap-1 bg-brand/15 px-2 py-1 border border-brand/30 hover:border-rose-400/50 rounded-full text-emerald-200 text-xs transition-colors">
+                    className="inline-flex items-center gap-1 bg-brand/15 px-2 py-1 border border-brand/30 hover:border-rose-400/50 rounded-full text-brand-soft text-xs transition-colors">
                     {s.full_name}
                     <X size={11} />
                   </button>
@@ -210,7 +210,7 @@ export function ViolationFormModal({
                           type="button"
                           key={s.id}
                           onClick={() => toggle(s.id)}
-                          className={`flex justify-between items-center hover:bg-white/5 px-3 py-2 w-full text-sm text-left transition-colors ${on ? "bg-brand/10 text-emerald-200" : "text-slate-300"}`}>
+                          className={`flex justify-between items-center hover:bg-white/5 px-3 py-2 w-full text-sm text-left transition-colors ${on ? "bg-brand/10 text-brand-soft" : "text-slate-300"}`}>
                           <span className="flex items-center gap-2">
                             <span
                               className={`grid size-4 place-items-center rounded border text-[10px] ${on ? "border-brand bg-brand text-ink-950" : "border-white/20"}`}>
