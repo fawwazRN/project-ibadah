@@ -1,9 +1,10 @@
 import { BrandMark } from "../ui/BrandMark";
 import { byRule, fmtNum, sumPoints } from "../../lib/calc";
-import { fmtDate, fmtDateTime, fmtOccurred } from "../../lib/date";
+import { fmtDate, fmtDateTime } from "../../lib/date";
 import {
   VIOLATION_STATUS_LABELS,
   REPORT_STATUS_LABELS,
+  PRAYER_LABELS,
 } from "../../lib/constants";
 
 const TH =
@@ -332,7 +333,8 @@ export default function PrintReport({
                     <thead>
                       <tr>
                         <th className={`${TH} w-8`}>No</th>
-                        <th className={`${TH} w-[22%]`}>Waktu</th>
+                        <th className={`${TH} w-[16%]`}>Tanggal</th>
+                        <th className={`${TH} w-[12%]`}>Waktu Sholat</th>
                         <th className={TH}>Pelanggaran</th>
                         <th className={`${TH} w-10`}>Poin</th>
                         <th className={`${TH} w-[14%]`}>Status</th>
@@ -344,7 +346,12 @@ export default function PrintReport({
                         <tr key={v.id}>
                           <td className={TD}>{i + 1}</td>
                           <td className={`${TD} whitespace-nowrap`}>
-                            {fmtOccurred(v)}
+                            {fmtDate(v.occurred_at)}
+                          </td>
+                          <td className={`${TD} whitespace-nowrap`}>
+                            {v.prayer_time
+                              ? PRAYER_LABELS[v.prayer_time] ?? v.prayer_time
+                              : "—"}
                           </td>
                           <td className={TD}>{v.rule?.name}</td>
                           <td className={`${TD} font-semibold`}>
@@ -380,7 +387,8 @@ export default function PrintReport({
                 <thead>
                   <tr>
                     <th className={`${TH} w-8`}>No</th>
-                    <th className={TH}>Waktu</th>
+                    <th className={TH}>Tanggal</th>
+                    <th className={TH}>Waktu Sholat</th>
                     <th className={TH}>Nama</th>
                     <th className={TH}>Kelas</th>
                     <th className={TH}>Pelanggaran</th>
@@ -394,7 +402,12 @@ export default function PrintReport({
                     <tr key={v.id}>
                       <td className={TD}>{i + 1}</td>
                       <td className={`${TD} whitespace-nowrap`}>
-                        {fmtOccurred(v)}
+                        {fmtDate(v.occurred_at)}
+                      </td>
+                      <td className={`${TD} whitespace-nowrap`}>
+                        {v.prayer_time
+                          ? PRAYER_LABELS[v.prayer_time] ?? v.prayer_time
+                          : "—"}
                       </td>
                       <td className={`${TD} font-medium`}>
                         {v.santri?.full_name}
@@ -413,7 +426,7 @@ export default function PrintReport({
                     </tr>
                   ))}
                   <tr>
-                    <td className={`${TD} font-bold`} colSpan={5}>
+                    <td className={`${TD} font-bold`} colSpan={6}>
                       Jumlah ({fmtNum(detail.length)} catatan)
                     </td>
                     <td className={`${TD} font-bold`}>

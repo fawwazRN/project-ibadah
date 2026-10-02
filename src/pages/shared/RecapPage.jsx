@@ -37,7 +37,8 @@ import {
   sumPoints,
   matchesSearch,
 } from "../../lib/calc";
-import { rangeForPreset, inRange, fmtDate, fmtOccurred } from "../../lib/date";
+import { rangeForPreset, inRange, fmtDate } from "../../lib/date";
+import { PRAYER_LABELS } from "../../lib/constants";
 
 const PRESETS = [
   { key: "today", label: "Hari ini" },
@@ -453,7 +454,8 @@ export default function RecapPage({ role }) {
                 <thead className="top-0 z-10 sticky bg-ink-900">
                   <tr>
                     <Th>No</Th>
-                    <Th>Waktu</Th>
+                    <Th>Tanggal</Th>
+                    <Th>Waktu Sholat</Th>
                     <Th>Santri</Th>
                     <Th>Aturan</Th>
                     <Th>Poin</Th>
@@ -468,7 +470,12 @@ export default function RecapPage({ role }) {
                         {i + 1}
                       </Td>
                       <Td className="text-slate-400 whitespace-nowrap">
-                        {fmtOccurred(v)}
+                        {fmtDate(v.occurred_at)}
+                      </Td>
+                      <Td className="text-slate-300 whitespace-nowrap">
+                        {v.prayer_time
+                          ? PRAYER_LABELS[v.prayer_time] ?? v.prayer_time
+                          : "—"}
                       </Td>
                       <Td className="text-slate-200">
                         {v.santri?.full_name}
