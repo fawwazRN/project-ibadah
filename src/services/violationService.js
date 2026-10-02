@@ -49,6 +49,28 @@ export const violationService = {
     return data;
   },
 
+  // Catat pelanggaran yang SAMA untuk banyak santri sekaligus (satu request).
+  async createMany({ santri_ids, rule_id, occurred_at, prayer_time, note }) {
+    const rows = santri_ids.map((santri_id) => ({
+      santri_id,
+      rule_id,
+      occurred_at,
+      prayer_time: prayer_time || null,
+      note: note || null,
+    }));
+    const { data, error } = await supabase
+      .from("violations")
+      .insert(rows)
+      .select(SELECT);
+    if (error) throw error;
+    await Promise.all(
+      data.map((v) =>
+        auditService.log("violation_created", "violation", v.id, label(v)),
+      ),
+    );
+    return data;
+  },
+
   async updateStatus(id, status) {
     const { data, error } = await supabase
       .from("violations")
