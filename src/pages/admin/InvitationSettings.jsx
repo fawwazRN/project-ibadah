@@ -27,12 +27,12 @@ export default function InvitationSettingsPage() {
     try {
       await eventService.setInvitationVisible(!visible);
       // Sinkronkan sesi browser ini:
-      // - dimatikan → tandai sudah lihat (sesi langsung lewat gerbang)
-      // - ditayangkan → sesi dianggap belum lihat (gerbang akan muncul lagi)
-      if (visible) {
-        sessionStorage.setItem("invite_seen", "1");
-      } else {
+      // - ditayangkan → sesi dianggap "belum lihat undangan"
+      // - disembunyikan → tandai sudah, agar tidak terjebak gerbang
+      if (!visible) {
         sessionStorage.removeItem("invite_seen");
+      } else {
+        sessionStorage.setItem("invite_seen", "1");
       }
       push(
         "success",
@@ -53,7 +53,7 @@ export default function InvitationSettingsPage() {
     <div className="max-w-2xl animate-fade-up">
       <PageHeader
         title="Undangan Acara"
-        description="Kendalikan tayang-tidaknya halaman undangan. Saat dinonaktifkan, pengguna tidak akan melihat undangan sama sekali — langsung menuju aplikasi."
+        description="Kendalikan tayang-tidaknya halaman undangan. Saat dinonaktifkan, pengguna tidak akan melihat undangan sama sekali — langsung ke aplikasi."
       />
 
       <Card>

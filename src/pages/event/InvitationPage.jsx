@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   CalendarDays,
   MapPin,
@@ -15,7 +15,6 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../hooks/useToast";
 import { useCountUp, useReveal } from "../../hooks/useReveal";
-import { useScrollProgress } from "../../hooks/useScrollProgress";
 import DrawOrnament from "../../components/event/DrawOrnament";
 import { eventService } from "../../services/eventService";
 import { Card } from "../../components/ui/Card";
@@ -23,17 +22,116 @@ import { Button } from "../../components/ui/Button";
 import { Field, Textarea } from "../../components/ui/Field";
 import { Badge } from "../../components/ui/Badge";
 import { BrandMark } from "../../components/ui/BrandMark";
-import {
-  RevealSection,
-  TextReveal,
-  CinematicZoom,
-  SlideCard,
-  ParallaxLayer,
-  ScaleLine,
-  FloatRing,
-} from "../../components/event/InvitationKit";
+import { homeFor } from "../../routes/AppRoutes";
 
-/* ===== COVER sinematik — zoom-out + fade saat scroll ===== */
+/* ===== RevealSection: fade+slide saat masuk viewport ===== */
+function RevealSection({ children, delay = 0, className = "" }) {
+  const [ref, shown] = useReveal(0.1);
+  return (
+    <section
+      ref={ref}
+      className={className}
+      style={{
+        opacity: shown ? 1 : 0,
+        transform: shown ? "none" : "translateY(40px)",
+        transition: `opacity 1s cubic-bezier(.22,1,.36,1) ${delay}ms, transform 1s cubic-bezier(.22,1,.36,1) ${delay}ms`,
+      }}>
+      {children}
+    </section>
+  );
+}
+
+/* ===== TextReveal: kata muncul berurutan (waktu-based — selalu berakhir terbaca) ===== */
+function TextReveal({ text, className = "", stagger = 70 }) {
+  const [ref, shown] = useReveal(0.2);
+  const words = text.split(" ");
+  return (
+    <p ref={ref} className={className}>
+      {words.map((w, i) => (
+        <span
+          key={i}
+          style={{
+            display: "inline-block",
+            opacity: shown ? 1 : 0,
+            transform: shown ? "none" : "translateY(14px)",
+            filter: shown ? "blur(0)" : "blur(4px)",
+            transition: `opacity .7s cubic-bezier(.22,1,.36,1) ${i * stagger}ms, transform .7s cubic-bezier(.22,1,.36,1) ${i * stagger}ms, filter .7s ease ${i * stagger}ms`,
+            marginRight: "0.35em",
+          }}>
+          {w}
+        </span>
+      ))}
+    </p>
+  );
+}
+
+/* ===== CinematicZoom ===== */
+function CinematicZoom({ children, className = "" }) {
+  const [ref, p] = useScrollProgress();
+  const scale = Math.min(1, 0.55 + Math.max(0, p - 0.1) * 1.4);
+  const opacity = Math.min(1, Math.max(0, (p - 0.12) * 2.4));
+  const rotate = (1 - Math.min(1, Math.max(0, (p - 0.1) * 1.6))) * 3;
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        transform: `scale(${scale}) rotate(${rotate}deg)`,
+        opacity,
+        transformOrigin: "center center",
+      }}>
+      {children}
+    </div>
+  );
+}
+
+/* ===== SlideCard ===== */
+function SlideCard({ children, direction = "left", className = "" }) {
+  const [ref, p] = useScrollProgress();
+  const from = direction === "left" ? -260 : 260;
+  const t = Math.min(1, p * 1.7);
+  const x = (1 - t) * from;
+  const rotate = (1 - t) * (direction === "left" ? -4 : 4);
+  const opacity = Math.min(1, p * 2);
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{ transform: `translateX(${x}px) rotate(${rotate}deg)`, opacity }}>
+      {children}
+    </div>
+  );
+}
+
+/* ===== ParallaxLayer ===== */
+function ParallaxLayer({ children, speed = 0.4, className = "" }) {
+  const [ref, p] = useScrollProgress();
+  const y = (p - 0.5) * 200 * speed;
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{ transform: `translateY(${y}px)` }}>
+      {children}
+    </div>
+  );
+}
+
+/* ===== ScaleLine ===== */
+function ScaleLine({ className = "" }) {
+  const [ref, p] = useScrollProgress();
+  const width = Math.min(100, Math.max(0, (p - 0.15) * 220));
+  return (
+    <div ref={ref} className={`flex justify-center ${className}`}>
+      <div
+        className="bg-gradient-to-r from-transparent via-brand/50 to-transparent h-px"
+        style={{ width: `${width}%` }}
+      />
+    </div>
+  );
+}
+
+/* ===== Cover sinematik ===== */
 function Cover({ event, dateStr, timeStr }) {
   const [ref, p] = useScrollProgress();
   const scale = 1 - Math.min(0.25, p * 1.5);
@@ -170,12 +268,31 @@ function StatPill({ icon: Icon, value, label }) {
   );
 }
 
+/* ===== FloatRing ===== */
+function FloatRing({
+  size = 500,
+  duration = 40,
+  reverse = false,
+  className = "",
+}) {
+  return (
+    <div
+      className={`pointer-events-none absolute rounded-full border border-brand/[0.08] ${className}`}
+      style={{
+        width: size,
+        height: size,
+        animation: `FloatY ${duration}s ease-in-out infinite ${reverse ? "reverse" : ""}, Spin ${duration * 2}s linear infinite ${reverse ? "reverse" : ""}`,
+      }}
+    />
+  );
+}
+
 /* ==================================================================== */
 export default function InvitationPage() {
-  const { session, profile } = useAuth();
+  const { session, profile, isGuest } = useAuth();
   const { push } = useToast();
+  const navigate = useNavigate();
 
-  // ================= SEMUA HOOKS DULU =================
   const [event, setEvent] = useState(null);
   const [error, setError] = useState(null);
   const [rsvps, setRsvps] = useState([]);
@@ -183,7 +300,6 @@ export default function InvitationPage() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
-  // [FIX] load bersih — cek status undangan ditangani InvitationGate
   const load = useCallback(() => {
     setError(null);
     (async () => {
@@ -231,7 +347,7 @@ export default function InvitationPage() {
     }
   };
 
-  // ================= TAMPILAN =================
+  // Format tanggal — SEKALI SAJA
   const dateStr = event
     ? new Date(event.event_date).toLocaleDateString("id-ID", {
         weekday: "long",
@@ -251,12 +367,12 @@ export default function InvitationPage() {
     <div
       data-invitation
       className="relative bg-ink-950 min-h-screen overflow-x-clip text-slate-300">
-      {/* ===== COVER sinematik ===== */}
+      {/* ===== COVER SINEMATIK ===== */}
       <Cover event={event} dateStr={dateStr} timeStr={timeStr} />
 
       {event && (
         <>
-          {/* ===== SALAM — TextReveal per kata ===== */}
+          {/* ===== SALAM ===== */}
           <RevealSection className="mx-auto px-6 py-28 max-w-3xl text-center">
             <p className="mb-10 font-semibold text-[10px] text-brand-soft uppercase tracking-[0.45em]">
               Bismillahirrahmanirrahim
@@ -269,7 +385,7 @@ export default function InvitationPage() {
             <ScaleLine className="mt-16" />
           </RevealSection>
 
-          {/* ===== DETAIL — CinematicZoom zig-zag ===== */}
+          {/* ===== DETAIL — zig-zag ===== */}
           <section className="py-10">
             <RevealSection className="mb-8 text-center">
               <p className="font-semibold text-[10px] text-brand-soft uppercase tracking-[0.45em]">
@@ -316,7 +432,7 @@ export default function InvitationPage() {
             ))}
           </section>
 
-          {/* ===== DESKRIPSI — TextReveal ===== */}
+          {/* ===== DESKRIPSI ===== */}
           {event.description && (
             <section className="mx-auto px-6 py-20 max-w-3xl overflow-x-clip text-center">
               <RevealSection className="mb-8">
@@ -332,7 +448,7 @@ export default function InvitationPage() {
             </section>
           )}
 
-          {/* ===== COUNTDOWN — overflow-hidden ===== */}
+          {/* ===== COUNTDOWN ===== */}
           <section className="relative py-24 overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.1),transparent_70%)]" />
             <ParallaxLayer speed={0.4} className="absolute inset-0">
@@ -402,10 +518,6 @@ export default function InvitationPage() {
                         Masuk untuk Konfirmasi
                       </Button>
                     </Link>
-                    <p className="mt-3 text-[11px] text-slate-600">
-                      Mode tamu dapat melihat undangan, namun konfirmasi
-                      memerlukan akun.
-                    </p>
                   </div>
                 ) : sent ? (
                   <div className="flex flex-col items-center gap-2 mt-6 py-6 text-center">
@@ -464,7 +576,7 @@ export default function InvitationPage() {
             </CinematicZoom>
           </section>
 
-          {/* ===== UCAPAN — SlideCard bergantian ===== */}
+          {/* ===== UCAPAN ===== */}
           {!event._dummy && rsvps.length > 0 && (
             <section className="mx-auto px-6 py-16 max-w-2xl overflow-x-clip">
               <RevealSection className="mb-10 text-center">
@@ -512,7 +624,7 @@ export default function InvitationPage() {
             </section>
           )}
 
-          {/* ===== LOKASI — CinematicZoom ===== */}
+          {/* ===== LOKASI ===== */}
           <section className="mx-auto px-6 py-20 max-w-xl overflow-x-clip text-center">
             <RevealSection className="mb-6">
               <p className="font-semibold text-[10px] text-brand-soft uppercase tracking-[0.45em]">
@@ -539,7 +651,7 @@ export default function InvitationPage() {
             </CinematicZoom>
           </section>
 
-          {/* ===== PENUTUP — ParallaxLayer dalam overflow-hidden ===== */}
+          {/* ===== PENUTUP ===== */}
           <section className="relative mx-auto px-6 pt-10 pb-36 max-w-xl overflow-hidden text-center">
             <ParallaxLayer speed={0.5} className="top-0 absolute inset-x-0">
               <DrawOrnament className="mx-auto w-72 text-brand-soft" />

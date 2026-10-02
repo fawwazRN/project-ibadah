@@ -69,11 +69,11 @@ import AdminHome from "../pages/admin/AdminHome";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminManagement from "../pages/admin/AdminManagement";
 import InvitationSettingsPage from "../pages/admin/InvitationSettings";
-import LeagueSettingsPage from "../pages/admin/LeagueSettingsPage";
 import InvitationPage from "../pages/event/InvitationPage";
+import LeagueSettingsPage from "../pages/admin/LeagueSettingsPage";
 
 // ============================================================
-// Home & entry per peran
+// Home per peran
 // ============================================================
 const HOME = {
   santri: "/santri",
@@ -85,9 +85,12 @@ const HOME = {
 };
 export const homeFor = (role) => HOME[role] ?? "/santri";
 
+// ============================================================
 // Titik masuk sesi:
 // - 'invite_seen' ada → undangan sudah pernah dilewati → dashboard
-// - belum → cek gerbang undangan (yang akan me-redirect jika nonaktif)
+// - belum → gerbang undangan dulu (InvitationGate akan me-redirect
+//   otomatis jika undangan nonaktif)
+// ============================================================
 export function entryPath(roleOrGuest) {
   if (sessionStorage.getItem("invite_seen")) {
     return roleOrGuest === "guest" ? "/guest" : homeFor(roleOrGuest);
@@ -126,6 +129,7 @@ function ClaimGate() {
   return <Outlet />;
 }
 
+// Pelindung peran — super_admin boleh masuk SEMUA area.
 function RoleRoute({ role }) {
   const { profile } = useAuth();
   if (profile === undefined) return <FullPageLoader />;
@@ -146,12 +150,13 @@ function RootRedirect() {
 }
 
 /* ============================================================
-   INVITATION GATE — sesuai alur yang diminta:
+   INVITATION GATE — alur persis:
    /undangan dibuka
      → cek status undangan di database
-       → status false (nonaktif) → TIDAK DIRENDER → REDIRECT
-         (login/guest → dashboard sesuai peran)
-       → status true (aktif) → render halaman undangan
+       → status = false (nonaktif) → TIDAK DIRENDER → REDIRECT
+         (guest → /guest · login → / → RootRedirect arahkan sesuai peran ·
+          tanpa sesi → /auth/login)
+       → status = true (aktif) → render halaman undangan
    ============================================================ */
 function InvitationGate() {
   const [visible, setVisible] = useState(null);
@@ -170,7 +175,7 @@ function InvitationGate() {
   // STATUS = FALSE → TIDAK DIRENDER → REDIRECT
   if (!visible) {
     if (isGuest) return <Navigate to="/guest" replace />;
-    if (session) return <Navigate to={homeFor("/ibadah") && "/"} replace />;
+    if (session) return <Navigate to="/" replace />; // RootRedirect arahkan sesuai peran
     return <Navigate to="/auth/login" replace />;
   }
 
@@ -194,7 +199,7 @@ export default function AppRoutes() {
         <Route path="/guest/undangan" element={<InvitationPage />} />
       </Route>
 
-      {/* ---------- MODE TAMU ---------- */}
+      {/* ---------- MODE TAMU (tanpa login, read-only) ---------- */}
       <Route element={<GuestLayout />}>
         <Route path="/guest" element={<GuestDashboard />} />
         <Route path="/guest/ibadah" element={<GuestIbadahPage />} />
@@ -203,6 +208,7 @@ export default function AppRoutes() {
         <Route path="/guest/zikir" element={<GuestZikirPage />} />
       </Route>
 
+      {/* Pilih kelas & nama — untuk sesi yang belum terhubung profil */}
       <Route element={<ClaimGate />}>
         <Route path="/claim" element={<ClaimPage />} />
       </Route>
