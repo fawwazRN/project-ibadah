@@ -351,6 +351,14 @@ export default function InvitationPage() {
     }
   };
 
+  const closeInvitation = () => {
+    sessionStorage.setItem("invite_seen", "1");
+    if (isGuest) navigate("/guest", { replace: true });
+    else if (session)
+      navigate(profile?.role ? homeFor(profile.role) : "/", { replace: true });
+    else navigate("/auth/login", { replace: true });
+  };
+
   // Format tanggal — SEKALI SAJA
   const dateStr = event
     ? new Date(event.event_date).toLocaleDateString("id-ID", {
@@ -371,6 +379,18 @@ export default function InvitationPage() {
     <div
       data-invitation
       className="relative bg-ink-950 min-h-screen overflow-x-clip text-slate-300">
+      <button
+        type="button"
+        onClick={closeInvitation}
+        aria-label="Tutup undangan"
+        title="Tutup undangan"
+        style={{
+          top: "calc(env(safe-area-inset-top, 0px) + 1rem)",
+          right: "1rem",
+        }}
+        className="z-[60] fixed place-items-center grid bg-ink-900/80 hover:bg-ink-800 backdrop-blur-md border border-white/15 rounded-full size-11 text-slate-200 hover:text-white transition-colors">
+        <X size={18} />
+      </button>
       {/* ===== COVER SINEMATIK ===== */}
       <Cover event={event} dateStr={dateStr} timeStr={timeStr} />
 
