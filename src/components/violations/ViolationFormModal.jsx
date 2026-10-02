@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { UserPlus } from "lucide-react";
+import { UserPlus, X, CheckCheck } from "lucide-react";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
@@ -37,13 +37,13 @@ export function ViolationFormModal({
   const [rules, setRules] = useState([]);
   const [query, setQuery] = useState("");
   const [form, setForm] = useState({
-    santri_id: "",
     rule_id: "",
     session_date: localToday(),
     prayer_time: "",
     violation_time: localNowTime(),
     note: "",
   });
+  const [selectedIds, setSelectedIds] = useState([]);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [booting, setBooting] = useState(false);
@@ -51,8 +51,8 @@ export function ViolationFormModal({
   useEffect(() => {
     if (!open) return;
     setBooting(true);
+    setSelectedIds([]);
     setForm({
-      santri_id: "",
       rule_id: "",
       session_date: localToday(),
       prayer_time: "",
@@ -74,16 +74,27 @@ export function ViolationFormModal({
   }, [open, scope]);
 
   const rule = rules.find((r) => r.id === form.rule_id);
-  const selected = santri.find((s) => s.id === form.santri_id);
+  const selectedSantri = selectedIds
+    .map((id) => santri.find((s) => s.id === id))
+    .filter(Boolean);
+  const q = query.trim().toLowerCase();
   const filtered = santri.filter(
     (s) =>
-      s.full_name.toLowerCase().includes(query.toLowerCase()) ||
-      (s.class_name ?? "").toLowerCase().includes(query.toLowerCase()),
+      s.full_name.toLowerCase().includes(q) ||
+      (s.class_name ?? "").toLowerCase().includes(q),
   );
+  const classes = [...new Set(santri.map((s) => s.class_name).filter(Boolean))];
+
+  const toggle = (id) =>
+    setSelectedIds((ids) =>
+      ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id],
+    );
+  const addMany = (list) =>
+    setSelectedIds((ids) => [...new Set([...ids, ...list.map((s) => s.id)])]);
 
   const submit = async () => {
     const errs = {};
-    if (!form.santri_id) errs.santri = "Pilih santri terlebih dahulu.";
+    if (!selectedIds.length) errs.santri = "Pilih minimal satu santri.";
     if (!form.rule_id) errs.rule = "Pilih aturan yang dilanggar.";
     if (!form.session_date) errs.session_date = "Tanggal wajib diisi.";
     if (!isIbadah && !form.violation_time)
@@ -100,20 +111,19 @@ export function ViolationFormModal({
         : form.violation_time;
       const occurredAt = `${form.session_date}T${clock}:00+07:00`;
 
-      await violationService.create({
-        santri_id: form.santri_id,
+      const created = await violationService.createMany({
+        santri_ids: selectedIds,
         rule_id: form.rule_id,
         occurred_at: occurredAt,
         prayer_time: isIbadah ? form.prayer_time || null : null,
         note: form.note,
-        santri_name: selected.full_name,
-        rule_name: rule.name,
-        rule_points: rule.points,
       });
       push(
         "success",
-        "Pelanggaran tercatat",
-        `${rule.name} — ${selected.full_name}`,
+        `${created.length} pelanggaran tercatat`,
+        created.length === 1
+          ? `${rule.name} — ${selectedSantri[0]?.full_name ?? ""}`
+          : `${rule.name} — ${created.length} santri`,
       );
       onSaved?.();
       onClose();
@@ -130,43 +140,94 @@ export function ViolationFormModal({
         <p className="py-6 text-slate-500 text-sm text-center">Memuat…</p>
       ) : (
         <div className="space-y-4">
-          <Field label="Santri" required error={errors.santri}>
-            <div className="relative">
-              <Input
-                placeholder={
-                  selected ? selected.full_name : "Cari nama atau kelas…"
-                }
-                value={selected ? selected.full_name : query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setForm((f) => ({ ...f, santri_id: "" }));
-                }}
-              />
-              {!selected && query !== "" && (
-                <div className="z-10 absolute bg-ink-800 shadow-card mt-1 border border-white/10 rounded-lg w-full max-h-44 overflow-y-auto">
-                  {filtered.length === 0 && (
-                    <p className="px-3 py-2.5 text-slate-500 text-xs">
-                      Tidak ditemukan.
-                    </p>
-                  )}
-                  {filtered.slice(0, 8).map((s) => (
+          <Field
+            label={`Santri${selectedIds.length ? ` (${selectedIds.length} dipilih)` : ""}`}
+            required
+            error={errors.santri}
+            hint="Bisa pilih banyak santri sekaligus — pelanggaran & waktunya sama.">
+            {selectedSantri.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {selectedSantri.map((s) => (
+                  <button
+                    type="button"
+                    key={s.id}
+                    onClick={() => toggle(s.id)}
+                    className="inline-flex items-center gap-1 bg-gradient-to-r from-brand/20 to-sky-400/20 px-2 py-1 border border-brand/30 hover:border-rose-400/50 rounded-full text-emerald-200 text-xs transition-colors">
+                    {s.full_name}
+                    <X size={11} />
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setSelectedIds([])}
+                  className="px-2 py-1 text-slate-500 hover:text-rose-300 text-xs">
+                  Kosongkan
+                </button>
+              </div>
+            )}
+            <Input
+              placeholder="Cari nama atau kelas…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            {classes.length > 0 && query === "" && (
+              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                <span className="text-[11px] text-slate-500">
+                  Pilih satu kelas:
+                </span>
+                {classes.map((c) => (
+                  <button
+                    type="button"
+                    key={c}
+                    onClick={() =>
+                      addMany(santri.filter((s) => s.class_name === c))
+                    }
+                    className="bg-violet-400/10 hover:bg-violet-400/20 px-2 py-0.5 border border-violet-400/25 rounded-md text-[11px] text-violet-300 transition-colors">
+                    {c}
+                  </button>
+                ))}
+              </div>
+            )}
+            {query !== "" && (
+              <div className="bg-ink-800 mt-1 border border-white/10 rounded-lg max-h-52 overflow-y-auto">
+                {filtered.length === 0 ? (
+                  <p className="px-3 py-2.5 text-slate-500 text-xs">
+                    Tidak ditemukan.
+                  </p>
+                ) : (
+                  <>
                     <button
                       type="button"
-                      key={s.id}
-                      onClick={() => {
-                        setForm((f) => ({ ...f, santri_id: s.id }));
-                        setQuery("");
-                      }}
-                      className="flex justify-between items-center hover:bg-white/5 px-3 py-2 w-full text-slate-300 text-sm text-left transition-colors">
-                      <span>{s.full_name}</span>
-                      <span className="text-slate-500 text-xs">
-                        {s.class_name}
-                      </span>
+                      onClick={() => addMany(filtered)}
+                      className="flex items-center gap-1.5 hover:bg-white/5 px-3 py-2 border-white/10 border-b w-full text-brand-soft text-xs text-left">
+                      <CheckCheck size={13} /> Pilih semua hasil (
+                      {filtered.length})
                     </button>
-                  ))}
-                </div>
-              )}
-            </div>
+                    {filtered.slice(0, 30).map((s) => {
+                      const on = selectedIds.includes(s.id);
+                      return (
+                        <button
+                          type="button"
+                          key={s.id}
+                          onClick={() => toggle(s.id)}
+                          className={`flex justify-between items-center hover:bg-white/5 px-3 py-2 w-full text-sm text-left transition-colors ${on ? "bg-brand/10 text-emerald-200" : "text-slate-300"}`}>
+                          <span className="flex items-center gap-2">
+                            <span
+                              className={`grid size-4 place-items-center rounded border text-[10px] ${on ? "border-brand bg-brand text-ink-950" : "border-white/20"}`}>
+                              {on && "✓"}
+                            </span>
+                            {s.full_name}
+                          </span>
+                          <span className="text-slate-500 text-xs">
+                            {s.class_name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+            )}
           </Field>
 
           <Field label="Aturan yang dilanggar" required error={errors.rule}>
@@ -265,7 +326,9 @@ export function ViolationFormModal({
               icon={UserPlus}
               loading={saving}
               onClick={submit}>
-              Simpan Pelanggaran
+              {selectedIds.length > 1
+                ? `Simpan untuk ${selectedIds.length} santri`
+                : "Simpan Pelanggaran"}
             </Button>
           </div>
         </div>
