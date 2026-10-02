@@ -1,15 +1,27 @@
 import { supabase } from "../lib/supabaseClient";
 import { auditService } from "./auditService";
+import { fetchAll } from "../lib/fetchAll";
 
 export const nyekerService = {
-  // Nadzhofah: semua · Santri: miliknya (diputuskan di fungsi database)
+  // Ambil seluruh data per halaman agar tidak terpotong batas maksimum RPC.
+  // RLS tetap menjadi penjaga akses: staff melihat data sesuai haknya, santri miliknya.
   async list({ from, to } = {}) {
-    const { data, error } = await supabase.rpc("list_nyeker_records", {
-      p_from: from ?? null,
-      p_to: to ?? null,
+    const rows = await fetchAll(() => {
+      let query = supabase
+        .from("nyeker_records")
+        .select("*, student:profiles!student_id(full_name,class_name)", { count: "exact" })
+        .order("nyeker_date", { ascending: false })
+        .order("nyeker_time", { ascending: false })
+        .order("id", { ascending: false });
+      if (from) query = query.gte("nyeker_date", from);
+      if (to) query = query.lte("nyeker_date", to);
+      return query;
     });
-    if (error) throw error;
-    return data;
+    return rows.map((row) => ({
+      ...row,
+      full_name: row.student?.full_name ?? row.full_name ?? "Santri",
+      class_name: row.student?.class_name ?? row.class_name ?? "—",
+    }));
   },
 
   async stats() {
@@ -48,9 +60,18 @@ export const nyekerService = {
 
   // ================= PENYITAAN BAJU & LELANG =================
   async listClothing() {
-    const { data, error } = await supabase.rpc("list_clothing");
-    if (error) throw error;
-    return data;
+    const rows = await fetchAll(() =>
+      supabase
+        .from("clothing_confiscations")
+        .select("*, student:profiles!student_id(full_name,class_name)", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false }),
+    );
+    return rows.map((row) => ({
+      ...row,
+      full_name: row.student?.full_name ?? row.full_name ?? "Santri",
+      class_name: row.student?.class_name ?? row.class_name ?? "—",
+    }));
   },
 
   async clothingFinance() {
@@ -157,10 +178,10 @@ export const nyekerService = {
   },
 
   // Catat cepat — hanya nadzhofah (RLS memvalidasi)
-  async create({ student_id, nyeker_date, nyeker_time, note }) {
+  async create({ student_id, nyeker_date, nyeker_time, note, fine_amount = 5000 }) {
     const { data, error } = await supabase
       .from("nyeker_records")
-      .insert({ student_id, nyeker_date, nyeker_time, note: note || null })
+      .insert({ student_id, nyeker_date, nyeker_time, note: note || null, fine_amount: Number(fine_amount) })
       .select("*")
       .single();
     if (error) throw error;

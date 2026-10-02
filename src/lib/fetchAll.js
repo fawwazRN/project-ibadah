@@ -12,7 +12,7 @@ export async function fetchAll(buildQuery) {
   let from = 0;
   let total = null;
   // batas pengaman supaya tidak loop tak hingga
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < 10000; i++) {
     const { data, error, count } = await buildQuery().range(
       from,
       from + PAGE - 1,

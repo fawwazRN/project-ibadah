@@ -62,7 +62,20 @@ export function NyekerTable({ rows, onStudentClick, onDelete, onTogglePaid }) {
                     className={`font-mono text-xs font-semibold ${r.fine_paid ? "text-emerald-300" : "text-rose-300"}`}>
                     {rp(r.fine_amount ?? 5000)}
                   </span>
-                  {r.fine_paid ? (
+                  {onTogglePaid ? (
+                    <button
+                      type="button"
+                      onClick={() => onTogglePaid(r)}
+                      title={r.fine_paid ? "Klik untuk tandai belum lunas" : "Klik untuk tandai lunas"}
+                      className="rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
+                    >
+                      {r.fine_paid ? (
+                        <Badge tone="emerald">Lunas · klik ubah</Badge>
+                      ) : (
+                        <Badge tone="amber">Belum · klik lunas</Badge>
+                      )}
+                    </button>
+                  ) : r.fine_paid ? (
                     <Badge tone="emerald">Lunas</Badge>
                   ) : (
                     <Badge tone="amber">Belum</Badge>
