@@ -10,7 +10,16 @@ export const IBADAH_SECTIONS = [
   { key: "perSantri", label: "Rekap per Santri (total poin)", locked: false },
   { key: "perClass", label: "Rekap per Kelas", locked: false },
   { key: "perRule", label: "Rekap per Aturan", locked: false },
-  { key: "detail", label: "Detail Pelanggaran (tabel lengkap)", locked: false },
+  {
+    key: "groupedSantri",
+    label: "Rincian per Santri (semua pelanggaran tiap santri)",
+    locked: false,
+  },
+  {
+    key: "detail",
+    label: "Detail Pelanggaran (semua, urut tanggal)",
+    locked: false,
+  },
   { key: "reports", label: "Klarifikasi Santri", locked: false },
   { key: "signatures", label: "Blok Tanda Tangan", locked: false },
 ];
@@ -61,15 +70,15 @@ export default function PrintOptionsModal({
 }) {
   const { push } = useToast();
   const saved = loadPrintOptions(module);
-  const initial =
-    saved ?? Object.fromEntries(sections.map((s) => [s.key, true]));
+  const withDefaults = (sv) =>
+    Object.fromEntries(sections.map((s) => [s.key, sv?.[s.key] ?? true]));
+  const initial = withDefaults(saved);
 
   const [selected, setSelected] = useState(initial);
 
   useEffect(() => {
     if (open) {
-      const s = loadPrintOptions(module);
-      setSelected(s ?? Object.fromEntries(sections.map((x) => [x.key, true])));
+      setSelected(withDefaults(loadPrintOptions(module)));
     }
   }, [open, module, sections]);
 

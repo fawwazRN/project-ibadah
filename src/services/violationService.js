@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabaseClient";
 import { auditService } from "./auditService";
+import { fetchAll } from "../lib/fetchAll";
 
 const SELECT = `*, prayer_time, rule:rules(name, points, category, scope),
   santri:profiles!violations_santri_id_fkey(id, full_name, class_name),
@@ -11,19 +12,20 @@ export const violationService = {
   // RLS menentukan cakupan: santri otomatis hanya menerima datanya sendiri,
   // admin menerima semuanya. Filter opsional berupa kolom langsung.
   async list(filters = {}) {
-    let q = supabase
-      .from("violations")
-      .select(SELECT)
-      .order("occurred_at", { ascending: false })
-      .limit(500);
-    if (filters.santri_id) q = q.eq("santri_id", filters.santri_id);
-    if (filters.status) q = q.eq("status", filters.status);
-    if (filters.rule_id) q = q.eq("rule_id", filters.rule_id);
-    if (filters.from)
-      q = q.gte("occurred_at", new Date(filters.from).toISOString());
-    const { data, error } = await q;
-    if (error) throw error;
-    return data;
+    // Ambil SEMUA data (berhalaman), bukan hanya 500 terbaru.
+    return fetchAll(() => {
+      let q = supabase
+        .from("violations")
+        .select(SELECT, { count: "exact" })
+        .order("occurred_at", { ascending: false })
+        .order("id", { ascending: false }); // tie-breaker agar paginasi stabil
+      if (filters.santri_id) q = q.eq("santri_id", filters.santri_id);
+      if (filters.status) q = q.eq("status", filters.status);
+      if (filters.rule_id) q = q.eq("rule_id", filters.rule_id);
+      if (filters.from)
+        q = q.gte("occurred_at", new Date(filters.from).toISOString());
+      return q;
+    });
   },
 
   async create({ santri_id, rule_id, occurred_at, prayer_time, note }) {

@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabaseClient";
+import { fetchAll } from "../lib/fetchAll";
 
 const norm = (email) => (email ?? "").trim().toLowerCase();
 
@@ -12,25 +13,27 @@ export const profileService = {
 
   // Semua santri (untuk staff: form pelanggaran, manajemen santri, tim, filter rekap)
   async listSantri() {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("role", "santri")
-      .order("class_name")
-      .order("full_name");
-    if (error) throw error;
-    return data;
+    return fetchAll(() =>
+      supabase
+        .from("profiles")
+        .select("*", { count: "exact" })
+        .eq("role", "santri")
+        .order("class_name")
+        .order("full_name")
+        .order("id"),
+    );
   },
 
   async listAllProfiles() {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .order("role")
-      .order("class_name")
-      .order("full_name");
-    if (error) throw error;
-    return data;
+    return fetchAll(() =>
+      supabase
+        .from("profiles")
+        .select("*", { count: "exact" })
+        .order("role")
+        .order("class_name")
+        .order("full_name")
+        .order("id"),
+    );
   },
 
   // Daftar nama yang bisa diklaim — RPC security definer (kebal RLS)

@@ -1,6 +1,7 @@
 import { Footprints, Trash2, CircleCheck, CircleDashed } from "lucide-react";
 import { TableWrap, Table, Th, Td, Tr } from "../ui/Table";
 import { EmptyState } from "../ui/States";
+import { Badge } from "../ui/Badge";
 import { fmtNum } from "../../lib/calc";
 import { fmtDate } from "../../lib/date";
 

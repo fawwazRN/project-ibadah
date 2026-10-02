@@ -1,6 +1,6 @@
 import { BrandMark } from "../ui/BrandMark";
 import { byRule, fmtNum, sumPoints } from "../../lib/calc";
-import { fmtDate, fmtDateTime } from "../../lib/date";
+import { fmtDate, fmtDateTime, fmtOccurred } from "../../lib/date";
 import {
   VIOLATION_STATUS_LABELS,
   REPORT_STATUS_LABELS,
@@ -13,8 +13,8 @@ const TD =
 
 function Section({ no, title, children }) {
   return (
-    <section className="mt-6 break-inside-avoid">
-      <h2 className="mb-2 pb-1 border-slate-800 border-b-2 font-bold text-[12px] text-slate-900 uppercase tracking-wider">
+    <section className="mt-6">
+      <h2 className="mb-2 pb-1 border-slate-800 border-b-2 font-bold text-[12px] text-slate-900 uppercase tracking-wider [break-after:avoid]">
         {no}. {title}
       </h2>
       {children}
@@ -94,8 +94,38 @@ export default function PrintReport({
   );
 
   const ruleRows = byRule(real);
-  const detail = real.slice(0, 200);
-  const reportRows = (reports ?? []).slice(0, 100);
+  // SEMUA data dicetak — tidak ada pemotongan.
+  // Detail kronologis (terlama → terbaru) supaya mudah dibaca & diperiksa.
+  const detail = [...real].sort(
+    (a, b) =>
+      new Date(a.occurred_at) - new Date(b.occurred_at) ||
+      (a.santri?.full_name ?? "").localeCompare(b.santri?.full_name ?? ""),
+  );
+  const reportRows = [...(reports ?? [])].sort(
+    (a, b) => new Date(a.created_at) - new Date(b.created_at),
+  );
+
+  // Rincian per santri: urut sesuai rekap per santri (poin tertinggi dulu)
+  const bySantri = new Map();
+  for (const v of detail) {
+    const arr = bySantri.get(v.santri_id) ?? [];
+    arr.push(v);
+    bySantri.set(v.santri_id, arr);
+  }
+  const groupedRows = [...bySantri.entries()]
+    .map(([id, items]) => ({
+      id,
+      nama: items[0].santri?.full_name ?? "—",
+      kelas: items[0].santri?.class_name ?? "—",
+      items,
+      poin: sumPoints(items),
+    }))
+    .sort(
+      (a, b) =>
+        b.poin - a.poin ||
+        b.items.length - a.items.length ||
+        a.nama.localeCompare(b.nama),
+    );
 
   // Penomoran section dinamis — hanya untuk bagian yang dicetak
   let sec = 0;
@@ -277,7 +307,67 @@ export default function PrintReport({
         </Section>
       )}
 
-      {/* Detail Pelanggaran */}
+      {/* Rincian per Santri (dikelompokkan) */}
+      {has("groupedSantri") && isOsis && (
+        <Section no={next()} title="Rincian per Santri">
+          {groupedRows.length === 0 ? (
+            <p className="text-[11px] text-slate-500 italic">
+              Tidak ada data pada periode ini.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {groupedRows.map((g, gi) => (
+                <div key={g.id}>
+                  <p className="bg-slate-100 px-2 py-1 border border-slate-400 font-bold text-[11px] text-slate-900 [break-after:avoid]">
+                    {gi + 1}. {g.nama}
+                    <span className="ml-2 font-medium text-slate-600">
+                      Kelas {g.kelas}
+                    </span>
+                    <span className="float-right font-semibold">
+                      {fmtNum(g.items.length)} pelanggaran · {fmtNum(g.poin)}{" "}
+                      poin
+                    </span>
+                  </p>
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr>
+                        <th className={`${TH} w-8`}>No</th>
+                        <th className={`${TH} w-[22%]`}>Waktu</th>
+                        <th className={TH}>Pelanggaran</th>
+                        <th className={`${TH} w-10`}>Poin</th>
+                        <th className={`${TH} w-[14%]`}>Status</th>
+                        <th className={`${TH} w-[24%]`}>Keterangan</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {g.items.map((v, i) => (
+                        <tr key={v.id}>
+                          <td className={TD}>{i + 1}</td>
+                          <td className={`${TD} whitespace-nowrap`}>
+                            {fmtOccurred(v)}
+                          </td>
+                          <td className={TD}>{v.rule?.name}</td>
+                          <td className={`${TD} font-semibold`}>
+                            +{v.rule?.points}
+                          </td>
+                          <td className={TD}>
+                            {VIOLATION_STATUS_LABELS[v.status] ?? v.status}
+                          </td>
+                          <td className={`${TD} text-[10px] text-slate-600`}>
+                            {v.note || "—"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+      )}
+
+      {/* Detail Pelanggaran (semua, kronologis) */}
       {has("detail") && (
         <Section no={next()} title="Detail Pelanggaran">
           {detail.length === 0 ? (
@@ -289,12 +379,12 @@ export default function PrintReport({
               <table className="w-full border-collapse">
                 <thead>
                   <tr>
-                    <th className={`${TH} w-10`}>No</th>
-                    <th className={TH}>Tanggal</th>
+                    <th className={`${TH} w-8`}>No</th>
+                    <th className={TH}>Waktu</th>
                     <th className={TH}>Nama</th>
                     <th className={TH}>Kelas</th>
                     <th className={TH}>Pelanggaran</th>
-                    <th className={TH}>Poin</th>
+                    <th className={`${TH} w-10`}>Poin</th>
                     <th className={TH}>Status</th>
                     <th className={TH}>Keterangan</th>
                   </tr>
@@ -304,7 +394,7 @@ export default function PrintReport({
                     <tr key={v.id}>
                       <td className={TD}>{i + 1}</td>
                       <td className={`${TD} whitespace-nowrap`}>
-                        {fmtDate(v.occurred_at)}
+                        {fmtOccurred(v)}
                       </td>
                       <td className={`${TD} font-medium`}>
                         {v.santri?.full_name}
@@ -322,14 +412,17 @@ export default function PrintReport({
                       </td>
                     </tr>
                   ))}
+                  <tr>
+                    <td className={`${TD} font-bold`} colSpan={5}>
+                      Jumlah ({fmtNum(detail.length)} catatan)
+                    </td>
+                    <td className={`${TD} font-bold`}>
+                      {fmtNum(sumPoints(detail))}
+                    </td>
+                    <td className={TD} colSpan={2} />
+                  </tr>
                 </tbody>
               </table>
-              {real.length > 200 && (
-                <p className="mt-1 text-[9.5px] text-slate-500 italic">
-                  Menampilkan 200 dari {real.length} catatan. Sisanya dapat
-                  dilihat pada aplikasi.
-                </p>
-              )}
             </>
           )}
         </Section>
@@ -352,6 +445,7 @@ export default function PrintReport({
                   <th className={TH}>Pelanggaran</th>
                   <th className={TH}>Alasan</th>
                   <th className={TH}>Status</th>
+                  <th className={TH}>Catatan Peninjau</th>
                 </tr>
               </thead>
               <tbody>
@@ -368,6 +462,9 @@ export default function PrintReport({
                     <td className={`${TD} text-[10px]`}>{r.reason}</td>
                     <td className={TD}>
                       {REPORT_STATUS_LABELS[r.status] ?? r.status}
+                    </td>
+                    <td className={`${TD} text-[10px] text-slate-600`}>
+                      {r.review_note || "—"}
                     </td>
                   </tr>
                 ))}

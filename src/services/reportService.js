@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabaseClient";
 import { auditService } from "./auditService";
+import { fetchAll } from "../lib/fetchAll";
 
 const SELECT = `*, violation:violations(id, occurred_at, note, status,
     rule:rules(name, points, category),
@@ -13,22 +14,23 @@ const rLabel = (r) =>
 export const reportService = {
   // RLS: santri hanya menerima laporannya sendiri.
   async listMine() {
-    const { data, error } = await supabase
-      .from("reports")
-      .select(SELECT)
-      .order("created_at", { ascending: false });
-    if (error) throw error;
-    return data;
+    return fetchAll(() =>
+      supabase
+        .from("reports")
+        .select(SELECT, { count: "exact" })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false }),
+    );
   },
 
   async listAll() {
-    const { data, error } = await supabase
-      .from("reports")
-      .select(SELECT)
-      .order("created_at", { ascending: false })
-      .limit(500);
-    if (error) throw error;
-    return data;
+    return fetchAll(() =>
+      supabase
+        .from("reports")
+        .select(SELECT, { count: "exact" })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false }),
+    );
   },
 
   // santri_id diisi otomatis oleh database; status pelanggaran jadi 'reported'

@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { FileBarChart, Printer, SlidersHorizontal } from "lucide-react";
+import {
+  FileBarChart,
+  Printer,
+  Search,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { StatCard } from "../../components/ui/StatCard";
@@ -24,8 +30,14 @@ import { violationService } from "../../services/violationService";
 import { reportService } from "../../services/reportService";
 import { ruleService } from "../../services/ruleService";
 import { profileService } from "../../services/profileService";
-import { byRule, seriesForRange, fmtNum, sumPoints } from "../../lib/calc";
-import { rangeForPreset, inRange, fmtDate } from "../../lib/date";
+import {
+  byRule,
+  seriesForRange,
+  fmtNum,
+  sumPoints,
+  matchesSearch,
+} from "../../lib/calc";
+import { rangeForPreset, inRange, fmtDate, fmtOccurred } from "../../lib/date";
 
 const PRESETS = [
   { key: "today", label: "Hari ini" },
@@ -46,6 +58,7 @@ export default function RecapPage({ role }) {
   const [fRule, setFRule] = useState("");
   const [fClass, setFClass] = useState("");
   const [fSantri, setFSantri] = useState("");
+  const [q, setQ] = useState("");
   const [error, setError] = useState(null);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [printSections, setPrintSections] = useState(null); // null = belum dipilih → pakai preferensi tersimpan
@@ -74,7 +87,10 @@ export default function RecapPage({ role }) {
     if (!pendingPrint) return;
     const saved = loadPrintOptions("ibadah");
     if (saved) {
-      setPrintSections(Object.keys(saved).filter((k) => saved[k]));
+      // bagian baru (belum ada di preferensi lama) ikut tercetak
+      setPrintSections(
+        IBADAH_SECTIONS.filter((s) => saved[s.key] ?? true).map((s) => s.key),
+      );
       const t = setTimeout(() => {
         window.print();
         setPendingPrint(false);
@@ -103,9 +119,10 @@ export default function RecapPage({ role }) {
           inRange(v.occurred_at, range) &&
           (!fRule || v.rule_id === fRule) &&
           (!fClass || v.santri?.class_name === fClass) &&
-          (!fSantri || v.santri_id === fSantri),
+          (!fSantri || v.santri_id === fSantri) &&
+          matchesSearch(v, q),
       ),
-    [violations, range, fRule, fClass, fSantri],
+    [violations, range, fRule, fClass, fSantri, q],
   );
 
   const fr = useMemo(
@@ -128,8 +145,30 @@ export default function RecapPage({ role }) {
           : "Santri: Semua",
       );
     }
+    if (q.trim()) parts.push(`Pencarian: "${q.trim()}"`);
     return parts.join(" · ");
-  }, [fRule, fClass, fSantri, rules, santriList, isOsis]);
+  }, [fRule, fClass, fSantri, q, rules, santriList, isOsis]);
+
+  // Rekap per santri (semua santri yang punya pelanggaran pada filter ini)
+  const perSantri = useMemo(() => {
+    const m = new Map();
+    for (const v of fv) {
+      const cur = m.get(v.santri_id) ?? {
+        id: v.santri_id,
+        nama: v.santri?.full_name ?? "—",
+        kelas: v.santri?.class_name ?? "—",
+        total: 0,
+        poin: 0,
+      };
+      cur.total += 1;
+      cur.poin += v.rule?.points ?? 0;
+      m.set(v.santri_id, cur);
+    }
+    return [...m.values()].sort(
+      (a, b) =>
+        b.poin - a.poin || b.total - a.total || a.nama.localeCompare(b.nama),
+    );
+  }, [fv]);
 
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!violations) return <LoadingState rows={7} />;
@@ -195,6 +234,32 @@ export default function RecapPage({ role }) {
               className="w-auto"
             />
           </div>
+        )}
+      </div>
+
+      <div className="relative">
+        <Search
+          size={15}
+          className="top-1/2 left-3 absolute text-slate-500 -translate-y-1/2 pointer-events-none"
+        />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={
+            isOsis
+              ? "Cari pelanggaran santri: nama, kelas, aturan, atau catatan…"
+              : "Cari pelanggaran: aturan atau catatan…"
+          }
+          className="pr-9 pl-9"
+        />
+        {q && (
+          <button
+            type="button"
+            onClick={() => setQ("")}
+            aria-label="Hapus pencarian"
+            className="top-1/2 right-2.5 absolute place-items-center grid size-6 text-slate-500 hover:text-slate-200 -translate-y-1/2">
+            <X size={14} />
+          </button>
         )}
       </div>
 
@@ -314,53 +379,119 @@ export default function RecapPage({ role }) {
         </Card>
       </div>
 
+      {isOsis && (
+        <Card>
+          <CardHeader
+            title="Rekap per santri"
+            description={`${fmtNum(perSantri.length)} santri · diurutkan dari poin tertinggi`}
+          />
+          {perSantri.length === 0 ? (
+            <EmptyState icon={FileBarChart} title="Belum ada data" />
+          ) : (
+            <div className="max-h-[480px] overflow-y-auto">
+              <TableWrap>
+                <Table>
+                  <thead className="top-0 z-10 sticky bg-ink-900">
+                    <tr>
+                      <Th>No</Th>
+                      <Th>Nama</Th>
+                      <Th>Kelas</Th>
+                      <Th className="text-right">Pelanggaran</Th>
+                      <Th className="text-right">Total Poin</Th>
+                      <Th className="text-right">Aksi</Th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {perSantri.map((s, i) => (
+                      <Tr key={s.id}>
+                        <Td className="font-mono text-slate-500 text-xs">
+                          {i + 1}
+                        </Td>
+                        <Td className="font-medium text-slate-200">
+                          {s.nama}
+                        </Td>
+                        <Td className="text-slate-400">{s.kelas}</Td>
+                        <Td className="text-slate-300 text-right">
+                          {fmtNum(s.total)}
+                        </Td>
+                        <Td className="text-right">
+                          <Badge tone="rose">{fmtNum(s.poin)}</Badge>
+                        </Td>
+                        <Td className="text-right">
+                          <button
+                            type="button"
+                            onClick={() => setQ(s.nama)}
+                            className="text-brand-soft text-xs hover:underline">
+                            Lihat rincian
+                          </button>
+                        </Td>
+                      </Tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </TableWrap>
+            </div>
+          )}
+        </Card>
+      )}
+
       <Card>
         <CardHeader
           title="Rincian pelanggaran"
-          description={`${fv.length} catatan pada periode & filter ini (maks. 25 ditampilkan)`}
+          description={`${fmtNum(fv.length)} catatan pada periode & filter ini · semua ditampilkan`}
         />
         {fv.length === 0 ? (
           <EmptyState
             icon={FileBarChart}
             title="Tidak ada catatan"
-            description="Sesuaikan filter atau periode."
+            description="Sesuaikan filter, pencarian, atau periode."
           />
         ) : (
-          <TableWrap>
-            <Table>
-              <thead>
-                <tr>
-                  <Th>Waktu</Th>
-                  <Th>Santri</Th>
-                  <Th>Aturan</Th>
-                  <Th>Poin</Th>
-                  <Th>Status</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {fv.slice(0, 25).map((v) => (
-                  <Tr key={v.id}>
-                    <Td className="text-slate-400 whitespace-nowrap">
-                      {fmtDate(v.occurred_at)}
-                    </Td>
-                    <Td className="text-slate-200">
-                      {v.santri?.full_name}
-                      <span className="ml-1.5 text-slate-500 text-xs">
-                        {v.santri?.class_name}
-                      </span>
-                    </Td>
-                    <Td className="text-slate-300">{v.rule?.name}</Td>
-                    <Td>
-                      <Badge tone="rose">+{v.rule?.points}</Badge>
-                    </Td>
-                    <Td>
-                      <ViolationStatusBadge status={v.status} />
-                    </Td>
-                  </Tr>
-                ))}
-              </tbody>
-            </Table>
-          </TableWrap>
+          <div className="max-h-[640px] overflow-y-auto">
+            <TableWrap>
+              <Table>
+                <thead className="top-0 z-10 sticky bg-ink-900">
+                  <tr>
+                    <Th>No</Th>
+                    <Th>Waktu</Th>
+                    <Th>Santri</Th>
+                    <Th>Aturan</Th>
+                    <Th>Poin</Th>
+                    <Th>Status</Th>
+                    <Th>Catatan</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fv.map((v, i) => (
+                    <Tr key={v.id}>
+                      <Td className="font-mono text-slate-500 text-xs">
+                        {i + 1}
+                      </Td>
+                      <Td className="text-slate-400 whitespace-nowrap">
+                        {fmtOccurred(v)}
+                      </Td>
+                      <Td className="text-slate-200">
+                        {v.santri?.full_name}
+                        <span className="ml-1.5 text-slate-500 text-xs">
+                          {v.santri?.class_name}
+                        </span>
+                      </Td>
+                      <Td className="text-slate-300">{v.rule?.name}</Td>
+                      <Td>
+                        <Badge tone="rose">+{v.rule?.points}</Badge>
+                      </Td>
+                      <Td>
+                        <ViolationStatusBadge status={v.status} />
+                      </Td>
+                      <Td className="max-w-[220px] text-slate-500 text-xs">
+                        {v.note || "—"}
+                      </Td>
+                    </Tr>
+                  ))}
+                </tbody>
+              </Table>
+            </TableWrap>
+          </div>
         )}
       </Card>
 

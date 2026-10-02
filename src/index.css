@@ -136,7 +136,12 @@ html[data-qism="super_admin"] {
 /* ============================ PRINT ============================ */
 @page {
   size: A4 portrait;
-  margin: 12mm;
+  margin: 12mm 12mm 16mm;
+  @bottom-center {
+    content: "Halaman " counter(page) " dari " counter(pages);
+    font-size: 9px;
+    color: #64748b;
+  }
 }
 
 .print-only {
@@ -152,6 +157,17 @@ html[data-qism="super_admin"] {
   }
   .print-only {
     display: block !important;
+  }
+  /* Tabel panjang: judul kolom diulang tiap halaman, baris tidak terpotong */
+  .print-doc thead {
+    display: table-header-group;
+  }
+  .print-doc tfoot {
+    display: table-footer-group;
+  }
+  .print-doc tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
 

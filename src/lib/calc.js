@@ -1,4 +1,5 @@
 import { dayKey } from "./date";
+import { VIOLATION_STATUS_LABELS } from "./constants";
 
 export const fmtNum = (n) => new Intl.NumberFormat("id-ID").format(n ?? 0);
 export const OPEN_STATUSES = ["active", "reported", "under_review"];
@@ -110,4 +111,37 @@ export function seriesForRange(list, from, to) {
     });
   }
   return out;
+}
+
+// ---------- Pencarian pelanggaran ----------
+// Cari di nama santri, kelas, nama aturan, kategori, catatan, status & pencatat.
+// Beberapa kata = semua harus cocok (AND), tidak peka huruf besar/kecil.
+export const normText = (s) =>
+  String(s ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+export function violationHaystack(v) {
+  return normText(
+    [
+      v.santri?.full_name,
+      v.santri?.class_name,
+      v.rule?.name,
+      v.rule?.category,
+      v.note,
+      v.status,
+      VIOLATION_STATUS_LABELS[v.status],
+      v.recorder?.full_name,
+    ].join(" "),
+  );
+}
+
+export function matchesSearch(v, query) {
+  const tokens = normText(query).split(" ").filter(Boolean);
+  if (tokens.length === 0) return true;
+  const hay = violationHaystack(v);
+  return tokens.every((t) => hay.includes(t));
 }
