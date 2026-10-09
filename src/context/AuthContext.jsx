@@ -17,11 +17,21 @@ export function AuthProvider({ children }) {
   const [isGuest, setIsGuest] = useState(false);
 
   const loadProfile = useCallback(async (uid) => {
-    const { data } = await supabase
+    // Akun yang sudah didaftarkan Super Admin di admin_emails tidak perlu
+    // melewati wizard klaim santri. RPC ini hanya membuat/menghubungkan profil
+    // jika email pengguna memang terdaftar sebagai admin di database.
+    try {
+      await supabase.rpc("ensure_admin_profile");
+    } catch (e) {
+      console.error("Pengecekan profil admin gagal:", e);
+    }
+
+    const { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("user_id", uid)
       .maybeSingle();
+    if (error) console.error("Gagal memuat profil:", error);
     setProfile(data ?? null);
     return data ?? null;
   }, []);

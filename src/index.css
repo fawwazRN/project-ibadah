@@ -156,6 +156,12 @@ html[data-qism="super_admin"] {
     background: #ffffff !important;
     color: #111827 !important;
     box-shadow: none !important;
+    border: 0 !important;
+  }
+
+  /* Bersihkan panel gelap/bingkai aplikasi yang kadang ikut terbawa saat print. */
+  body * {
+    box-shadow: none !important;
   }
 
   .print-doc {
@@ -165,7 +171,7 @@ html[data-qism="super_admin"] {
     width: 100% !important;
     max-width: none !important;
     margin: 0 !important;
-    padding: 8mm !important;
+    padding: 5mm !important;
     border: 0 !important;
     border-radius: 0 !important;
     background: #ffffff !important;

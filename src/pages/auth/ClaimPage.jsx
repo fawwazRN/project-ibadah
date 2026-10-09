@@ -26,7 +26,7 @@ import { profileService } from "../../services/profileService";
 import { homeFor } from "../../routes/AppRoutes";
 
 export default function ClaimPage() {
-  const { session, claimProfile, signOut } = useAuth();
+  const { session, profile, claimProfile, signOut } = useAuth();
   const { push } = useToast();
   const navigate = useNavigate();
 
@@ -49,6 +49,14 @@ export default function ClaimPage() {
       .catch((e) => setError(e.message));
   };
   useEffect(load, []);
+
+  // Admin yang baru terdeteksi dari admin_emails langsung diarahkan ke dashboard,
+  // bukan diminta memilih kelas/nama santri.
+  useEffect(() => {
+    if (profile?.role && profile.role !== "santri") {
+      navigate(homeFor(profile.role), { replace: true });
+    }
+  }, [profile, navigate]);
 
   // Kelas yang masih punya nama tersisa + jumlahnya
   const classes = useMemo(() => {
