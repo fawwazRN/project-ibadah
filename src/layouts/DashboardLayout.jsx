@@ -96,7 +96,14 @@ function NavItem({ to, end, icon: Icon, label, onNavigate, idx }) {
 }
 
 function NavParentItem({ item, onNavigate, idx }) {
-  const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+  const containsCurrentRoute = item.children?.some((child) =>
+    pathname === child.to || pathname.startsWith(`${child.to}/`),
+  );
+  const [open, setOpen] = useState(Boolean(containsCurrentRoute));
+  useEffect(() => {
+    if (containsCurrentRoute) setOpen(true);
+  }, [containsCurrentRoute]);
   return (
     <div>
       <button

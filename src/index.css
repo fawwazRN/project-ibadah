@@ -134,14 +134,11 @@ html[data-qism="super_admin"] {
 }
 
 /* ============================ PRINT ============================ */
+/* Dokumen laporan bersih: kertas putih, tanpa bingkai/background gelap.
+   Untuk 2 halaman A5 dalam satu A4, pilih Pages per sheet = 2 pada dialog print. */
 @page {
-  size: A4 portrait;
-  margin: 12mm 12mm 16mm;
-  @bottom-center {
-    content: "Halaman " counter(page) " dari " counter(pages);
-    font-size: 9px;
-    color: #64748b;
-  }
+  size: A4 landscape;
+  margin: 0;
 }
 
 .print-only {
@@ -150,14 +147,36 @@ html[data-qism="super_admin"] {
 
 @media print {
   html,
-  body {
+  body,
+  #root {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-height: 0 !important;
     background: #ffffff !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    color: #111827 !important;
+    box-shadow: none !important;
   }
+
+  .print-doc {
+    display: block !important;
+    position: absolute !important;
+    inset: 0 auto auto 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 8mm !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+  }
+
   .print-only {
     display: block !important;
   }
+
   /* Tabel panjang: judul kolom diulang tiap halaman, baris tidak terpotong */
   .print-doc thead {
     display: table-header-group;
@@ -168,6 +187,11 @@ html[data-qism="super_admin"] {
   .print-doc tr {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
 

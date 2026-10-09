@@ -19,13 +19,6 @@ import { entryPath } from "../../routes/AppRoutes";
 
 const EMAIL_DOMAIN = "@student.abudzar.sch.id";
 
-// Email harus domain sekolah, KECUALI yang mengandung 'fawwaz'
-// (dan calon admin non-@student — divalidasi lagi di trigger database)
-const emailAllowed = (email) => {
-  const v = email.toLowerCase();
-  return v.includes("fawwaz") || v.endsWith(EMAIL_DOMAIN);
-};
-
 export default function LoginPage() {
   const { session, profile, booting, signIn, signUp, enterGuest } = useAuth();
   const { push } = useToast();
@@ -50,9 +43,6 @@ export default function LoginPage() {
     const errs = {};
     if (!/^\S+@\S+\.\S+$/.test(email))
       errs.email = "Masukkan email yang valid.";
-    else if (tab === "daftar" && !emailAllowed(email)) {
-      errs.email = `Pendaftaran hanya boleh menggunakan email ${EMAIL_DOMAIN.slice(1)}.`;
-    }
     if (password.length < 6) errs.password = "Kata sandi minimal 6 karakter.";
     setErrors(errs);
     setFormError("");
@@ -212,11 +202,7 @@ export default function LoginPage() {
                 Buat akun baru
               </h2>
               <p className="mt-1 text-slate-500 text-sm">
-                Wajib email{" "}
-                <span className="font-mono text-slate-400 text-xs">
-                  {EMAIL_DOMAIN.slice(1)}
-                </span>
-                . Setelah mendaftar, kamu akan memilih kelas lalu namamu.
+                Santri gunakan email sekolah. Admin harus memakai email yang sudah didaftarkan Super Admin. Setelah mendaftar, ikuti langkah verifikasi akun.
               </p>
             </>
           )}
