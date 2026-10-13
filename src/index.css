@@ -85,6 +85,24 @@
   }
 }
 
+@keyframes login-feature-arrive {
+  from { opacity: 0; transform: translateY(18px) scale(0.98); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+@keyframes login-mascot-arrive {
+  0% { opacity: 0; transform: translateY(14px) scale(0.9) rotate(-4deg); }
+  70% { opacity: 1; transform: translateY(-4px) scale(1.025) rotate(1deg); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+}
+
+.login-feature-enter { animation: login-feature-arrive 650ms cubic-bezier(0.2, 0.75, 0.25, 1) both; }
+.login-mascot-enter {
+  animation:
+    login-mascot-arrive 750ms cubic-bezier(0.2, 0.75, 0.25, 1) both,
+    float 3.6s ease-in-out 750ms infinite;
+}
+
 /* ---------------------------- SKIN: PLAY ---------------------------- */
 html[data-skin="play"] {
   --ui-body: "Nunito", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
@@ -330,15 +348,18 @@ html[data-qism="super_admin"] {
 
   /* Navigasi santri — rail desktop & tab bawah */
   .rail-item {
-    display: flex; align-items: center; gap: 0.9rem; height: 3rem; padding: 0 0.9rem;
-    border: 2px solid transparent; border-radius: 14px;
-    font-weight: 800; font-size: 0.8125rem; letter-spacing: 0.06em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 0.8rem; height: 2.875rem; padding: 0 0.9rem;
+    border: 1px solid transparent; border-radius: 13px;
+    font-weight: 700; font-size: 0.875rem; letter-spacing: 0.005em;
     color: var(--color-fg-3); transition: background-color 0.15s, color 0.15s, border-color 0.15s;
   }
   .rail-item:hover { background: var(--color-soft); color: var(--color-fg-2); }
   .rail-item[aria-current="page"] {
     background: var(--color-tint); border-color: var(--color-tint-line); color: var(--color-brand-dim);
   }
+  .rail-item svg { flex: 0 0 auto; color: var(--color-fg-4); transition: color 0.15s; }
+  .rail-item:hover svg,
+  .rail-item[aria-current="page"] svg { color: currentColor; }
   .tab-item {
     flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 2px; height: 100%; color: var(--color-fg-4);

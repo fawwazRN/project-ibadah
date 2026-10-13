@@ -13,12 +13,12 @@ export function PlayBrand({ to, sub }) {
       </span>
       <span>
         <span
-          className="block font-display text-[26px] text-brand-dim leading-none"
-          style={{ fontWeight: 900, letterSpacing: "-0.02em" }}>
+          className="block font-display text-[25px] text-brand-dim leading-none"
+          style={{ fontWeight: 800, letterSpacing: "-0.025em" }}>
           osis
         </span>
         {sub && (
-          <span className="block mt-1 font-extrabold text-[10px] text-fg-3 uppercase tracking-[0.18em]">
+          <span className="block mt-1 font-semibold text-[11px] text-fg-3">
             {sub}
           </span>
         )}
@@ -32,13 +32,13 @@ export function RailGroups({ groups }) {
     <nav className="flex-1 space-y-5 px-4 py-2 overflow-y-auto" aria-label="Menu">
       {groups.map((g) => (
         <div key={g.section}>
-          <p className="mb-1.5 px-3 font-extrabold text-[10px] text-fg-4 uppercase tracking-[0.2em]">
+          <p className="mb-2 px-3 font-bold text-[11px] text-fg-3">
             {g.section}
           </p>
           <div className="space-y-1">
             {g.items.map((it) => (
               <NavLink key={it.to} to={it.to} end={it.end} className="rail-item">
-                <it.icon size={21} strokeWidth={2.3} />
+                <it.icon size={20} strokeWidth={2} />
                 <span className="truncate">{it.label}</span>
               </NavLink>
             ))}

@@ -7,23 +7,40 @@ const CSS = `
 @keyframes bk-hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-8px)}}
 @keyframes bk-pop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.15);opacity:1}100%{transform:scale(1);opacity:1}}
 @keyframes bk-dot{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes bk-grump{0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
 .bk-m{transform-box:fill-box;transform-origin:50% 100%}
 .bk-talk{animation:bk-bob 1.8s ease-in-out infinite}
 .bk-care{animation:bk-sway 3.2s ease-in-out infinite}
 .bk-happy{animation:bk-hop 1.1s ease-in-out infinite}
 .bk-think{animation:bk-sway 4.5s ease-in-out infinite}
+.bk-sad{transform:rotate(-5deg) translateY(3px);transform-origin:60px 100px}
+.bk-verySad{transform:rotate(-9deg) translateY(5px);transform-origin:60px 100px}
+.bk-upset{transform:rotate(4deg) translateY(2px);transform-origin:60px 100px}
+.bk-angry{animation:bk-grump .38s ease-in-out infinite;transform-origin:60px 100px}
 .bk-acc{transform-box:fill-box;transform-origin:50% 50%;animation:bk-pop .45s cubic-bezier(.34,1.56,.64,1) both}
 @media (prefers-reduced-motion:reduce){.bk-m,.bk-acc{animation:none!important}}
 `;
 
 export function BkMascot({ mood = "talk", size = 96, className = "" }) {
+  const moods = {
+    sad: "sedih",
+    verySad: "sangat sedih",
+    upset: "baper",
+    angry: "marah",
+    happy: "senang",
+    think: "sedang berpikir",
+    care: "peduli",
+    talk: "siap mengobrol",
+  };
+  const moodLabel = moods[mood] ?? moods.talk;
+
   return (
     <svg
       viewBox="0 0 120 120"
       width={size}
       height={size}
       role="img"
-      aria-label="Kak Peci, teman ngobrol"
+      aria-label={`Kak Peci sedang ${moodLabel}`}
       className={className}>
       <style>{CSS}</style>
       <ellipse cx="60" cy="113" rx="30" ry="5" fill="#000" opacity=".08" />
@@ -77,6 +94,30 @@ export function BkMascot({ mood = "talk", size = 96, className = "" }) {
               style={{ animation: `bk-dot 1.2s ${i * 0.2}s infinite` }}
             />
           ))}
+        </g>
+      )}
+      {mood === "sad" && (
+        <g className="bk-acc">
+          <path d="M84 13c0-5 4-9 9-9 4 0 7 2 8 6 5-1 9 3 9 8H84c-2-1-2-4 0-5z" fill="#dbeafe" stroke="#7aa8d8" strokeWidth="1.5" />
+          <path d="M91 22c-3 4-2 7 0 7s3-3 0-7zM101 22c-3 4-2 7 0 7s3-3 0-7z" fill="#60a5fa" />
+        </g>
+      )}
+      {mood === "verySad" && (
+        <g className="bk-acc">
+          <path d="M82 13c0-5 4-9 9-9 4 0 7 2 8 6 5-1 9 3 9 8H82c-2-1-2-4 0-5z" fill="#cbd5e1" stroke="#8495aa" strokeWidth="1.5" />
+          <path d="M88 22c-4 5-2 9 0 9s4-4 0-9zM98 22c-4 5-2 9 0 9s4-4 0-9zM108 22c-4 5-2 9 0 9s4-4 0-9z" fill="#60a5fa" />
+        </g>
+      )}
+      {mood === "upset" && (
+        <g className="bk-acc">
+          <path d="M89 5c-1-4 4-6 6-2l1 4 3-5c2-3 7 0 5 3l-3 5 5-1c4-1 5 5 1 6l-8 2-7-3-5 2c-3 1-5-3-2-5l5-3z" fill="#fcd9b6" stroke="#e99a62" strokeWidth="1.5" />
+          <path d="M95 10l3-2M101 12l3-2" stroke="#c87549" strokeWidth="1.7" strokeLinecap="round" />
+        </g>
+      )}
+      {mood === "angry" && (
+        <g className="bk-acc">
+          <path d="M99 2l3 7 7-4-3 8 8 1-7 4 5 6-8-2-2 8-4-7-6 5 1-8-8-1 7-4-4-7 8 3z" fill="#fb7185" stroke="#dc4257" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M96 13l5 5m0-5l-5 5" stroke="#fff" strokeWidth="1.7" strokeLinecap="round" />
         </g>
       )}
     </svg>

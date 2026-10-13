@@ -16,7 +16,10 @@ import GuestLeaderboardPage from "../pages/auth/GuestLeaderboardPage";
 import GuestNadzhofahPage from "../pages/auth/GuestNadzhofahPage";
 
 // ---------- Santri ----------
-import SantriDashboard from "../pages/santri/SantriDashboard";
+import SantriHome from "../pages/santri/SantriHome";
+import SantriStars from "../pages/santri/SantriStars";
+import { HeartApologyGate } from "../components/santri/HeartApologyGate";
+import HukumanPage from "../pages/ibadah/HukumanPage";
 import SantriViolations from "../pages/santri/SantriViolations";
 import SantriReports from "../pages/santri/SantriReports";
 import SantriTeamPage from "../pages/santri/SantriTeamPage";
@@ -230,7 +233,8 @@ export default function AppRoutes() {
         <Route element={<DashboardLayout />}>
           {/* ---------------- SANTRI ---------------- */}
           <Route element={<RoleRoute role="santri" />}>
-            <Route path="/santri" element={<SantriDashboard />} />
+            <Route path="/santri" element={<SantriHome />} />
+            <Route path="/santri/bintang" element={<SantriStars />} />
             <Route
               path="/santri/zikir"
               element={<ZikirSchedulePage role="santri" />}
@@ -240,9 +244,18 @@ export default function AppRoutes() {
             <Route path="/santri/artikel/:id" element={<ArticleDetail />} />
             <Route path="/santri/violations" element={<SantriViolations />} />
             <Route path="/santri/reports" element={<SantriReports />} />
-            <Route path="/santri/team" element={<SantriTeamPage />} />
-            <Route path="/santri/standings" element={<LeagueStandingsPage />} />
-            <Route path="/santri/matches" element={<SantriTeamPage />} />
+            <Route
+              path="/santri/team"
+              element={<HeartApologyGate><SantriTeamPage /></HeartApologyGate>}
+            />
+            <Route
+              path="/santri/standings"
+              element={<HeartApologyGate><LeagueStandingsPage /></HeartApologyGate>}
+            />
+            <Route
+              path="/santri/matches"
+              element={<HeartApologyGate><SantriTeamPage /></HeartApologyGate>}
+            />
             <Route path="/santri/nadzhofah" element={<SantriNadzhofahPage />} />
             <Route path="/santri/lughah" element={<SantriLughahPage />} />
             <Route
@@ -269,6 +282,7 @@ export default function AppRoutes() {
               element={<ViolationsManagement />}
             />
             <Route path="/ibadah/reports" element={<ReportsReview />} />
+            <Route path="/ibadah/hukuman" element={<HukumanPage />} />
             <Route
               path="/ibadah/rules"
               element={<RulesManagement scope="ibadah" />}

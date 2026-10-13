@@ -28,6 +28,7 @@ import {
   Medal,
   MessagesSquare,
   Newspaper,
+  Heart,
 } from "lucide-react";
 
 export const NAV = {
@@ -38,6 +39,7 @@ export const NAV = {
       section: "Utama",
       items: [
         { to: "/santri", label: "Beranda", icon: Home, end: true },
+        { to: "/santri/bintang", label: "Hati & Bintang", icon: Heart },
         { to: "/santri/bk", label: "Kak Peci", icon: MessagesSquare },
         { to: "/santri/artikel", label: "Artikel BK", icon: Newspaper },
         { to: "/santri/standings", label: "Klasemen Liga", icon: Trophy },
@@ -80,6 +82,7 @@ export const NAV = {
       section: "Manajemen",
       items: [
         { to: "/ibadah/santri", label: "Santri", icon: Users },
+        { to: "/ibadah/hukuman", label: "Absensi Penghukuman", icon: Gavel },
         { to: "/ibadah/violations", label: "Pelanggaran", icon: Flag },
         { to: "/ibadah/reports", label: "Laporan", icon: MessageSquareWarning },
         { to: "/ibadah/rules", label: "Aturan Poin", icon: Scale },
@@ -215,6 +218,7 @@ export const NAV = {
       items: [
         { to: "/ibadah", label: "Dashboard Ibadah", icon: Flag, end: true },
         { to: "/ibadah/santri", label: "Santri", icon: Users },
+        { to: "/ibadah/hukuman", label: "Absensi Penghukuman", icon: Gavel },
         { to: "/ibadah/violations", label: "Pelanggaran", icon: Flag },
         { to: "/ibadah/reports", label: "Laporan", icon: MessageSquareWarning },
         { to: "/ibadah/rules", label: "Aturan Poin", icon: Scale },

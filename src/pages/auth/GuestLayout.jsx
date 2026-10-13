@@ -54,7 +54,7 @@ export default function GuestLayout() {
         <nav className="flex-1 space-y-1 px-4 py-2" aria-label="Menu">
           {RAIL.map((it) => (
             <NavLink key={it.to} to={it.to} end={it.end} className="rail-item">
-              <it.icon size={21} strokeWidth={2.3} />
+              <it.icon size={20} strokeWidth={2} />
               <span className="truncate">{it.label}</span>
             </NavLink>
           ))}
@@ -72,7 +72,7 @@ export default function GuestLayout() {
               exitGuest();
               navigate("/auth/login");
             }}
-            className="flex justify-center items-center gap-2 hover:bg-soft py-2 rounded-xl w-full font-bold text-fg-3 text-xs">
+            className="flex justify-center items-center gap-2 hover:bg-soft py-2 rounded-xl w-full font-semibold text-fg-3 text-sm">
             <LogOut size={14} /> Keluar mode tamu
           </button>
         </div>

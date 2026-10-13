@@ -38,6 +38,36 @@ const fmtDate = (d) =>
 export function StandingsTable({ rows, compact = false }) {
   if (!rows.length)
     return <EmptyState icon={Table2} title="Belum ada data klasemen" />;
+
+  if (compact) {
+    return (
+      <ol className="min-w-0 divide-y divide-line">
+        {rows.map((r) => (
+          <li
+            key={r.team_id}
+            className={`flex min-w-0 items-center gap-2.5 px-2.5 py-2.5 hover:bg-soft ${r.status === "relegated" ? "opacity-50" : ""}`}>
+            <span className="w-6 shrink-0 text-center font-mono text-xs text-fg-3">
+              {r.rank}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-semibold text-fg text-sm">{r.name}</p>
+              <p className="mt-0.5 text-[10px] text-fg-3">
+                {r.played} main
+                <span className="mx-1.5">·</span>
+                <span className="text-emerald-700">M {r.wins}</span>
+                <span className="mx-1">S {r.draws}</span>
+                <span className="text-rose-700">K {r.losses}</span>
+              </p>
+            </div>
+            <span className="shrink-0 rounded-lg bg-tint px-2.5 py-1 font-mono font-bold text-brand-dim text-sm">
+              {r.points}
+            </span>
+          </li>
+        ))}
+      </ol>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[560px] text-sm text-left">

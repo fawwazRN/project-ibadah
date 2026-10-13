@@ -162,34 +162,38 @@ export default function GuestDashboard() {
             )}
           </div>
 
-          <div className="gap-4 grid lg:grid-cols-2">
-            <Card>
+          <div className="min-w-0 gap-4 grid grid-cols-1 lg:grid-cols-2">
+            <Card className="min-w-0 overflow-hidden">
               <CardHeader title="Hasil terbaru" description="Pertandingan resmi" />
               {recent.length === 0 ? (
                 <EmptyState title="Belum ada hasil resmi" />
               ) : (
                 <ul className="divide-y-2 divide-line">
                   {recent.map((m) => (
-                    <li key={m.id} className="flex items-center gap-3 px-4 py-3">
-                      <span className="w-7 font-black text-fg-4 text-xs shrink-0">P{m.week}</span>
-                      <p className="flex-1 min-w-0 font-bold text-fg text-sm truncate">{m.home_name}</p>
-                      <span className="bg-soft-2 px-2.5 py-1 rounded-lg font-display font-black text-fg text-sm">
+                    <li
+                      key={m.id}
+                      className="grid min-w-0 grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1 px-3 py-2.5 sm:grid-cols-[28px_minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-3 sm:px-4">
+                      <span className="row-span-2 w-7 font-black text-fg-4 text-xs sm:row-span-1">
+                        P{m.week}
+                      </span>
+                      <p className="min-w-0 break-words font-bold text-fg text-xs sm:truncate sm:text-sm">{m.home_name}</p>
+                      <span className="row-span-2 bg-soft-2 px-2 py-1 rounded-lg font-display font-black text-fg text-xs sm:row-span-1 sm:px-2.5 sm:text-sm">
                         {m.home_score} – {m.away_score}
                       </span>
-                      <p className="flex-1 min-w-0 font-bold text-fg text-sm text-right truncate">{m.away_name}</p>
+                      <p className="min-w-0 break-words font-bold text-fg text-xs sm:text-right sm:truncate sm:text-sm">{m.away_name}</p>
                     </li>
                   ))}
                 </ul>
               )}
             </Card>
 
-            <Card>
+            <Card className="min-w-0 overflow-hidden">
               <CardHeader
                 title="Klasemen"
                 description="Dihitung dari pertandingan resmi"
                 actions={<Volleyball size={17} className="text-fg-3" />}
               />
-              <div className="p-2">
+              <div className="min-w-0 p-2">
                 <StandingsTable rows={data.standings} compact />
               </div>
             </Card>

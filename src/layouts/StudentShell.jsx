@@ -21,6 +21,8 @@ import { BrandMark } from "../components/ui/BrandMark";
 import { Avatar } from "../components/ui/Avatar";
 import InvitationCard from "../components/event/InvitationCard";
 import { violationService } from "../services/violationService";
+import { heartService } from "../services/heartService";
+import { Heart, Star as StarIcon } from "../components/ui/HeartStar";
 import { reportService } from "../services/reportService";
 import { computeStudentStats } from "../lib/student";
 import { useShell } from "../hooks/useShell";
@@ -37,17 +39,19 @@ export const useStudentData = () => useContext(StudentCtx);
 function StudentDataProvider({ children }) {
   const [state, setState] = useState({
     violations: null,
+    board: [],
     reports: [],
     error: null,
   });
 
   const load = useCallback(async () => {
     try {
-      const [v, r] = await Promise.all([
+      const [v, r, b] = await Promise.all([
         violationService.list(),
         reportService.listMine(),
+        heartService.board().catch(() => []), // belum dimigrasi → tetap jalan
       ]);
-      setState({ violations: v, reports: r, error: null });
+      setState({ violations: v, reports: r, board: b, error: null });
     } catch (e) {
       setState((s) => ({ ...s, error: e.message ?? "Gagal memuat data" }));
     }
@@ -56,13 +60,19 @@ function StudentDataProvider({ children }) {
     load();
   }, [load]);
 
+  const { profile } = useAuth();
+  const me = useMemo(
+    () => state.board.find((r) => r.student_id === profile?.id) ?? null,
+    [state.board, profile?.id],
+  );
+
   const stats = useMemo(
     () => computeStudentStats(state.violations),
     [state.violations],
   );
 
   return (
-    <StudentCtx.Provider value={{ ...state, stats, reload: load }}>
+    <StudentCtx.Provider value={{ ...state, stats, me, reload: load }}>
       {children}
     </StudentCtx.Provider>
   );
@@ -72,7 +82,7 @@ function StudentDataProvider({ children }) {
 function Topbar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { stats, violations } = useStudentData();
+  const { stats, violations, me } = useStudentData();
   const root = isStudentRoot(pathname);
   const title = pageTitleFor(pathname, NAV.santri);
   const ready = violations !== null;
@@ -108,22 +118,14 @@ function Topbar() {
           {title}
         </h1>
 
-        <Link
-          to="/santri/violations"
-          title="Hari berturut-turut tanpa pelanggaran"
-          className="bg-orange-50 text-orange-600 stat-chip">
-          <Flame size={19} className="fill-orange-400" strokeWidth={2.4} />
-          {ready ? (stats.cleanDays ?? "✓") : "–"}
-          <span className="hidden sm:inline opacity-80 font-bold text-[11px]">
-            {ready && stats.cleanDays != null ? "hari bersih" : ""}
-          </span>
+        <Link to="/santri/bintang" title="Hati periode ini" className="bg-rose-50 text-rose-600 stat-chip">
+          <Heart size={20} uid="tb" />
+          {ready ? (me?.hearts ?? "–") : "–"}
+          <span className="hidden sm:inline opacity-80 font-bold text-[11px]">hati</span>
         </Link>
-        <Link
-          to="/santri"
-          title="Skor kepatuhan ibadah"
-          className="bg-amber-50 text-amber-600 stat-chip">
-          <Star size={18} className="fill-amber-400" strokeWidth={2.4} />
-          {ready ? stats.score : "–"}
+        <Link to="/santri/bintang" title="Bintang terkumpul" className="bg-amber-50 text-amber-600 stat-chip">
+          <StarIcon size={19} uid="tbs" />
+          {ready ? (me?.stars ?? 0) : "–"}
         </Link>
       </div>
     </header>
@@ -162,10 +164,10 @@ function Rail() {
         <div className="flex items-center gap-3 p-2.5 border-line border-2 rounded-2xl">
           <Avatar name={profile?.full_name ?? ""} size="md" />
           <div className="flex-1 min-w-0">
-            <p className="font-extrabold text-fg text-sm truncate">
+            <p className="font-bold text-fg text-sm truncate">
               {profile?.full_name}
             </p>
-            <p className="font-semibold text-fg-3 text-xs">
+            <p className="font-medium text-fg-3 text-xs">
               Kelas {profile?.class_name ?? "—"}
             </p>
           </div>
