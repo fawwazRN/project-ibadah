@@ -26,6 +26,8 @@ import {
   Sparkles,
   Home,
   Medal,
+  MessagesSquare,
+  Newspaper,
 } from "lucide-react";
 
 export const NAV = {
@@ -36,6 +38,8 @@ export const NAV = {
       section: "Utama",
       items: [
         { to: "/santri", label: "Beranda", icon: Home, end: true },
+        { to: "/santri/bk", label: "Kak Peci", icon: MessagesSquare },
+        { to: "/santri/artikel", label: "Artikel BK", icon: Newspaper },
         { to: "/santri/standings", label: "Klasemen Liga", icon: Trophy },
         { to: "/santri/leaderboard", label: "Papan Nakal", icon: Medal },
         { to: "/santri/violations", label: "Catatanku", icon: Flag },
@@ -201,6 +205,8 @@ export const NAV = {
         { to: "/admin/invitation", label: "Undangan", icon: Sparkles },
         { to: "/admin/audit", label: "Log Audit", icon: History },
         { to: "/admin/settings", label: "Pengaturan Liga", icon: Settings },
+        { to: "/admin/bk", label: "Alur Kak Peci", icon: MessagesSquare },
+        { to: "/admin/bk/artikel", label: "Artikel BK", icon: Newspaper },
       ],
     },
 

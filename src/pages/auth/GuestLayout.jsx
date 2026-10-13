@@ -8,6 +8,8 @@ import {
   Footprints,
   Home,
   LogOut,
+  MessagesSquare,
+  Newspaper,
 } from "lucide-react";
 import { BrandMark } from "../../components/ui/BrandMark";
 import { Button } from "../../components/ui/Button";
@@ -18,10 +20,10 @@ import { PlayBrand, PlayTabBar } from "../../layouts/parts/PlayParts";
 
 const TABS = [
   { to: "/guest", label: "Beranda", icon: Home, exact: true },
+  { to: "/guest/bk", label: "Kak Peci", icon: MessagesSquare },
+  { to: "/guest/artikel", label: "Artikel", icon: Newspaper },
   { to: "/guest/ibadah", label: "Ibadah", icon: Flag },
   { to: "/guest/leaderboard", label: "Peringkat", icon: Trophy },
-  { to: "/guest/nadzhofah", label: "Nadzhofah", icon: Footprints },
-  { to: "/guest/zikir", label: "Zikir", icon: CalendarClock },
 ];
 
 const RAIL = [
@@ -30,6 +32,8 @@ const RAIL = [
   { to: "/guest/leaderboard", label: "Leaderboard", icon: Trophy },
   { to: "/guest/nadzhofah", label: "Santri Nakal", icon: Footprints },
   { to: "/guest/zikir", label: "Jadwal Zikir", icon: CalendarClock },
+  { to: "/guest/bk", label: "Kak Peci", icon: MessagesSquare },
+  { to: "/guest/artikel", label: "Artikel BK", icon: Newspaper },
 ];
 
 const active = (t, p) =>

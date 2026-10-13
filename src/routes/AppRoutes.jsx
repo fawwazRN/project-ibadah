@@ -23,6 +23,11 @@ import SantriTeamPage from "../pages/santri/SantriTeamPage";
 import SantriNadzhofahPage from "../pages/santri/SantriNadzhofahPage";
 import SantriLughahPage from "../pages/santri/Lughah";
 
+import SantriBkChat from "../pages/santri/SantriBkChat";
+import { ArticleList, ArticleDetail } from "../pages/bk/ArticlesPage";
+import BkFlowAdmin from "../pages/admin/BkFlowAdmin";
+import BkArticlesAdmin from "../pages/admin/BkArticlesAdmin";
+
 // ---------- Shared ----------
 import ZikirSchedulePage from "../pages/shared/ZikirSchedulePage";
 import GuestZikirPage from "../pages/shared/GuestZikirPage";
@@ -211,6 +216,9 @@ export default function AppRoutes() {
         <Route path="/guest/leaderboard" element={<GuestLeaderboardPage />} />
         <Route path="/guest/nadzhofah" element={<GuestNadzhofahPage />} />
         <Route path="/guest/zikir" element={<GuestZikirPage />} />
+        <Route path="/guest/bk" element={<SantriBkChat />} />
+        <Route path="/guest/artikel" element={<ArticleList />} />
+        <Route path="/guest/artikel/:id" element={<ArticleDetail />} />
       </Route>
 
       {/* Pilih kelas & nama — untuk sesi yang belum terhubung profil */}
@@ -227,6 +235,9 @@ export default function AppRoutes() {
               path="/santri/zikir"
               element={<ZikirSchedulePage role="santri" />}
             />
+            <Route path="/santri/bk" element={<SantriBkChat />} />
+            <Route path="/santri/artikel" element={<ArticleList />} />
+            <Route path="/santri/artikel/:id" element={<ArticleDetail />} />
             <Route path="/santri/violations" element={<SantriViolations />} />
             <Route path="/santri/reports" element={<SantriReports />} />
             <Route path="/santri/team" element={<SantriTeamPage />} />
@@ -362,6 +373,8 @@ export default function AppRoutes() {
             />
             <Route path="/admin/audit" element={<AuditLog />} />
             <Route path="/admin/settings" element={<LeagueSettingsPage />} />
+            <Route path="/admin/bk" element={<BkFlowAdmin />} />
+            <Route path="/admin/bk/artikel" element={<BkArticlesAdmin />} />
             <Route
               path="/admin/profile"
               element={<ProfilePage role="super_admin" />}

@@ -21,6 +21,7 @@ import { Card, CardHeader } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Mascot } from "../../components/ui/Mascot";
+import { BkMascot } from "../../components/ui/BkMascot";
 import {
   LoadingState,
   ErrorState,
@@ -333,6 +334,17 @@ export default function SantriDashboard() {
             <p className="mt-1 font-semibold text-fg-2 text-sm">{bubble}</p>
           </div>
         </section>
+
+        {/* Ngobrol dengan Kak Peci */}
+        <Link
+          to="/santri/bk"
+          className="flex items-center gap-3 bg-tint p-3 pr-4 border-2 border-tint-line rounded-3xl active:translate-y-0.5 transition-transform">
+          <BkMascot mood="care" size={56} />
+          <span className="min-w-0">
+            <span className="block font-extrabold text-brand-dim text-[15px]">Lagi ada yang dipikirkan?</span>
+            <span className="block text-fg-2 text-sm">Ngobrol santai dengan Kak Peci</span>
+          </span>
+        </Link>
 
         {/* Misi hari ini */}
         <section aria-labelledby="misi">

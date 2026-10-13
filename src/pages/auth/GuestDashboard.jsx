@@ -5,6 +5,8 @@ import {
   ChevronRight,
   Flag,
   Footprints,
+  MessagesSquare,
+  Newspaper,
   Trophy,
   Volleyball,
 } from "lucide-react";
@@ -29,6 +31,8 @@ const fmtDate = (d) =>
     : "—";
 
 const TILES = [
+  { to: "/guest/bk", title: "Kak Peci", desc: "Teman ngobrol santri", icon: MessagesSquare, q: "q-brand" },
+  { to: "/guest/artikel", title: "Artikel BK", desc: "Bacaan ringan", icon: Newspaper, q: "q-ibadah" },
   { to: "/guest/ibadah", title: "Qism Ibadah", desc: "Aktivitas ibadah", icon: Flag, q: "q-ibadah" },
   { to: "/guest/nadzhofah", title: "Nadzhofah", desc: "Info kebersihan", icon: Footprints, q: "q-nadzhofah" },
   { to: "/guest/zikir", title: "Jadwal Zikir", desc: "Jadwal tersedia", icon: CalendarClock, q: "q-lughah" },
