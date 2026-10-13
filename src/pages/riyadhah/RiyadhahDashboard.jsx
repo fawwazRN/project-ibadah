@@ -42,12 +42,12 @@ export function StandingsTable({ rows, compact = false }) {
     <div className="overflow-x-auto">
       <table className="w-full min-w-[560px] text-sm text-left">
         <thead>
-          <tr className="text-[11px] text-slate-500 uppercase tracking-wider">
+          <tr className="text-[11px] text-fg-3 uppercase tracking-wider">
             {["#", "Tim", "Main", "W", "D", "L", "GM", "GK", "SG", "Poin"].map(
               (h) => (
                 <th
                   key={h}
-                  className="px-3 py-2.5 border-white/[0.07] border-b font-semibold">
+                  className="px-3 py-2.5 border-line border-b font-semibold">
                   {h}
                 </th>
               ),
@@ -58,11 +58,11 @@ export function StandingsTable({ rows, compact = false }) {
           {rows.map((r) => (
             <tr
               key={r.team_id}
-              className={`transition-colors hover:bg-white/[0.02] ${r.status === "relegated" ? "opacity-50" : ""}`}>
-              <td className="px-3 py-2 border-white/[0.04] border-b font-mono text-slate-500">
+              className={`transition-colors hover:bg-soft ${r.status === "relegated" ? "opacity-50" : ""}`}>
+              <td className="px-3 py-2 border-line border-b font-mono text-fg-3">
                 {r.rank}
               </td>
-              <td className="px-3 py-2 border-white/[0.04] border-b font-medium text-slate-200">
+              <td className="px-3 py-2 border-line border-b font-medium text-fg">
                 {r.name}
                 {r.status === "relegated" && (
                   <Badge tone="rose" className="ml-2">
@@ -70,28 +70,28 @@ export function StandingsTable({ rows, compact = false }) {
                   </Badge>
                 )}
               </td>
-              <td className="px-3 py-2 border-white/[0.04] border-b text-slate-300">
+              <td className="px-3 py-2 border-line border-b text-fg-2">
                 {r.played}
               </td>
-              <td className="px-3 py-2 border-white/[0.04] border-b text-emerald-300">
+              <td className="px-3 py-2 border-line border-b text-emerald-700">
                 {r.wins}
               </td>
-              <td className="px-3 py-2 border-white/[0.04] border-b text-slate-400">
+              <td className="px-3 py-2 border-line border-b text-fg-2">
                 {r.draws}
               </td>
-              <td className="px-3 py-2 border-white/[0.04] border-b text-rose-300">
+              <td className="px-3 py-2 border-line border-b text-rose-700">
                 {r.losses}
               </td>
-              <td className="px-3 py-2 border-white/[0.04] border-b text-slate-400">
+              <td className="px-3 py-2 border-line border-b text-fg-2">
                 {r.gf}
               </td>
-              <td className="px-3 py-2 border-white/[0.04] border-b text-slate-400">
+              <td className="px-3 py-2 border-line border-b text-fg-2">
                 {r.ga}
               </td>
-              <td className="px-3 py-2 border-white/[0.04] border-b text-slate-300">
+              <td className="px-3 py-2 border-line border-b text-fg-2">
                 {r.gd > 0 ? `+${r.gd}` : r.gd}
               </td>
-              <td className="px-3 py-2 border-white/[0.04] border-b font-mono font-bold text-brand-soft">
+              <td className="px-3 py-2 border-line border-b font-mono font-bold text-brand-dim">
                 {r.points}
               </td>
             </tr>
@@ -208,14 +208,14 @@ export default function RiyadhahDashboard() {
               description="Buat jadwal di menu Jadwal & Hasil."
             />
           ) : (
-            <ul className="divide-y divide-white/[0.04]">
+            <ul className="divide-y divide-line">
               {upcoming.map((m) => (
                 <li key={m.id} className="flex items-center gap-3 px-5 py-3">
-                  <p className="flex-1 min-w-0 text-slate-200 text-sm truncate">
-                    {m.home_name} <span className="text-slate-600">vs</span>{" "}
+                  <p className="flex-1 min-w-0 text-fg text-sm truncate">
+                    {m.home_name} <span className="text-fg-3">vs</span>{" "}
                     {m.away_name}
                   </p>
-                  <span className="text-slate-500 text-xs">
+                  <span className="text-fg-3 text-xs">
                     {fmtDate(m.scheduled_at)}
                   </span>
                   <Badge tone={MATCH_STATUS_TONES[m.status]}>
@@ -232,15 +232,15 @@ export default function RiyadhahDashboard() {
           {recent.length === 0 ? (
             <EmptyState title="Belum ada hasil resmi" />
           ) : (
-            <ul className="divide-y divide-white/[0.04]">
+            <ul className="divide-y divide-line">
               {recent.map((m) => (
                 <li key={m.id} className="flex items-center gap-3 px-5 py-3">
-                  <span className="w-8 font-mono text-slate-500 text-xs shrink-0">
+                  <span className="w-8 font-mono text-fg-3 text-xs shrink-0">
                     P{m.week}
                   </span>
-                  <p className="flex-1 min-w-0 text-slate-200 text-sm truncate">
+                  <p className="flex-1 min-w-0 text-fg text-sm truncate">
                     {m.home_name}{" "}
-                    <span className="font-mono font-semibold text-brand-soft">
+                    <span className="font-mono font-semibold text-brand-dim">
                       {m.home_score} - {m.away_score}
                     </span>{" "}
                     {m.away_name}
@@ -271,16 +271,16 @@ export default function RiyadhahDashboard() {
           {susp.length === 0 ? (
             <EmptyState title="Tidak ada suspensi aktif" />
           ) : (
-            <ul className="divide-y divide-white/[0.04]">
+            <ul className="divide-y divide-line">
               {susp.slice(0, 8).map((s) => (
                 <li key={s.id} className="px-5 py-2.5">
-                  <p className="font-medium text-slate-200 text-sm">
+                  <p className="font-medium text-fg text-sm">
                     {s.full_name}{" "}
-                    <span className="text-slate-500 text-xs">
+                    <span className="text-fg-3 text-xs">
                       {s.class_name}
                     </span>
                   </p>
-                  <p className="text-rose-300/80 text-xs truncate">
+                  <p className="text-rose-700 text-xs truncate">
                     {s.reason} · s.d. {fmtDate(s.end_date)}
                   </p>
                 </li>

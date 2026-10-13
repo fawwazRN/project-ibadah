@@ -37,29 +37,29 @@ export function NyekerTable({ rows, onStudentClick, onDelete, onTogglePaid }) {
         <tbody>
           {rows.map((r, i) => (
             <Tr key={r.id}>
-              <Td className="font-mono text-slate-500 text-xs">{i + 1}</Td>
+              <Td className="font-mono text-fg-3 text-xs">{i + 1}</Td>
               <Td>
                 <button
                   type="button"
                   onClick={() => onStudentClick?.(r)}
-                  className="font-medium text-slate-200 hover:text-brand-soft hover:underline truncate transition-colors">
+                  className="font-medium text-fg hover:text-brand-dim hover:underline truncate transition-colors">
                   {r.full_name}
                 </button>
               </Td>
-              <Td className="text-slate-300">{r.class_name}</Td>
-              <Td className="text-slate-400 whitespace-nowrap">
+              <Td className="text-fg-2">{r.class_name}</Td>
+              <Td className="text-fg-2 whitespace-nowrap">
                 {fmtDate(r.nyeker_date)}
               </Td>
-              <Td className="text-slate-400 whitespace-nowrap">
+              <Td className="text-fg-2 whitespace-nowrap">
                 {String(r.nyeker_time).slice(0, 5)}
               </Td>
-              <Td className="max-w-[180px] text-slate-500 text-xs truncate">
+              <Td className="max-w-[180px] text-fg-3 text-xs truncate">
                 {r.note || "—"}
               </Td>
               <Td>
                 <div className="flex items-center gap-1.5">
                   <span
-                    className={`font-mono text-xs font-semibold ${r.fine_paid ? "text-emerald-300" : "text-rose-300"}`}>
+                    className={`font-mono text-xs font-semibold ${r.fine_paid ? "text-emerald-700" : "text-rose-700"}`}>
                     {rp(r.fine_amount ?? 5000)}
                   </span>
                   {onTogglePaid ? (
@@ -82,7 +82,7 @@ export function NyekerTable({ rows, onStudentClick, onDelete, onTogglePaid }) {
                   )}
                 </div>
               </Td>
-              <Td className="max-w-[140px] text-slate-500 text-xs truncate">
+              <Td className="max-w-[140px] text-fg-3 text-xs truncate">
                 {r.recorder_name || "—"}
               </Td>
               {showActions && (
@@ -97,8 +97,8 @@ export function NyekerTable({ rows, onStudentClick, onDelete, onTogglePaid }) {
                         }
                         className={`grid size-7 place-items-center rounded-md transition-colors ${
                           r.fine_paid
-                            ? "text-emerald-300 hover:bg-emerald-500/10"
-                            : "text-slate-500 hover:bg-emerald-500/10 hover:text-emerald-300"
+                            ? "text-emerald-700 hover:bg-emerald-500/10"
+                            : "text-fg-3 hover:bg-emerald-500/10 hover:text-emerald-700"
                         }`}>
                         {r.fine_paid ? (
                           <CircleCheck size={15} />
@@ -112,7 +112,7 @@ export function NyekerTable({ rows, onStudentClick, onDelete, onTogglePaid }) {
                         type="button"
                         onClick={() => onDelete(r)}
                         title="Hapus catatan"
-                        className="place-items-center grid hover:bg-rose-500/10 rounded-md size-7 text-slate-500 hover:text-rose-300 transition-colors">
+                        className="place-items-center grid hover:bg-rose-500/10 rounded-md size-7 text-fg-3 hover:text-rose-700 transition-colors">
                         <Trash2 size={13} />
                       </button>
                     )}

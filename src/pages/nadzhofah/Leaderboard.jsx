@@ -18,22 +18,22 @@ const PODIUM = {
   0: {
     tag: "Ter-nakal 1",
     ring: "ring-1 ring-rose-400/40",
-    tagCls: "bg-rose-400/10 text-rose-300 border-rose-400/30",
-    num: "text-rose-300/15",
+    tagCls: "bg-rose-400/10 text-rose-700 border-rose-400/30",
+    num: "text-rose-700",
     lift: "sm:-translate-y-3 sm:shadow-card",
   },
   1: {
     tag: "Ke-2",
     ring: "ring-1 ring-amber-400/30",
-    tagCls: "bg-amber-400/10 text-amber-300 border-amber-400/25",
-    num: "text-amber-300/15",
+    tagCls: "bg-amber-400/10 text-amber-700 border-amber-400/25",
+    num: "text-amber-700",
     lift: "",
   },
   2: {
     tag: "Ke-3",
     ring: "ring-1 ring-slate-400/20",
-    tagCls: "bg-white/5 text-slate-300 border-white/15",
-    num: "text-slate-400/15",
+    tagCls: "bg-soft-2 text-fg-2 border-line-2",
+    num: "text-fg-2",
     lift: "",
   },
 };
@@ -105,8 +105,8 @@ export default function NadzhofahLeaderboardPage({ readOnly = false }) {
               onClick={() => setTab(k)}
               className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                 tab === k
-                  ? "border-brand/40 bg-brand/10 text-brand-soft"
-                  : "border-white/10 bg-white/[0.03] text-slate-400 hover:text-slate-200"
+                  ? "border-brand/40 bg-brand/10 text-brand-dim"
+                  : "border-line bg-soft text-fg-2 hover:text-fg"
               }`}>
               {l}
             </button>
@@ -140,7 +140,7 @@ export default function NadzhofahLeaderboardPage({ readOnly = false }) {
                     type="button"
                     key={e.student_id}
                     onClick={() => openDetail(e)}
-                    className={`relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.025] text-left transition-transform hover:scale-[1.02] ${m.ring} ${m.lift}`}>
+                    className={`relative overflow-hidden rounded-2xl border border-line bg-soft text-left transition-transform hover:scale-[1.02] ${m.ring} ${m.lift}`}>
                     <span
                       className={`pointer-events-none absolute bottom-1 right-3 select-none font-display text-6xl font-bold leading-none ${m.num}`}>
                       {i + 1}
@@ -153,24 +153,24 @@ export default function NadzhofahLeaderboardPage({ readOnly = false }) {
                       <div className="flex items-center gap-3 mt-3.5">
                         <Avatar name={e.full_name} size="md" />
                         <div className="min-w-0">
-                          <p className="font-semibold text-slate-100 text-sm truncate">
+                          <p className="font-semibold text-fg text-sm truncate">
                             {e.full_name}
                           </p>
-                          <p className="text-slate-500 text-xs">
+                          <p className="text-fg-3 text-xs">
                             {e.class_name}
                           </p>
                         </div>
                       </div>
-                      <div className="relative flex items-center gap-2 mt-4 pt-3 border-white/[0.06] border-t">
-                        <Footprints size={13} className="text-slate-500" />
-                        <span className="font-mono font-semibold text-slate-200 text-sm">
+                      <div className="relative flex items-center gap-2 mt-4 pt-3 border-line border-t">
+                        <Footprints size={13} className="text-fg-3" />
+                        <span className="font-mono font-semibold text-fg text-sm">
                           {fmtNum(e.nyeker_count)}
                         </span>
-                        <Shirt size={13} className="ml-1 text-slate-500" />
-                        <span className="font-mono font-semibold text-slate-200 text-sm">
+                        <Shirt size={13} className="ml-1 text-fg-3" />
+                        <span className="font-mono font-semibold text-fg text-sm">
                           {fmtNum(e.clothing_count)}
                         </span>
-                        <span className="ml-auto font-mono font-bold text-rose-300 text-lg">
+                        <span className="ml-auto font-mono font-bold text-rose-700 text-lg">
                           {fmtNum(e.naughty_score)}
                         </span>
                       </div>
@@ -190,22 +190,22 @@ export default function NadzhofahLeaderboardPage({ readOnly = false }) {
             {(hasTop3 ? scoped.slice(3) : scoped).length === 0 ? (
               <EmptyState icon={Footprints} title="Hanya 3 santri teratas" />
             ) : (
-              <ul className="divide-y divide-white/[0.04]">
+              <ul className="divide-y divide-line">
                 {(hasTop3 ? scoped.slice(3) : scoped).map((e, i) => (
                   <li key={e.student_id}>
                     <button
                       type="button"
                       onClick={() => openDetail(e)}
-                      className="flex items-center gap-3 hover:bg-white/[0.02] px-5 py-3 w-full text-left transition-colors">
-                      <span className="w-7 font-mono text-slate-500 text-sm shrink-0">
+                      className="flex items-center gap-3 hover:bg-soft px-5 py-3 w-full text-left transition-colors">
+                      <span className="w-7 font-mono text-fg-3 text-sm shrink-0">
                         {String((hasTop3 ? 3 : 0) + i + 1).padStart(2, "0")}
                       </span>
                       <Avatar name={e.full_name} size="sm" />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-200 text-sm truncate">
+                        <p className="font-medium text-fg text-sm truncate">
                           {e.full_name}
                         </p>
-                        <p className="text-slate-500 text-xs">{e.class_name}</p>
+                        <p className="text-fg-3 text-xs">{e.class_name}</p>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Badge tone="neutral">
@@ -235,70 +235,70 @@ export default function NadzhofahLeaderboardPage({ readOnly = false }) {
         size="sm">
         {detail && (
           <div className="space-y-4">
-            <div className="flex items-center gap-3 bg-white/[0.02] p-3.5 border border-white/[0.06] rounded-xl">
+            <div className="flex items-center gap-3 bg-soft p-3.5 border border-line rounded-xl">
               <Avatar name={detail.full_name} size="md" />
               <div>
-                <p className="font-semibold text-slate-100 text-sm">
+                <p className="font-semibold text-fg text-sm">
                   {detail.full_name}
                 </p>
-                <p className="text-slate-500 text-xs">{detail.class_name}</p>
+                <p className="text-fg-3 text-xs">{detail.class_name}</p>
               </div>
             </div>
 
             <div className="gap-2 grid grid-cols-3 text-center">
-              <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+              <div className="bg-soft p-3 border border-line rounded-xl">
+                <p className="text-[10px] text-fg-3 uppercase tracking-wider">
                   Nyeker
                 </p>
-                <p className="mt-1 font-display font-bold text-amber-300 text-xl">
+                <p className="mt-1 font-display font-bold text-amber-700 text-xl">
                   {fmtNum(detail.nyeker_count)}
                 </p>
               </div>
-              <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+              <div className="bg-soft p-3 border border-line rounded-xl">
+                <p className="text-[10px] text-fg-3 uppercase tracking-wider">
                   Baju Disita
                 </p>
-                <p className="mt-1 font-display font-bold text-sky-300 text-xl">
+                <p className="mt-1 font-display font-bold text-sky-700 text-xl">
                   {fmtNum(detail.clothing_count)}
                 </p>
               </div>
-              <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+              <div className="bg-soft p-3 border border-line rounded-xl">
+                <p className="text-[10px] text-fg-3 uppercase tracking-wider">
                   Skor
                 </p>
-                <p className="mt-1 font-display font-bold text-rose-300 text-xl">
+                <p className="mt-1 font-display font-bold text-rose-700 text-xl">
                   {fmtNum(detail.naughty_score)}
                 </p>
               </div>
             </div>
 
             {!detailRecords ? (
-              <p className="text-slate-500 text-xs text-center">
+              <p className="text-fg-3 text-xs text-center">
                 Memuat riwayat…
               </p>
             ) : (
               <>
                 <div>
-                  <p className="flex items-center gap-1.5 mb-2 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+                  <p className="flex items-center gap-1.5 mb-2 font-semibold text-[11px] text-fg-3 uppercase tracking-wider">
                     <Footprints size={12} /> Riwayat Nyeker
                   </p>
                   {detailRecords.nyeker.length === 0 ? (
-                    <p className="text-slate-600 text-xs italic">Tidak ada.</p>
+                    <p className="text-fg-3 text-xs italic">Tidak ada.</p>
                   ) : (
-                    <ul className="border border-white/[0.06] rounded-xl divide-y divide-white/[0.04]">
+                    <ul className="border border-line rounded-xl divide-y divide-line">
                       {detailRecords.nyeker.map((r) => (
                         <li
                           key={r.id}
                           className="flex items-center gap-3 px-4 py-2">
                           <CalendarDays
                             size={12}
-                            className="text-slate-600 shrink-0"
+                            className="text-fg-3 shrink-0"
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-slate-200 text-xs">
+                            <p className="text-fg text-xs">
                               {fmtDate(r.nyeker_date)}
                             </p>
-                            <p className="text-[10px] text-slate-500">
+                            <p className="text-[10px] text-fg-3">
                               {String(r.nyeker_time).slice(0, 5)}
                               {r.note ? ` · ${r.note}` : ""}
                             </p>
@@ -310,26 +310,26 @@ export default function NadzhofahLeaderboardPage({ readOnly = false }) {
                 </div>
 
                 <div>
-                  <p className="flex items-center gap-1.5 mb-2 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+                  <p className="flex items-center gap-1.5 mb-2 font-semibold text-[11px] text-fg-3 uppercase tracking-wider">
                     <Shirt size={12} /> Baju Disita
                   </p>
                   {detailRecords.clothing.length === 0 ? (
-                    <p className="text-slate-600 text-xs italic">Tidak ada.</p>
+                    <p className="text-fg-3 text-xs italic">Tidak ada.</p>
                   ) : (
-                    <ul className="border border-white/[0.06] rounded-xl divide-y divide-white/[0.04]">
+                    <ul className="border border-line rounded-xl divide-y divide-line">
                       {detailRecords.clothing.map((r) => (
                         <li
                           key={r.id}
                           className="flex items-center gap-3 px-4 py-2">
                           <CalendarDays
                             size={12}
-                            className="text-slate-600 shrink-0"
+                            className="text-fg-3 shrink-0"
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-slate-200 text-xs">
+                            <p className="text-fg text-xs">
                               {r.quantity} baju
                             </p>
-                            <p className="text-[10px] text-slate-500">
+                            <p className="text-[10px] text-fg-3">
                               {fmtDate(r.created_at)}
                               {r.auction_price != null ? " · dilelang" : ""}
                             </p>

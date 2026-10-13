@@ -103,8 +103,8 @@ export function entryPath(roleOrGuest) {
 // ============================================================
 function FullPageLoader() {
   return (
-    <div className="place-items-center grid bg-ink-950 min-h-screen">
-      <div className="flex flex-col items-center gap-3 text-brand-soft">
+    <div className="place-items-center grid bg-page min-h-screen">
+      <div className="flex flex-col items-center gap-3 text-brand-dim">
         <BrandMark className="size-9" />
         <Loader2 size={16} className="animate-spin" />
       </div>

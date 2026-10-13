@@ -211,8 +211,8 @@ export default function RecapPage({ role }) {
             onClick={() => setPreset(p.key)}
             className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
               preset === p.key
-                ? "border-brand/40 bg-brand/10 text-brand-soft"
-                : "border-white/10 bg-white/[0.03] text-slate-400 hover:text-slate-200"
+                ? "border-brand/40 bg-brand/10 text-brand-dim"
+                : "border-line bg-soft text-fg-2 hover:text-fg"
             }`}>
             {p.label}
           </button>
@@ -227,7 +227,7 @@ export default function RecapPage({ role }) {
               }
               className="w-auto"
             />
-            <span className="text-slate-500 text-xs">s.d.</span>
+            <span className="text-fg-3 text-xs">s.d.</span>
             <Input
               type="date"
               value={custom.to}
@@ -241,7 +241,7 @@ export default function RecapPage({ role }) {
       <div className="relative">
         <Search
           size={15}
-          className="top-1/2 left-3 absolute text-slate-500 -translate-y-1/2 pointer-events-none"
+          className="top-1/2 left-3 absolute text-fg-3 -translate-y-1/2 pointer-events-none"
         />
         <Input
           value={q}
@@ -258,7 +258,7 @@ export default function RecapPage({ role }) {
             type="button"
             onClick={() => setQ("")}
             aria-label="Hapus pencarian"
-            className="top-1/2 right-2.5 absolute place-items-center grid size-6 text-slate-500 hover:text-slate-200 -translate-y-1/2">
+            className="top-1/2 right-2.5 absolute place-items-center grid size-6 text-fg-3 hover:text-fg -translate-y-1/2">
             <X size={14} />
           </button>
         )}
@@ -358,17 +358,17 @@ export default function RecapPage({ role }) {
           {topRules.length === 0 ? (
             <EmptyState icon={FileBarChart} title="Belum ada data" />
           ) : (
-            <ul className="divide-y divide-white/[0.04]">
+            <ul className="divide-y divide-line">
               {topRules.map((r, i) => (
                 <li
                   key={r.rule_id}
                   className="flex items-center gap-3 px-5 py-3">
-                  <span className="font-mono text-slate-500 text-xs">
+                  <span className="font-mono text-fg-3 text-xs">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-slate-200 text-sm truncate">{r.name}</p>
-                    <p className="text-slate-500 text-xs">
+                    <p className="text-fg text-sm truncate">{r.name}</p>
+                    <p className="text-fg-3 text-xs">
                       {fmtNum(r.total)} kejadian · {fmtNum(r.poin)} poin
                     </p>
                   </div>
@@ -392,7 +392,7 @@ export default function RecapPage({ role }) {
             <div className="max-h-[480px] overflow-y-auto">
               <TableWrap>
                 <Table>
-                  <thead className="top-0 z-10 sticky bg-ink-900">
+                  <thead className="top-0 z-10 sticky bg-card">
                     <tr>
                       <Th>No</Th>
                       <Th>Nama</Th>
@@ -405,14 +405,14 @@ export default function RecapPage({ role }) {
                   <tbody>
                     {perSantri.map((s, i) => (
                       <Tr key={s.id}>
-                        <Td className="font-mono text-slate-500 text-xs">
+                        <Td className="font-mono text-fg-3 text-xs">
                           {i + 1}
                         </Td>
-                        <Td className="font-medium text-slate-200">
+                        <Td className="font-medium text-fg">
                           {s.nama}
                         </Td>
-                        <Td className="text-slate-400">{s.kelas}</Td>
-                        <Td className="text-slate-300 text-right">
+                        <Td className="text-fg-2">{s.kelas}</Td>
+                        <Td className="text-fg-2 text-right">
                           {fmtNum(s.total)}
                         </Td>
                         <Td className="text-right">
@@ -422,7 +422,7 @@ export default function RecapPage({ role }) {
                           <button
                             type="button"
                             onClick={() => setQ(s.nama)}
-                            className="text-brand-soft text-xs hover:underline">
+                            className="text-brand-dim text-xs hover:underline">
                             Lihat rincian
                           </button>
                         </Td>
@@ -451,7 +451,7 @@ export default function RecapPage({ role }) {
           <div className="max-h-[640px] overflow-y-auto">
             <TableWrap>
               <Table>
-                <thead className="top-0 z-10 sticky bg-ink-900">
+                <thead className="top-0 z-10 sticky bg-card">
                   <tr>
                     <Th>No</Th>
                     <Th>Tanggal</Th>
@@ -466,31 +466,31 @@ export default function RecapPage({ role }) {
                 <tbody>
                   {fv.map((v, i) => (
                     <Tr key={v.id}>
-                      <Td className="font-mono text-slate-500 text-xs">
+                      <Td className="font-mono text-fg-3 text-xs">
                         {i + 1}
                       </Td>
-                      <Td className="text-slate-400 whitespace-nowrap">
+                      <Td className="text-fg-2 whitespace-nowrap">
                         {fmtDate(v.occurred_at)}
                       </Td>
-                      <Td className="text-slate-300 whitespace-nowrap">
+                      <Td className="text-fg-2 whitespace-nowrap">
                         {v.prayer_time
                           ? PRAYER_LABELS[v.prayer_time] ?? v.prayer_time
                           : "—"}
                       </Td>
-                      <Td className="text-slate-200">
+                      <Td className="text-fg">
                         {v.santri?.full_name}
-                        <span className="ml-1.5 text-slate-500 text-xs">
+                        <span className="ml-1.5 text-fg-3 text-xs">
                           {v.santri?.class_name}
                         </span>
                       </Td>
-                      <Td className="text-slate-300">{v.rule?.name}</Td>
+                      <Td className="text-fg-2">{v.rule?.name}</Td>
                       <Td>
                         <Badge tone="rose">+{v.rule?.points}</Badge>
                       </Td>
                       <Td>
                         <ViolationStatusBadge status={v.status} />
                       </Td>
-                      <Td className="max-w-[220px] text-slate-500 text-xs">
+                      <Td className="max-w-[220px] text-fg-3 text-xs">
                         {v.note || "—"}
                       </Td>
                     </Tr>

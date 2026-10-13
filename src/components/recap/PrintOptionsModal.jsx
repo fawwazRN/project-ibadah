@@ -104,8 +104,8 @@ export default function PrintOptionsModal({
   return (
     <Modal open={open} onClose={onClose} title="Atur Isi Laporan" size="sm">
       <div className="space-y-4">
-        <p className="flex items-start gap-2 text-slate-500 text-xs leading-relaxed">
-          <FileText size={13} className="mt-0.5 text-slate-600 shrink-0" />
+        <p className="flex items-start gap-2 text-fg-3 text-xs leading-relaxed">
+          <FileText size={13} className="mt-0.5 text-fg-3 shrink-0" />
           Pilih bagian yang ingin dicetak. Pilihan kamu diingat untuk cetakan
           berikutnya.
         </p>
@@ -114,7 +114,7 @@ export default function PrintOptionsModal({
           {sections.map((s) => (
             <label
               key={s.key}
-              className="flex items-center gap-2.5 bg-white/[0.03] hover:bg-white/[0.05] px-3 py-2.5 border border-white/10 rounded-lg text-slate-300 text-sm transition-colors cursor-pointer">
+              className="flex items-center gap-2.5 bg-soft hover:bg-soft-2 px-3 py-2.5 border border-line rounded-lg text-fg-2 text-sm transition-colors cursor-pointer">
               <input
                 type="checkbox"
                 checked={!!selected[s.key]}
@@ -130,18 +130,18 @@ export default function PrintOptionsModal({
           <button
             type="button"
             onClick={() => setAll(true)}
-            className="text-brand-soft hover:underline">
+            className="text-brand-dim hover:underline">
             Pilih semua
           </button>
           <button
             type="button"
             onClick={() => setAll(false)}
-            className="text-slate-500 hover:underline">
+            className="text-fg-3 hover:underline">
             Kosongkan
           </button>
         </div>
 
-        <div className="flex justify-end gap-2 pt-3 border-white/[0.06] border-t">
+        <div className="flex justify-end gap-2 pt-3 border-line border-t">
           <Button variant="ghost" onClick={onClose}>
             Batal
           </Button>

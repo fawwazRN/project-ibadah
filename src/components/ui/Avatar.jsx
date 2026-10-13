@@ -1,18 +1,19 @@
 const TINTS = [
-  "text-emerald-300 bg-emerald-500/10",
-  "text-teal-300 bg-teal-500/10",
-  "text-sky-300 bg-sky-500/10",
-  "text-violet-300 bg-violet-500/10",
-  "text-amber-300 bg-amber-500/10",
-  "text-pink-300 bg-pink-500/10",
-  "text-orange-300 bg-orange-500/10",
-  "text-cyan-300 bg-cyan-500/10",
-  "text-indigo-300 bg-indigo-500/10",
+  "text-emerald-700 bg-emerald-100",
+  "text-teal-700 bg-teal-100",
+  "text-sky-700 bg-sky-100",
+  "text-violet-700 bg-violet-100",
+  "text-amber-700 bg-amber-100",
+  "text-pink-700 bg-pink-100",
+  "text-orange-700 bg-orange-100",
+  "text-cyan-700 bg-cyan-100",
+  "text-indigo-700 bg-indigo-100",
 ];
 const SIZES = {
-  sm: "size-8 text-[10px]",
+  sm: "size-8 text-[11px]",
   md: "size-10 text-xs",
   lg: "size-14 text-base",
+  xl: "size-20 text-2xl",
 };
 
 export function Avatar({ name = "", size = "md", className = "" }) {
@@ -27,7 +28,8 @@ export function Avatar({ name = "", size = "md", className = "" }) {
     TINTS[[...name].reduce((s, c) => s + c.charCodeAt(0), 0) % TINTS.length];
   return (
     <span
-      className={`grid shrink-0 select-none place-items-center rounded-full border border-white/10 font-display font-semibold ${tint} ${SIZES[size]} ${className}`}>
+      className={`grid shrink-0 select-none place-items-center rounded-full font-display ${tint} ${SIZES[size] ?? SIZES.md} ${className}`}
+      style={{ fontWeight: "var(--head-weight)" }}>
       {initials || "?"}
     </span>
   );

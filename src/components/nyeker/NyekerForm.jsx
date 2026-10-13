@@ -81,7 +81,7 @@ export default function NyekerForm({ onSaved }) {
       <CardHeader
         title="Catat Nyeker"
         description="Cari nama, klik, simpan — selesai dalam hitungan detik."
-        actions={<Footprints size={15} className="text-brand-soft" />}
+        actions={<Footprints size={15} className="text-brand-dim" />}
       />
       <div className="space-y-4 p-5">
         {/* Pencarian */}
@@ -89,7 +89,7 @@ export default function NyekerForm({ onSaved }) {
           <div className="relative">
             <Search
               size={14}
-              className="top-1/2 left-3 absolute text-slate-500 -translate-y-1/2"
+              className="top-1/2 left-3 absolute text-fg-3 -translate-y-1/2"
             />
             <Input
               value={q}
@@ -102,9 +102,9 @@ export default function NyekerForm({ onSaved }) {
 
         {/* Hasil pencarian — klik utk memilih */}
         {!selected && q !== "" && (
-          <div className="bg-ink-800 border border-white/10 rounded-lg max-h-52 overflow-y-auto">
+          <div className="bg-soft border border-line rounded-lg max-h-52 overflow-y-auto">
             {filtered.length === 0 && (
-              <p className="px-3 py-2.5 text-slate-500 text-xs">
+              <p className="px-3 py-2.5 text-fg-3 text-xs">
                 Tidak ditemukan.
               </p>
             )}
@@ -113,9 +113,9 @@ export default function NyekerForm({ onSaved }) {
                 type="button"
                 key={s.id}
                 onClick={() => setSelected(s)}
-                className="flex justify-between items-center hover:bg-white/5 px-3 py-2 w-full text-slate-300 text-sm text-left transition-colors">
+                className="flex justify-between items-center hover:bg-soft-2 px-3 py-2 w-full text-fg-2 text-sm text-left transition-colors">
                 <span className="truncate">{s.full_name}</span>
-                <span className="ml-2 text-slate-500 text-xs shrink-0">
+                <span className="ml-2 text-fg-3 text-xs shrink-0">
                   {s.class_name}
                 </span>
               </button>
@@ -128,14 +128,14 @@ export default function NyekerForm({ onSaved }) {
           <div className="space-y-4 bg-brand/[0.05] p-4 border border-brand/25 rounded-xl">
             <div className="flex justify-between items-center gap-2">
               <div className="flex items-center gap-2.5">
-                <span className="place-items-center grid bg-brand/10 border border-brand/30 rounded-lg size-8 text-brand-soft">
+                <span className="place-items-center grid bg-brand/10 border border-brand/30 rounded-lg size-8 text-brand-dim">
                   <Check size={15} />
                 </span>
                 <div>
-                  <p className="font-semibold text-slate-100 text-sm">
+                  <p className="font-semibold text-fg text-sm">
                     {selected.full_name}
                   </p>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-fg-3">
                     {selected.class_name}
                   </p>
                 </div>
@@ -196,7 +196,7 @@ export default function NyekerForm({ onSaved }) {
             </Button>
           </div>
         ) : q === "" ? (
-          <p className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl text-slate-500 text-xs italic">
+          <p className="bg-soft p-3 border border-line rounded-xl text-fg-3 text-xs italic">
             Ketik nama santri di atas untuk mulai mencatat.
           </p>
         ) : null}

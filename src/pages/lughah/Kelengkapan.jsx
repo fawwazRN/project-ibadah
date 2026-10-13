@@ -151,7 +151,7 @@ export default function LughahKelengkapanPage() {
         <div className="relative w-64">
           <Search
             size={14}
-            className="top-1/2 left-3 absolute text-slate-500 -translate-y-1/2"
+            className="top-1/2 left-3 absolute text-fg-3 -translate-y-1/2"
           />
           <Input
             value={q}
@@ -174,8 +174,8 @@ export default function LughahKelengkapanPage() {
               onClick={() => setFStatus(f.key)}
               className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                 fStatus === f.key
-                  ? "border-brand/40 bg-brand/10 text-brand-soft"
-                  : "border-white/10 bg-white/[0.03] text-slate-400 hover:text-slate-200"
+                  ? "border-brand/40 bg-brand/10 text-brand-dim"
+                  : "border-line bg-soft text-fg-2 hover:text-fg"
               }`}>
               {f.label}
             </button>

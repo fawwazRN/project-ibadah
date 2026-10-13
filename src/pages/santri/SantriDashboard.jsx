@@ -1,24 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  Flag,
-  MessageSquareWarning,
-  Trophy,
-  FileBarChart,
-  ChevronRight,
-  MoonStar,
-  Repeat,
   BookOpen,
-  Volleyball,
-  Footprints,
   BookOpenCheck,
+  CalendarDays,
+  ChevronRight,
+  Flag,
+  Footprints,
+  MessageSquareWarning,
+  MoonStar,
+  PartyPopper,
+  Repeat,
+  Volleyball,
+  Wallet,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useStudentData } from "../../layouts/StudentShell";
 import { supabase } from "../../lib/supabaseClient";
 import { Card, CardHeader } from "../../components/ui/Card";
-import { StatCard } from "../../components/ui/StatCard";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
+import { Mascot } from "../../components/ui/Mascot";
 import {
   LoadingState,
   ErrorState,
@@ -26,69 +28,14 @@ import {
 } from "../../components/ui/States";
 import { ViolationStatusBadge } from "../../components/violations/StatusBadge";
 import { ReportModal } from "../../components/violations/ReportModal";
-import { violationService } from "../../services/violationService";
-import { reportService } from "../../services/reportService";
 import { activityService } from "../../services/activityService";
 import { leagueService } from "../../services/leagueService";
 import { matchService } from "../../services/matchService";
+import { lughahService } from "../../services/lughahService";
+import { nyekerService } from "../../services/nyekerService";
 import { computeStandings } from "../../utils/standings";
-import {
-  OPEN_STATUSES,
-  sumPoints,
-  pointsInRange,
-  fmtNum,
-} from "../../lib/calc";
-import { startOfWeek, startOfMonth, fmtDate, hijriToday } from "../../lib/date";
-import InvitationCard from "../../components/event/InvitationCard";
-
-function ComplianceRing({ score }) {
-  const R = 54,
-    C = 2 * Math.PI * R;
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    const t = setTimeout(() => setVal(score), 150);
-    return () => clearTimeout(t);
-  }, [score]);
-  const color = score >= 80 ? "#10B981" : score >= 60 ? "#F59E0B" : "#F43F5E";
-  return (
-    <div className="relative mx-auto size-40">
-      <svg viewBox="0 0 128 128" className="size-full -rotate-90">
-        <circle
-          cx="64"
-          cy="64"
-          r={R}
-          fill="none"
-          stroke="rgba(255,255,255,.06)"
-          strokeWidth="9"
-        />
-        <circle
-          cx="64"
-          cy="64"
-          r={R}
-          fill="none"
-          stroke={color}
-          strokeWidth="9"
-          strokeLinecap="round"
-          strokeDasharray={C}
-          strokeDashoffset={C - (C * val) / 100}
-          style={{
-            transition: "stroke-dashoffset 1s cubic-bezier(.22,1,.36,1)",
-          }}
-        />
-      </svg>
-      <div className="absolute inset-0 place-items-center grid text-center">
-        <div>
-          <p className="font-display font-semibold text-slate-50 text-3xl">
-            {score}
-          </p>
-          <p className="text-[10px] text-slate-500 uppercase tracking-widest">
-            dari 100
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
+import { OPEN_STATUSES, fmtNum } from "../../lib/calc";
+import { fmtDate, hijriToday } from "../../lib/date";
 
 const ACT_META = {
   shalat_berjamaah: { icon: MoonStar, label: "Shalat berjamaah" },
@@ -96,32 +43,139 @@ const ACT_META = {
   tadarus: { icon: BookOpen, label: "Tadarus" },
 };
 
+const LUGHAH_FIELDS = [
+  ["sudah_setor", "setor"],
+  ["sudah_tanda_tangan", "tanda tangan"],
+  ["sudah_bawa_buku", "bawa buku"],
+  ["sudah_lengkap_tulisan", "lengkapi tulisan"],
+];
+
+// ---------- cincin skor ----------
+function Ring({ value, size = 140, stroke = 12, color = "var(--color-brand)", children }) {
+  const R = (size - stroke) / 2;
+  const C = 2 * Math.PI * R;
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), 150);
+    return () => clearTimeout(t);
+  }, [value]);
+  return (
+    <div className="relative mx-auto" style={{ width: size, height: size }}>
+      <svg viewBox={`0 0 ${size} ${size}`} className="size-full -rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={R} fill="none" stroke="var(--color-line)" strokeWidth={stroke} />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={R}
+          fill="none"
+          stroke={color}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={C}
+          strokeDashoffset={C - (C * v) / 100}
+          style={{ transition: "stroke-dashoffset 1s cubic-bezier(.22,1,.36,1)" }}
+        />
+      </svg>
+      <div className="absolute inset-0 place-items-center grid text-center">{children}</div>
+    </div>
+  );
+}
+
+// ---------- satu simpul di jalur ----------
+function PathNode({ q, to, icon: Icon, label, sub, ring, offset }) {
+  return (
+    <Link
+      to={to}
+      className={`${q} group flex flex-col items-center`}
+      style={{ transform: `translateX(${offset}px)` }}>
+      <span className="relative">
+        {ring != null && (
+          <svg viewBox="0 0 104 104" className="-inset-[10px] absolute size-[104px] -rotate-90 pointer-events-none">
+            <circle cx="52" cy="52" r="48" fill="none" stroke="var(--color-line)" strokeWidth="6" />
+            <circle
+              cx="52"
+              cy="52"
+              r="48"
+              fill="none"
+              stroke="var(--q)"
+              strokeWidth="6"
+              strokeLinecap="round"
+              strokeDasharray={2 * Math.PI * 48}
+              strokeDashoffset={2 * Math.PI * 48 * (1 - ring / 100)}
+            />
+          </svg>
+        )}
+        <span className="node">
+          <Icon size={34} strokeWidth={2.4} />
+        </span>
+      </span>
+      <span className="mt-4 font-display text-fg text-[15px]" style={{ fontWeight: 900 }}>
+        {label}
+      </span>
+      <span className="font-semibold text-fg-3 text-xs">{sub}</span>
+    </Link>
+  );
+}
+
+function Connector({ shift }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="mx-auto my-2 border-line-2 border-l-4 border-dotted w-0 h-9"
+      style={{ transform: `translateX(${shift}px)` }}
+    />
+  );
+}
+
+// ---------- satu baris misi ----------
+function Mission({ q, icon: Icon, title, sub, action, to }) {
+  const body = (
+    <>
+      <span className={`${q} q-chip rounded-2xl size-11 shrink-0`}>
+        <Icon size={21} strokeWidth={2.4} />
+      </span>
+      <div className="flex-1 min-w-0">
+        <p className="font-extrabold text-fg text-sm leading-snug">{title}</p>
+        {sub && <p className="mt-0.5 font-semibold text-fg-3 text-xs">{sub}</p>}
+      </div>
+    </>
+  );
+  return (
+    <li className="flex items-center gap-3 p-3.5">
+      {body}
+      {action ? (
+        <Button size="sm" variant="secondary" onClick={action.onClick}>
+          {action.label}
+        </Button>
+      ) : (
+        to && (
+          <Link to={to} className="btn btn-secondary btn-sm">
+            Buka
+          </Link>
+        )
+      )}
+    </li>
+  );
+}
+
 export default function SantriDashboard() {
   const { profile } = useAuth();
+  const { violations, reports, error, stats, reload } = useStudentData();
 
-  // ================= SEMUA HOOKS DULU =================
-  const [violations, setViolations] = useState(null);
-  const [reports, setReports] = useState([]);
   const [summary, setSummary] = useState({});
   const [league, setLeague] = useState(null);
   const [lughah, setLughah] = useState(null);
   const [nyeker, setNyeker] = useState(null);
-  const [error, setError] = useState(null);
   const [reportTarget, setReportTarget] = useState(null);
 
-  const load = useCallback(() => {
-    setError(null);
-    (async () => {
-      const [v, r, s] = await Promise.all([
-        violationService.list(),
-        reportService.listMine(),
-        activityService.monthlySummary(profile.id),
-      ]);
-      setViolations(v);
-      setReports(r);
-      setSummary(s);
+  // Data tambahan (gagal-aman: tidak boleh merusak Beranda)
+  const loadExtras = useCallback(() => {
+    activityService
+      .monthlySummary(profile.id)
+      .then(setSummary)
+      .catch(() => setSummary({}));
 
-      // Liga — gagal-aman
+    (async () => {
       try {
         const ctx = await leagueService.getContext();
         const [teams, matches, mine] = await Promise.all([
@@ -133,36 +187,35 @@ export default function SantriDashboard() {
           teams,
           matches.filter((m) => m.status === "official"),
         );
-        setLeague({ ctx, rows, myTeamId: mine.data?.team?.id ?? null });
+        setLeague({ ctx, rows, matches, myTeamId: mine.data?.team?.id ?? null });
       } catch {
         setLeague(null);
       }
+    })();
 
-      // Lughah — gagal-aman
+    (async () => {
       try {
         const periods = await lughahService.listPeriods();
         const pick = periods.find((p) => p.is_current) ?? periods[0];
-        if (pick) {
-          const rec = await lughahService.myRecord(pick.id);
-          setLughah(rec);
-        }
+        setLughah(pick ? await lughahService.myRecord(pick.id) : null);
       } catch {
         setLughah(null);
       }
+    })();
 
-      // Nyeker — gagal-aman
-      try {
-        const n = await nyekerService.list();
-        setNyeker(n ?? []);
-      } catch {
-        setNyeker([]);
-      }
-    })().catch((e) => setError(e.message));
+    nyekerService
+      .list()
+      .then((n) => setNyeker(n ?? []))
+      .catch(() => setNyeker([]));
   }, [profile.id]);
-  useEffect(load, [load]);
+  useEffect(loadExtras, [loadExtras]);
 
-  // useMemo SEBELUM early return
-  const openReportViolationIds = useMemo(
+  const refresh = () => {
+    reload();
+    loadExtras();
+  };
+
+  const reportedIds = useMemo(
     () =>
       new Set(
         (reports ?? [])
@@ -172,55 +225,224 @@ export default function SantriDashboard() {
     [reports],
   );
 
-  // ================= EARLY RETURN SETELAH HOOKS =================
-  if (error) return <ErrorState message={error} onRetry={load} />;
+  if (error) return <ErrorState message={error} onRetry={reload} />;
   if (!violations) return <LoadingState rows={6} />;
 
   const now = new Date();
   const open = violations.filter((v) => OPEN_STATUSES.includes(v.status));
-  const activePts = sumPoints(open);
-  const weekPts = pointsInRange(violations, [startOfWeek(), now]);
-  const monthPts = pointsInRange(violations, [startOfMonth(), now]);
-  const pendingReports = reports.filter((r) =>
-    ["pending", "reviewing"].includes(r.status),
-  ).length;
-  const score = Math.max(0, Math.min(100, 100 - activePts * 5));
-  const recent = violations.slice(0, 5);
+  const unreported = open.filter((v) => !reportedIds.has(v.id));
+  const recent = violations.slice(0, 4);
+  const { score, activePts, cleanDays } = stats;
+
+  const unpaid = (nyeker ?? []).filter((r) => !r.fine_paid);
+  const unpaidTotal = unpaid.reduce((s, r) => s + (r.fine_amount ?? 5000), 0);
+  const lughahDone = lughah
+    ? LUGHAH_FIELDS.filter(([k]) => lughah[k]).length
+    : null;
+  const lughahMissing = lughah
+    ? LUGHAH_FIELDS.filter(([k]) => !lughah[k]).map(([, l]) => l)
+    : [];
+
+  const myRow = league?.rows.findIndex((r) => r.team_id === league.myTeamId);
+  const myTeam = myRow != null && myRow >= 0 ? league.rows[myRow] : null;
+  const nextMatch =
+    myTeam &&
+    league.matches
+      .filter(
+        (m) =>
+          ["scheduled", "postponed"].includes(m.status) &&
+          (m.home_name === myTeam.name || m.away_name === myTeam.name),
+      )
+      .sort((a, b) => new Date(a.scheduled_at ?? 0) - new Date(b.scheduled_at ?? 0))[0];
+
+  // ---------- Misi: hanya hal NYATA yang perlu dilakukan ----------
+  const missions = [];
+  unreported.slice(0, 2).forEach((v) =>
+    missions.push({
+      key: `k-${v.id}`,
+      q: "q-ibadah",
+      icon: MessageSquareWarning,
+      title: `Ajukan klarifikasi: ${v.rule?.name}`,
+      sub: `+${v.rule?.points} poin · ${fmtDate(v.occurred_at)}`,
+      action: { label: "Klarifikasi", onClick: () => setReportTarget(v) },
+    }),
+  );
+  if (unreported.length > 2)
+    missions.push({
+      key: "k-more",
+      q: "q-ibadah",
+      icon: Flag,
+      title: `${unreported.length - 2} pelanggaran lain menunggu klarifikasi`,
+      to: "/santri/violations",
+    });
+  if (unpaid.length > 0)
+    missions.push({
+      key: "fine",
+      q: "q-nadzhofah",
+      icon: Wallet,
+      title: `Lunasi denda nyeker Rp ${fmtNum(unpaidTotal)}`,
+      sub: `${unpaid.length} catatan belum lunas`,
+      to: "/santri/nadzhofah",
+    });
+  if (lughah && lughahMissing.length > 0)
+    missions.push({
+      key: "lughah",
+      q: "q-lughah",
+      icon: BookOpenCheck,
+      title: `Lengkapi Lughah: ${lughahMissing.join(", ")}`,
+      sub: `${lughahDone} dari 4 sudah beres`,
+      to: "/santri/lughah",
+    });
+  if (nextMatch)
+    missions.push({
+      key: "match",
+      q: "q-riyadhah",
+      icon: CalendarDays,
+      title: `${nextMatch.home_name} vs ${nextMatch.away_name}`,
+      sub: `Laga timmu · ${nextMatch.scheduled_at ? fmtDate(nextMatch.scheduled_at) : "jadwal menyusul"}`,
+      to: "/santri/team",
+    });
+
+  const mood = activePts === 0 ? "cheer" : activePts <= 3 ? "happy" : "worried";
+  const firstName = (profile.full_name ?? "").split(" ")[0];
+  const bubble =
+    activePts === 0
+      ? cleanDays == null
+        ? "Catatanmu bersih. Pertahankan, ya!"
+        : `${cleanDays} hari tanpa pelanggaran. Keren!`
+      : activePts <= 3
+        ? `Ada ${activePts} poin aktif. Masih bisa diperbaiki!`
+        : `${activePts} poin aktif. Yuk cek catatanmu.`;
 
   return (
-    <div className="space-y-5 animate-fade-up">
-      <div>
-        <p className="text-slate-500 text-sm">Assalamu’alaikum,</p>
-        <h1 className="font-display font-semibold text-slate-50 text-2xl">
-          {profile.full_name}
-        </h1>
-        <p className="mt-1 text-slate-500 text-xs">
-          {hijriToday() && <>{hijriToday()} · </>}
-          {fmtDate(now)} · Kelas {profile.class_name}
-        </p>
+    <div className="gap-6 grid lg:grid-cols-[minmax(0,1fr)_340px]">
+      {/* ============ KOLOM UTAMA ============ */}
+      <div className="space-y-6 min-w-0">
+        {/* Sapaan + maskot */}
+        <section className="flex items-center gap-3 sm:gap-5">
+          <Mascot mood={mood} size={104} wave className="shrink-0 animate-float" />
+          <div className="relative bg-card p-4 border-2 border-line rounded-3xl min-w-0">
+            <span className="top-1/2 -left-[9px] absolute bg-card border-line border-b-2 border-l-2 size-4 -rotate-45 -translate-y-1/2" />
+            <p className="font-bold text-fg-3 text-xs">
+              {hijriToday() && <>{hijriToday()} · </>}
+              {fmtDate(now)}
+            </p>
+            <h2 className="mt-0.5 font-display text-fg text-xl leading-tight" style={{ fontWeight: 900 }}>
+              Assalamu’alaikum, {firstName}!
+            </h2>
+            <p className="mt-1 font-semibold text-fg-2 text-sm">{bubble}</p>
+          </div>
+        </section>
+
+        {/* Misi hari ini */}
+        <section aria-labelledby="misi">
+          <h2 id="misi" className="mb-3 font-display text-fg text-lg" style={{ fontWeight: 900 }}>
+            Misi hari ini
+          </h2>
+          <Card>
+            {missions.length === 0 ? (
+              <div className="flex items-center gap-4 p-5">
+                <span className="q-gold q-chip rounded-2xl size-12 shrink-0">
+                  <PartyPopper size={24} strokeWidth={2.3} />
+                </span>
+                <div>
+                  <p className="font-extrabold text-fg">Semua beres!</p>
+                  <p className="font-semibold text-fg-3 text-sm">
+                    Tidak ada yang perlu kamu urus sekarang. Barakallah.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <ul className="divide-y-2 divide-line">
+                {missions.map((m) => (
+                  <Mission key={m.key} {...m} />
+                ))}
+              </ul>
+            )}
+          </Card>
+        </section>
+
+        {/* Jalur qism */}
+        <section aria-labelledby="jalur">
+          <h2 id="jalur" className="mb-1 font-display text-fg text-lg" style={{ fontWeight: 900 }}>
+            Jalur Qism
+          </h2>
+          <p className="font-semibold text-fg-3 text-sm">Ketuk untuk membuka tiap qism.</p>
+          <div className="py-8">
+            <PathNode
+              q="q-ibadah"
+              to="/santri/zikir"
+              icon={MoonStar}
+              label="Ibadah"
+              sub={`Skor ${score}`}
+              ring={score}
+              offset={0}
+            />
+            <Connector shift={28} />
+            <PathNode
+              q="q-nadzhofah"
+              to="/santri/nadzhofah"
+              icon={Footprints}
+              label="Nadzhofah"
+              sub={
+                nyeker == null
+                  ? "Memuat…"
+                  : nyeker.length === 0
+                    ? "Bersih ✓"
+                    : `${nyeker.length} nyeker`
+              }
+              offset={56}
+            />
+            <Connector shift={28} />
+            <PathNode
+              q="q-lughah"
+              to="/santri/lughah"
+              icon={BookOpenCheck}
+              label="Lughah"
+              sub={lughah ? `${lughahDone}/4 lengkap` : "Belum ada data"}
+              ring={lughah ? (lughahDone / 4) * 100 : null}
+              offset={0}
+            />
+            <Connector shift={-28} />
+            <PathNode
+              q="q-riyadhah"
+              to="/santri/team"
+              icon={Volleyball}
+              label="Riyadhah"
+              sub={myTeam ? `Peringkat ${myRow + 1}` : "Tim & laga"}
+              offset={-56}
+            />
+          </div>
+        </section>
       </div>
 
-      <div className="gap-4 grid lg:grid-cols-3">
+      {/* ============ KOLOM SAMPING ============ */}
+      <div className="space-y-6 min-w-0">
         <Card className="p-5">
-          <p className="font-semibold text-[11px] text-slate-500 text-center uppercase tracking-widest">
-            Skor Kepatuhan Ibadah
+          <p className="font-extrabold text-[11px] text-fg-3 text-center uppercase tracking-widest">
+            Skor kepatuhan ibadah
           </p>
           <div className="mt-4">
-            <ComplianceRing score={score} />
+            <Ring value={score} color={score >= 80 ? "var(--color-brand)" : score >= 60 ? "#f59e0b" : "#ef4444"}>
+              <div>
+                <p className="font-display text-fg text-4xl leading-none" style={{ fontWeight: 900 }}>
+                  {score}
+                </p>
+                <p className="mt-1 font-bold text-[10px] text-fg-3 uppercase tracking-widest">dari 100</p>
+              </div>
+            </Ring>
           </div>
-          <p className="mt-3 text-slate-500 text-xs text-center">
-            Dihitung dari poin aktif saat ini ({fmtNum(activePts)} poin)
+          <p className="mt-3 font-semibold text-fg-3 text-xs text-center">
+            Dihitung dari {fmtNum(activePts)} poin aktif
           </p>
-          <div className="flex flex-wrap justify-center gap-2 mt-4 pt-4 border-white/[0.06] border-t">
-            {Object.entries(summary).length === 0 && (
-              <span className="text-slate-600 text-xs">
-                Belum ada aktivitas tercatat bulan ini
-              </span>
+          <div className="flex flex-wrap justify-center gap-1.5 mt-4 pt-4 border-line border-t-2">
+            {Object.keys(summary).length === 0 && (
+              <span className="font-semibold text-fg-3 text-xs">Belum ada aktivitas bulan ini</span>
             )}
             {Object.entries(summary).map(([k, n]) => {
               const m = ACT_META[k] ?? { icon: Flag, label: k };
               return (
-                <Badge key={k} tone="emerald">
+                <Badge key={k} tone="brand">
                   <m.icon size={11} /> {m.label} {fmtNum(n)}×
                 </Badge>
               );
@@ -228,320 +450,96 @@ export default function SantriDashboard() {
           </div>
         </Card>
 
-        <div className="gap-4 grid grid-cols-2 lg:col-span-2">
-          <StatCard
-            label="Poin Aktif"
-            value={fmtNum(activePts)}
-            icon={Flag}
-            tone={activePts > 0 ? "rose" : "emerald"}
-            sub="Poin yang sedang berjalan"
-          />
-          <StatCard
-            label="Poin Pekan Ini"
-            value={fmtNum(weekPts)}
-            icon={Flag}
-            tone="amber"
-          />
-          <StatCard
-            label="Poin Bulan Ini"
-            value={fmtNum(monthPts)}
-            icon={Flag}
-            tone="amber"
-          />
-          <StatCard
-            label="Pelanggaran Aktif"
-            value={fmtNum(open.length)}
-            icon={Flag}
-            sub={`${violations.length} total tercatat`}
-          />
-          <StatCard
-            label="Laporan Berjalan"
-            value={fmtNum(pendingReports)}
-            icon={MessageSquareWarning}
-            tone="sky"
-          />
-          <Link to="/santri/leaderboard" className="block">
-            <Card className="p-4 hover:border-brand/30 h-full transition-colors">
-              <div className="flex flex-col justify-between h-full">
-                <Trophy size={18} className="text-brand-soft" />
-                <div className="mt-3">
-                  <p className="font-display font-semibold text-slate-100 text-sm">
-                    Papan Peringkat Nakal
-                  </p>
-                  <p className="mt-0.5 text-slate-500 text-xs">
-                    Top 10 poin pelanggaran bulan ini
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </Link>
-        </div>
-      </div>
+        {league && (
+          <Card>
+            <CardHeader
+              title="Klasemen Liga"
+              description={`${league.ctx.phase_name} · ${league.ctx.season_name}`}
+              actions={
+                <Link to="/santri/standings" className="btn btn-ghost btn-sm">
+                  Lengkap <ChevronRight size={14} />
+                </Link>
+              }
+            />
+            {league.rows.length === 0 ? (
+              <EmptyState icon={Volleyball} title="Belum ada laga resmi" />
+            ) : (
+              <ul className="divide-y-2 divide-line">
+                {league.rows.slice(0, 5).map((r, i) => {
+                  const mine = r.team_id === league.myTeamId;
+                  return (
+                    <li
+                      key={r.team_id}
+                      className={`flex items-center gap-3 px-4 py-3 ${mine ? "bg-tint" : ""}`}>
+                      <span
+                        className={`grid size-7 place-items-center rounded-full text-xs font-black ${
+                          i === 0 ? "bg-gold text-[#3b2a00]" : "bg-soft-2 text-fg-3"
+                        }`}>
+                        {i + 1}
+                      </span>
+                      <p className="flex-1 min-w-0 font-extrabold text-fg text-sm truncate">
+                        {r.name}
+                        {mine && (
+                          <span className="bg-brand ml-2 px-1.5 py-0.5 rounded-full font-extrabold text-[9px] text-on-brand uppercase tracking-wider">
+                            Timku
+                          </span>
+                        )}
+                      </p>
+                      <span className="font-display font-black text-fg text-sm">{fmtNum(r.points)}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Card>
+        )}
 
-      {/* ---------- KLASMEN LIGA ---------- */}
-      {league && (
         <Card>
           <CardHeader
-            title={`Klasemen Liga — ${league.ctx.phase_name} · ${league.ctx.season_name}`}
-            description="Hanya dari pertandingan resmi"
+            title="Catatan terbaru"
             actions={
-              <Link to="/santri/standings">
-                <Button size="sm" variant="ghost" icon={ChevronRight}>
-                  Lengkap
-                </Button>
+              <Link to="/santri/violations" className="btn btn-ghost btn-sm">
+                Semua <ChevronRight size={14} />
               </Link>
             }
           />
-          {league.rows.length === 0 ? (
-            <EmptyState icon={Volleyball} title="Belum ada laga resmi" />
+          {recent.length === 0 ? (
+            <EmptyState icon={Flag} title="Belum ada pelanggaran" description="Tetap jaga disiplin ibadahmu. Barakallah." />
           ) : (
-            <ul className="divide-y divide-white/[0.04]">
-              {league.rows.slice(0, 5).map((r, i) => (
-                <li
-                  key={r.team_id}
-                  className={`flex items-center gap-3 px-5 py-2.5 ${r.team_id === league.myTeamId ? "bg-brand/[0.06]" : ""}`}>
-                  <span
-                    className={`w-6 shrink-0 font-mono text-xs ${i < 3 ? "font-bold text-brand-soft" : "text-slate-500"}`}>
-                    {i + 1}
-                  </span>
-                  <p className="flex-1 min-w-0 text-slate-200 text-sm truncate">
-                    {r.name}
-                    {r.team_id === league.myTeamId && (
-                      <span className="bg-brand/10 ml-2 px-1.5 py-0.5 border border-brand/30 rounded text-[10px] text-brand-soft uppercase tracking-wider">
-                        Timku
-                      </span>
-                    )}
-                  </p>
-                  <span className="hidden sm:block text-slate-500 text-xs">
-                    {r.played} laga
-                  </span>
-                  <span className="font-mono font-semibold text-brand-soft text-sm">
-                    {fmtNum(r.points)}
-                  </span>
+            <ul className="divide-y-2 divide-line">
+              {recent.map((v) => (
+                <li key={v.id} className="px-4 py-3">
+                  <div className="flex justify-between items-start gap-2">
+                    <p className="font-extrabold text-fg text-sm leading-snug">{v.rule?.name}</p>
+                    <Badge tone="rose">+{v.rule?.points}</Badge>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                    <span className="font-semibold text-fg-3 text-xs">{fmtDate(v.occurred_at)}</span>
+                    <ViolationStatusBadge status={v.status} />
+                  </div>
                 </li>
               ))}
             </ul>
           )}
-          <div className="px-5 py-3 border-white/[0.06] border-t">
-            <Link
-              to="/santri/standings"
-              className="text-brand-soft text-xs hover:underline">
-              Lihat klasemen lengkap, top skor &amp; kiper terbaik →
-            </Link>
-          </div>
-        </Card>
-      )}
-
-      {/* ---------- NADZHOFah & LUGHAH (2 kartu baru) ---------- */}
-      <div className="gap-4 grid lg:grid-cols-2">
-        {/* Nadzhofah */}
-        <Card>
-          <CardHeader
-            title="Qism Nadzhofah"
-            description="Riwayat nyeker & baju disitamu"
-            actions={<Footprints size={15} className="text-brand-soft" />}
-          />
-          <div className="gap-3 grid grid-cols-2 p-5">
-            <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl text-center">
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider">
-                Nyeker
-              </p>
-              <p
-                className={`mt-1 font-display text-xl font-bold ${nyeker && nyeker.length > 0 ? "text-rose-300" : "text-emerald-300"}`}>
-                {nyeker ? nyeker.length : 0}
-              </p>
-            </div>
-            <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl text-center">
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider">
-                Denda Belum Lunas
-              </p>
-              <p className="mt-1 font-mono font-bold text-amber-300 text-sm">
-                {nyeker
-                  ? `Rp ${fmtNum(nyeker.filter((r) => !r.fine_paid).reduce((s, r) => s + (r.fine_amount ?? 5000), 0))}`
-                  : "Rp 0"}
-              </p>
-            </div>
-          </div>
-          <div className="px-5 pb-5">
-            <Link to="/santri/nadzhofah">
-              <Button
-                variant="secondary"
-                size="sm"
-                icon={ChevronRight}
-                className="w-full">
-                Lihat Riwayat &amp; Peringkat
-              </Button>
-            </Link>
-          </div>
         </Card>
 
-        {/* Lughah */}
-        <Card>
-          <CardHeader
-            title="Qism Lughah"
-            description="Kelengkapan ujian & nilai"
-            actions={<BookOpenCheck size={15} className="text-brand-soft" />}
-          />
-          <div className="p-5 pb-0">
-            {lughah ? (
-              <>
-                <div className="flex justify-between items-center mb-3">
-                  <p className="font-medium text-slate-200 text-sm">
-                    Status Kelengkapan
-                  </p>
-                  {lughah.is_complete ? (
-                    <Badge tone="emerald">Lengkap</Badge>
-                  ) : (
-                    <Badge tone="amber">Belum Lengkap</Badge>
-                  )}
-                </div>
-                <ul className="space-y-1.5">
-                  {[
-                    ["sudah_setor", "Sudah setor"],
-                    ["sudah_tanda_tangan", "Sudah tanda tangan"],
-                    ["sudah_bawa_buku", "Sudah bawa buku"],
-                    ["sudah_lengkap_tulisan", "Sudah lengkap tulisan"],
-                  ].map(([k, l]) => (
-                    <li key={k} className="flex items-center gap-2 text-xs">
-                      <span
-                        className={`size-1.5 rounded-full ${lughah[k] ? "bg-emerald-400" : "bg-slate-600"}`}
-                      />
-                      <span
-                        className={
-                          lughah[k] ? "text-slate-300" : "text-slate-500"
-                        }>
-                        {l}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex justify-between items-center mt-3 pt-3 border-white/[0.06] border-t">
-                  <span className="text-slate-500 text-xs">Nilai</span>
-                  {lughah.score != null ? (
-                    <span
-                      className={`font-mono text-lg font-bold ${lughah.score >= 75 ? "text-emerald-300" : lughah.score >= 60 ? "text-amber-300" : "text-rose-300"}`}>
-                      {lughah.score}
-                    </span>
-                  ) : (
-                    <span className="text-slate-600 text-xs">
-                      Belum dinilai
-                    </span>
-                  )}
-                </div>
-              </>
-            ) : (
-              <p className="py-4 text-slate-500 text-xs text-center italic">
-                Belum ada data kelengkapan untuk pekan ujian ini.
-              </p>
-            )}
-          </div>
-          <div className="px-5 pb-5">
-            <Link to="/santri/lughah">
-              <Button
-                variant="secondary"
-                size="sm"
-                icon={ChevronRight}
-                className="w-full">
-                Lihat Detail Lengkap
-              </Button>
-            </Link>
-          </div>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader
-          title="Pelanggaran Terbaru"
-          description="5 catatan terakhir pada namamu"
-          actions={
-            <Link to="/santri/violations">
-              <Button size="sm" variant="ghost" icon={ChevronRight}>
-                Riwayat lengkap
-              </Button>
-            </Link>
-          }
-        />
-        {recent.length === 0 ? (
-          <EmptyState
-            icon={Flag}
-            title="Belum ada pelanggaran"
-            description="Tetap jaga kedisiplinan ibadahmu. Barakallah."
-          />
-        ) : (
-          <ul className="divide-y divide-white/[0.04]">
-            {recent.map((v) => (
-              <li
-                key={v.id}
-                className="flex flex-wrap items-center gap-3 px-5 py-3.5">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-slate-200 text-sm truncate">
-                    {v.rule?.name}
-                  </p>
-                  <p className="text-slate-500 text-xs">
-                    {fmtDate(v.occurred_at)} · {v.rule?.category}
-                  </p>
-                </div>
-                <Badge tone="rose">+{v.rule?.points} poin</Badge>
-                <ViolationStatusBadge status={v.status} />
-                {OPEN_STATUSES.includes(v.status) &&
-                  (openReportViolationIds.has(v.id) ? (
-                    <Badge tone="sky">Klarifikasi diajukan</Badge>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => setReportTarget(v)}>
-                      Klarifikasi
-                    </Button>
-                  ))}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
-
-      <div className="gap-3 grid grid-cols-2 lg:grid-cols-3">
-        {[
-          {
-            to: "/santri/reports",
-            icon: MessageSquareWarning,
-            title: "Laporan Saya",
-            desc: "Pantau status klarifikasi",
-          },
-          {
-            to: "/santri/team",
-            icon: Volleyball,
-            title: "Tim Saya & Liga",
-            desc: "Klasemen, top skor, kiper",
-          },
-          {
-            to: "/santri/recap",
-            icon: FileBarChart,
-            title: "Rekap Pribadi",
-            desc: "Ringkasan per periode",
-          },
-        ].map((c) => (
-          <Link key={c.to} to={c.to}>
-            <Card className="flex items-center gap-3 p-4 hover:border-brand/30 transition-colors">
-              <span className="place-items-center grid bg-white/[0.03] border border-white/[0.07] rounded-lg size-9 text-brand-soft shrink-0">
-                <c.icon size={16} />
-              </span>
-              <div className="min-w-0">
-                <p className="font-medium text-slate-200 text-sm truncate">
-                  {c.title}
-                </p>
-                <p className="text-slate-500 text-xs truncate">{c.desc}</p>
-              </div>
-            </Card>
+        <div className="gap-3 grid grid-cols-2">
+          <Link to="/santri/recap" className="p-4 card-press">
+            <p className="font-extrabold text-fg text-sm">Rekap pribadi</p>
+            <p className="mt-0.5 font-semibold text-fg-3 text-xs">Ringkasan per periode</p>
           </Link>
-        ))}
+          <Link to="/santri/reports" className="p-4 card-press">
+            <p className="font-extrabold text-fg text-sm">Laporanku</p>
+            <p className="mt-0.5 font-semibold text-fg-3 text-xs">Status klarifikasi</p>
+          </Link>
+        </div>
       </div>
 
       <ReportModal
         open={!!reportTarget}
         violation={reportTarget}
         onClose={() => setReportTarget(null)}
-        onSubmitted={load}
+        onSubmitted={refresh}
       />
     </div>
   );

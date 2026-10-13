@@ -189,10 +189,10 @@ export function ZikirSessionFormModal({ open, onClose, onSaved, session }) {
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Avatar name={selectedLeader.full_name} size="sm" />
                   <div className="min-w-0">
-                    <p className="font-medium text-slate-100 text-sm truncate">
+                    <p className="font-medium text-fg text-sm truncate">
                       {selectedLeader.full_name}
                     </p>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[11px] text-fg-3">
                       {selectedLeader.class_name}
                     </p>
                   </div>
@@ -201,7 +201,7 @@ export function ZikirSessionFormModal({ open, onClose, onSaved, session }) {
                   type="button"
                   onClick={clearLeader}
                   aria-label="Hapus pilihan imam"
-                  className="place-items-center grid hover:bg-white/10 rounded-md size-7 text-slate-400 hover:text-slate-200 transition-colors shrink-0">
+                  className="place-items-center grid hover:bg-soft-2 rounded-md size-7 text-fg-2 hover:text-fg transition-colors shrink-0">
                   <X size={14} />
                 </button>
               </div>
@@ -210,7 +210,7 @@ export function ZikirSessionFormModal({ open, onClose, onSaved, session }) {
                 <div className="relative">
                   <Search
                     size={14}
-                    className="top-1/2 left-3 absolute text-slate-500 -translate-y-1/2"
+                    className="top-1/2 left-3 absolute text-fg-3 -translate-y-1/2"
                   />
                   <Input
                     value={leaderQuery}
@@ -225,9 +225,9 @@ export function ZikirSessionFormModal({ open, onClose, onSaved, session }) {
                   />
                 </div>
                 {leaderOpen && leaderQuery !== "" && (
-                  <div className="z-10 absolute bg-ink-800 shadow-card mt-1 border border-white/10 rounded-lg w-full max-h-52 overflow-y-auto">
+                  <div className="z-10 absolute bg-soft shadow-card mt-1 border border-line rounded-lg w-full max-h-52 overflow-y-auto">
                     {leaderSuggestions.length === 0 && (
-                      <p className="px-3 py-2.5 text-slate-500 text-xs">
+                      <p className="px-3 py-2.5 text-fg-3 text-xs">
                         Tidak ada santri yang cocok.
                       </p>
                     )}
@@ -236,13 +236,13 @@ export function ZikirSessionFormModal({ open, onClose, onSaved, session }) {
                         type="button"
                         key={s.id}
                         onClick={() => pickLeader(s)}
-                        className="flex items-center gap-2.5 hover:bg-white/5 px-3 py-2 w-full text-left transition-colors">
+                        className="flex items-center gap-2.5 hover:bg-soft-2 px-3 py-2 w-full text-left transition-colors">
                         <Avatar name={s.full_name} size="sm" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-slate-200 text-sm truncate">
+                          <p className="text-fg text-sm truncate">
                             {s.full_name}
                           </p>
-                          <p className="text-[11px] text-slate-500">
+                          <p className="text-[11px] text-fg-3">
                             {s.class_name}
                           </p>
                         </div>

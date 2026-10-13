@@ -24,9 +24,9 @@ function Switch({ checked, onChange }) {
       role="switch"
       aria-checked={checked}
       onClick={onChange}
-      className={`relative h-5 w-9 rounded-full border transition-colors ${checked ? "border-brand/40 bg-brand/30" : "border-white/10 bg-white/[0.06]"}`}>
+      className={`relative h-5 w-9 rounded-full border transition-colors ${checked ? "border-brand bg-brand" : "border-line-2 bg-soft-2"}`}>
       <span
-        className={`absolute top-1/2 size-3.5 -translate-y-1/2 rounded-full transition-all ${checked ? "left-[18px] bg-brand-soft" : "left-[3px] bg-slate-400"}`}
+        className={`absolute top-1/2 size-3.5 -translate-y-1/2 rounded-full transition-all ${checked ? "left-[18px] bg-white" : "left-[3px] bg-fg-4"}`}
       />
     </button>
   );
@@ -120,16 +120,16 @@ export default function RulesManagement({ scope = "ibadah" }) {
                   title={cat}
                   description={`${list.length} aturan · ${list.filter((r) => r.is_active).length} aktif`}
                 />
-                <ul className="divide-y divide-white/[0.04]">
+                <ul className="divide-y divide-line">
                   {list.map((rule) => (
                     <li
                       key={rule.id}
                       className="flex flex-wrap items-center gap-3 px-5 py-3.5">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-200 text-sm">
+                        <p className="font-medium text-fg text-sm">
                           {rule.name}
                         </p>
-                        <p className="text-slate-500 text-xs truncate">
+                        <p className="text-fg-3 text-xs truncate">
                           {rule.description || "—"}
                         </p>
                       </div>

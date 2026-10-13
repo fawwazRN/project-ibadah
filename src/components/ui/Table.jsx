@@ -6,16 +6,15 @@ export const Table = ({ children }) => (
 );
 export const Th = ({ children, className = "" }) => (
   <th
-    className={`whitespace-nowrap border-b border-white/[0.07] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500 ${className}`}>
+    className={`whitespace-nowrap border-b border-line bg-soft/70 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-fg-3 ${className}`}>
     {children}
   </th>
 );
 export const Td = ({ children, className = "" }) => (
-  <td
-    className={`border-b border-white/[0.04] px-4 py-3 align-middle ${className}`}>
+  <td className={`border-b border-line/70 px-4 py-3 align-middle ${className}`}>
     {children}
   </td>
 );
 export const Tr = ({ children }) => (
-  <tr className="hover:bg-white/[0.02] transition-colors">{children}</tr>
+  <tr className="hover:bg-soft transition-colors">{children}</tr>
 );

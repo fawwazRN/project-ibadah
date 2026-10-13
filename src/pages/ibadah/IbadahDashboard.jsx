@@ -1,181 +1,184 @@
-import { useCallback, useEffect, useState } from "react";
-import { Flag, Plus } from "lucide-react";
-import { Card } from "../../components/ui/Card";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  AlertTriangle,
+  CalendarDays,
+  Flag,
+  MessageSquareWarning,
+  Plus,
+  Users,
+} from "lucide-react";
+import { Card, CardHeader } from "../../components/ui/Card";
 import { PageHeader } from "../../components/ui/PageHeader";
+import { StatCard } from "../../components/ui/StatCard";
 import { Badge } from "../../components/ui/Badge";
-import { Button } from "../../components/ui/Button";
-import { Select } from "../../components/ui/Field";
-import { TableWrap, Table, Th, Td, Tr } from "../../components/ui/Table";
+import { Avatar } from "../../components/ui/Avatar";
 import {
   LoadingState,
   ErrorState,
   EmptyState,
 } from "../../components/ui/States";
+import { AreaPerDay } from "../../components/dashboard/Charts";
 import { ViolationStatusBadge } from "../../components/violations/StatusBadge";
-import { ViolationFormModal } from "../../components/violations/ViolationFormModal";
-import { ViolationDetailModal } from "../../components/violations/ViolationDetailModal";
 import { violationService } from "../../services/violationService";
-import { ruleService } from "../../services/ruleService";
-import { fmtOccurred } from "../../lib/date";
-import InvitationCard from "../../components/event/InvitationCard";
+import { reportService } from "../../services/reportService";
+import {
+  OPEN_STATUSES,
+  fmtNum,
+  pointsInRange,
+  seriesPerDay,
+  sumPoints,
+} from "../../lib/calc";
+import { endOfDay, fmtOccurred, startOfDay, startOfMonth, startOfWeek } from "../../lib/date";
 
-export default function ViolationsManagement() {
+// Dashboard Qism Ibadah: dari "apa yang perlu ditindak" → tren → siapa yang perlu didampingi.
+export default function IbadahDashboard() {
   const [violations, setViolations] = useState(null);
-  const [rules, setRules] = useState([]);
+  const [reports, setReports] = useState([]);
   const [error, setError] = useState(null);
-  const [fStatus, setFStatus] = useState("");
-  const [fClass, setFClass] = useState("");
-  const [fRule, setFRule] = useState("");
-  const [formOpen, setFormOpen] = useState(false);
-  const [detail, setDetail] = useState(null);
 
   const load = useCallback(() => {
     setError(null);
-    Promise.all([violationService.list(), ruleService.list()])
+    Promise.all([violationService.list(), reportService.listAll()])
       .then(([v, r]) => {
         setViolations(v);
-        setRules(r);
+        setReports(r);
       })
       .catch((e) => setError(e.message));
   }, []);
   useEffect(load, [load]);
 
+  const d = useMemo(() => {
+    if (!violations) return null;
+    const scoped = violations.filter((v) => v.rule?.scope === "ibadah");
+    const now = new Date();
+    const today = scoped.filter(
+      (v) => new Date(v.occurred_at) >= startOfDay() && new Date(v.occurred_at) <= endOfDay(),
+    );
+    const weekPts = pointsInRange(scoped, [startOfWeek(), now]);
+    const month = scoped.filter(
+      (v) => v.status !== "revoked" && new Date(v.occurred_at) >= startOfMonth(),
+    );
+    // santri dengan poin aktif terbanyak
+    const by = new Map();
+    for (const v of scoped.filter((x) => OPEN_STATUSES.includes(x.status))) {
+      const id = v.santri?.id ?? v.santri_id;
+      const cur = by.get(id) ?? { name: v.santri?.full_name, cls: v.santri?.class_name, pts: 0, n: 0 };
+      cur.pts += v.rule?.points ?? 0;
+      cur.n += 1;
+      by.set(id, cur);
+    }
+    const attention = [...by.values()].sort((a, b) => b.pts - a.pts).slice(0, 5);
+    const pending = reports.filter((r) => ["pending", "reviewing"].includes(r.status));
+    return {
+      scoped,
+      todayN: today.length,
+      weekPts,
+      monthStudents: new Set(month.map((v) => v.santri?.id ?? v.santri_id)).size,
+      attention,
+      pending,
+      series: seriesPerDay(scoped, 14),
+      latest: scoped.slice(0, 6),
+      openPts: sumPoints(scoped.filter((v) => OPEN_STATUSES.includes(v.status))),
+    };
+  }, [violations, reports]);
+
   if (error) return <ErrorState message={error} onRetry={load} />;
-  if (!violations) return <LoadingState rows={8} />;
-
-  // ---------- FILTER SCOPE: hanya pelanggaran ranah Ibadah ----------
-  const scoped = violations.filter((v) => v.rule?.scope === "ibadah");
-
-  const classes = [
-    ...new Set(scoped.map((v) => v.santri?.class_name).filter(Boolean)),
-  ].sort();
-  // Dropdown filter aturan juga hanya aturan ranah Ibadah
-  const ibadahRules = rules.filter((r) => r.scope === "ibadah");
-
-  const list = scoped.filter(
-    (v) =>
-      (!fStatus || v.status === fStatus) &&
-      (!fClass || v.santri?.class_name === fClass) &&
-      (!fRule || v.rule_id === fRule),
-  );
+  if (!d) return <LoadingState rows={7} />;
 
   return (
-    <div className="animate-fade-up">
+    <div className="space-y-5">
       <PageHeader
-        title="Manajemen Pelanggaran"
-        description="Catat, tinjau, dan kelola pelanggaran ranah Qism Ibadah."
+        title="Dashboard Ibadah"
+        description="Ringkasan pelanggaran ranah Ibadah dan hal yang perlu ditindak."
         actions={
-          <Button
-            variant="primary"
-            icon={Plus}
-            onClick={() => setFormOpen(true)}>
-            Catat Pelanggaran
-          </Button>
+          <Link to="/ibadah/violations?new=1" className="btn btn-primary btn-md">
+            <Plus size={16} strokeWidth={2.4} /> Catat pelanggaran
+          </Link>
         }
       />
 
-      <div className="gap-3 grid sm:grid-cols-3 mb-4">
-        <Select
-          value={fStatus}
-          onChange={(e) => setFStatus(e.target.value)}
-          placeholder="Semua status"
-          options={[
-            ["active", "Aktif"],
-            ["reported", "Dilaporkan"],
-            ["under_review", "Ditinjau"],
-            ["confirmed", "Terbukti"],
-            ["revoked", "Dibatalkan"],
-          ].map(([v, l]) => ({ value: v, label: l }))}
-        />
-        <Select
-          value={fClass}
-          onChange={(e) => setFClass(e.target.value)}
-          placeholder="Semua kelas"
-          options={classes.map((c) => ({ value: c, label: `Kelas ${c}` }))}
-        />
-        <Select
-          value={fRule}
-          onChange={(e) => setFRule(e.target.value)}
-          placeholder="Semua aturan"
-          options={ibadahRules.map((r) => ({ value: r.id, label: r.name }))}
+      {d.pending.length > 0 && (
+        <Link
+          to="/ibadah/reports"
+          className="flex items-center gap-3 bg-amber-50 hover:bg-amber-100/70 px-4 py-3 border border-amber-300/60 rounded-xl transition-colors">
+          <AlertTriangle size={18} className="text-amber-700 shrink-0" />
+          <p className="flex-1 font-semibold text-amber-900 text-sm">
+            {d.pending.length} laporan klarifikasi menunggu tinjauanmu.
+          </p>
+          <span className="font-bold text-amber-800 text-xs">Tinjau →</span>
+        </Link>
+      )}
+
+      <div className="gap-4 grid grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Hari ini" value={fmtNum(d.todayN)} icon={Flag} tone="rose" sub="pelanggaran tercatat" />
+        <StatCard label="Poin pekan ini" value={fmtNum(d.weekPts)} icon={CalendarDays} tone="amber" />
+        <StatCard label="Santri bulan ini" value={fmtNum(d.monthStudents)} icon={Users} sub="berpelanggaran" />
+        <StatCard
+          label="Laporan menunggu"
+          value={fmtNum(d.pending.length)}
+          icon={MessageSquareWarning}
+          tone={d.pending.length ? "amber" : "emerald"}
         />
       </div>
 
+      <div className="gap-4 grid lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader title="Tren 14 hari" description="Jumlah pelanggaran per hari" />
+          <div className="p-4">
+            <AreaPerDay data={d.series} />
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader title="Perlu didampingi" description="Poin aktif terbanyak" />
+          {d.attention.length === 0 ? (
+            <EmptyState icon={Users} title="Tidak ada poin aktif" />
+          ) : (
+            <ul className="divide-y divide-line">
+              {d.attention.map((s, i) => (
+                <li key={`${s.name}-${i}`} className="flex items-center gap-3 px-4 py-2.5">
+                  <Avatar name={s.name ?? ""} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-fg text-[13px] truncate">{s.name}</p>
+                    <p className="text-fg-3 text-xs">Kelas {s.cls} · {s.n} kasus</p>
+                  </div>
+                  <Badge tone="rose">{s.pts} poin</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+
       <Card>
-        {list.length === 0 ? (
-          <EmptyState
-            icon={Flag}
-            title="Tidak ada pelanggaran"
-            description="Belum ada data ranah Ibadah pada filter ini."
-          />
+        <CardHeader
+          title="Pelanggaran terbaru"
+          actions={
+            <Link to="/ibadah/violations" className="btn btn-secondary btn-sm">
+              Kelola semua
+            </Link>
+          }
+        />
+        {d.latest.length === 0 ? (
+          <EmptyState icon={Flag} title="Belum ada pelanggaran" />
         ) : (
-          <TableWrap>
-            <Table>
-              <thead>
-                <tr>
-                  <Th>Waktu</Th>
-                  <Th>Santri</Th>
-                  <Th>Aturan</Th>
-                  <Th>Poin</Th>
-                  <Th>Status</Th>
-                  <Th>Catatan</Th>
-                  <Th className="text-right">Aksi</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.slice(0, 100).map((v) => (
-                  <Tr key={v.id}>
-                    <Td className="text-slate-400 whitespace-nowrap">
-                      {fmtOccurred(v)}
-                    </Td>
-                    <Td>
-                      <p className="font-medium text-slate-200">
-                        {v.santri?.full_name}
-                      </p>
-                      <p className="text-slate-500 text-xs">
-                        Kelas {v.santri?.class_name}
-                      </p>
-                    </Td>
-                    <Td className="text-slate-300">{v.rule?.name}</Td>
-                    <Td>
-                      <Badge tone="rose">+{v.rule?.points}</Badge>
-                    </Td>
-                    <Td>
-                      <ViolationStatusBadge status={v.status} />
-                    </Td>
-                    <Td className="max-w-[180px] text-slate-500 text-xs truncate">
-                      {v.note || "—"}
-                    </Td>
-                    <Td className="text-right">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setDetail(v)}>
-                        Kelola
-                      </Button>
-                    </Td>
-                  </Tr>
-                ))}
-              </tbody>
-            </Table>
-          </TableWrap>
+          <ul className="divide-y divide-line">
+            {d.latest.map((v) => (
+              <li key={v.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
+                <div className="flex-1 min-w-[160px]">
+                  <p className="font-semibold text-fg text-[13px]">{v.santri?.full_name}</p>
+                  <p className="text-fg-3 text-xs">
+                    {v.rule?.name} · {fmtOccurred(v)}
+                  </p>
+                </div>
+                <Badge tone="rose">+{v.rule?.points}</Badge>
+                <ViolationStatusBadge status={v.status} />
+              </li>
+            ))}
+          </ul>
         )}
       </Card>
-
-      {/* Form terkunci ke aturan scope ibadah + input waktu shalat */}
-      <ViolationFormModal
-        open={formOpen}
-        scope="ibadah"
-        onClose={() => setFormOpen(false)}
-        onSaved={load}
-      />
-      <ViolationDetailModal
-        violation={detail}
-        open={!!detail}
-        canManage
-        onClose={() => setDetail(null)}
-        onChanged={load}
-      />
     </div>
   );
 }

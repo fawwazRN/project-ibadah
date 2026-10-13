@@ -1,28 +1,36 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import {
-  LogIn,
-  UserPlus,
-  MailCheck,
+  BookOpenCheck,
+  Download,
   Eye,
   Flag,
-  Volleyball,
   Footprints,
-  BookOpenCheck,
+  MailCheck,
+  Volleyball,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../hooks/useToast";
+import { useShell } from "../../hooks/useShell";
+import { useInstallPrompt } from "../../hooks/useInstallPrompt";
 import { Button } from "../../components/ui/Button";
 import { Field, Input } from "../../components/ui/Field";
-import { BrandMark } from "../../components/ui/BrandMark";
+import { Mascot } from "../../components/ui/Mascot";
 import { entryPath } from "../../routes/AppRoutes";
 
-const EMAIL_DOMAIN = "@student.abudzar.sch.id";
+const QISM = [
+  { icon: Flag, name: "Ibadah", q: "q-ibadah" },
+  { icon: Footprints, name: "Nadzhofah", q: "q-nadzhofah" },
+  { icon: BookOpenCheck, name: "Lughah", q: "q-lughah" },
+  { icon: Volleyball, name: "Riyadhah", q: "q-riyadhah" },
+];
 
 export default function LoginPage() {
+  useShell({ skin: "play", qism: null, themeColor: "#ffffff" });
   const { session, profile, booting, signIn, signUp, enterGuest } = useAuth();
   const { push } = useToast();
   const navigate = useNavigate();
+  const { canInstall, install, iosHint } = useInstallPrompt();
 
   const [tab, setTab] = useState("login");
   const [email, setEmail] = useState("");
@@ -38,11 +46,17 @@ export default function LoginPage() {
     return <Navigate to={entryPath(profile.role)} replace />;
   }
 
+  const switchTab = (k) => {
+    setTab(k);
+    setFormError("");
+    setNeedVerify(false);
+    setErrors({});
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     const errs = {};
-    if (!/^\S+@\S+\.\S+$/.test(email))
-      errs.email = "Masukkan email yang valid.";
+    if (!/^\S+@\S+\.\S+$/.test(email)) errs.email = "Masukkan email yang valid.";
     if (password.length < 6) errs.password = "Kata sandi minimal 6 karakter.";
     setErrors(errs);
     setFormError("");
@@ -58,9 +72,7 @@ export default function LoginPage() {
         const res = await signUp(email.trim().toLowerCase(), password);
         if (res.verified) {
           push("success", "Akun berhasil dibuat");
-          navigate(res.profile ? entryPath(res.profile.role) : "/claim", {
-            replace: true,
-          });
+          navigate(res.profile ? entryPath(res.profile.role) : "/claim", { replace: true });
         } else {
           setNeedVerify(true);
         }
@@ -73,160 +85,84 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex bg-ink-950 min-h-screen">
-      {/* Panel brand — satu kolom penuh, kartu divisi */}
-      <div className="hidden relative lg:flex flex-col justify-between bg-lattice p-12 w-[46%]">
-        <div className="flex items-center gap-3.5">
-          <span className="place-items-center grid bg-brand/15 shadow-card border border-brand/25 rounded-2xl size-12 text-brand-soft">
-            <BrandMark className="size-7" />
+    <div className="flex bg-page min-h-dvh">
+      {/* Panel kiri (desktop) */}
+      <aside className="hidden relative lg:flex flex-col justify-between bg-brand p-12 w-[46%] overflow-hidden bg-lattice text-on-brand">
+        <div className="flex items-center gap-2">
+          <span className="font-display text-4xl" style={{ fontWeight: 900, letterSpacing: "-0.03em" }}>
+            osis
           </span>
-          <div>
-            <p className="font-display font-bold text-slate-50 text-lg tracking-tight">
-              OSIS Management
-            </p>
-            <p className="font-semibold text-[10px] text-slate-500 uppercase tracking-[0.25em]">
-              Sistem internal madrasah
-            </p>
-          </div>
         </div>
-
-        <div className="max-w-md">
-          <h1 className="font-display font-bold text-slate-50 text-4xl leading-[1.2]">
+        <div className="flex flex-col items-center text-center">
+          <Mascot mood="cheer" size={220} wave className="animate-float" />
+          <h1 className="mt-6 font-display text-4xl leading-tight" style={{ fontWeight: 900 }}>
             Empat qism,
             <br />
-            satu sistem.
+            satu aplikasi.
           </h1>
-          <p className="mt-4 text-slate-500 text-sm leading-relaxed">
-            Terpadu untuk seluruh kegiatan OSIS madrasah — dari ibadah hingga
-            liga dan akademik.
-          </p>
-
-          <div className="gap-3 grid mt-10">
-            {[
-              {
-                icon: Flag,
-                name: "Qism Ibadah",
-                desc: "Pelanggaran, poin & klarifikasi",
-              },
-              {
-                icon: Volleyball,
-                name: "Qism Riyadhah",
-                desc: "Liga, klasemen & suspensi",
-              },
-              {
-                icon: Footprints,
-                name: "Qism Nadzhofah",
-                desc: "Nyeker, denda & penyitaan",
-              },
-              {
-                icon: BookOpenCheck,
-                name: "Qism Lughah",
-                desc: "Kelengkapan ujian & nilai",
-              },
-            ].map((d) => (
-              <div
+          <div className="flex flex-wrap justify-center gap-2 mt-6">
+            {QISM.map((d) => (
+              <span
                 key={d.name}
-                className="flex items-center gap-4 bg-white/[0.025] shadow-card p-4 border border-white/[0.06] rounded-2xl">
-                <span className="place-items-center grid bg-brand/10 border border-brand/25 rounded-xl size-11 text-brand-soft shrink-0">
-                  <d.icon size={19} />
-                </span>
-                <div className="min-w-0">
-                  <p className="font-display font-bold text-slate-100 text-sm">
-                    {d.name}
-                  </p>
-                  <p className="text-slate-500 text-xs truncate">{d.desc}</p>
-                </div>
-              </div>
+                className={`${d.q} inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-extrabold`}
+                style={{ color: "var(--q-dim)" }}>
+                <d.icon size={16} strokeWidth={2.6} /> {d.name}
+              </span>
             ))}
           </div>
         </div>
-
-        <p className="text-slate-600 text-xs">
+        <p className="font-semibold text-white/80 text-xs">
           © {new Date().getFullYear()} OSIS · Penggunaan internal madrasah
         </p>
-      </div>
+      </aside>
 
       {/* Form */}
-      <div className="flex flex-1 justify-center items-center p-6">
+      <main className="flex flex-1 justify-center items-center p-5 safe-top safe-bottom">
         <div className="w-full max-w-sm">
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <span className="place-items-center grid bg-brand/10 border border-brand/25 rounded-xl size-10 text-brand-soft">
-              <BrandMark className="size-5" />
-            </span>
-            <div>
-              <p className="font-display font-bold text-slate-50">
-                OSIS Management
-              </p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em]">
-                Internal madrasah
-              </p>
-            </div>
+          <div className="lg:hidden flex flex-col items-center mb-6 text-center">
+            <Mascot mood="cheer" size={112} wave className="animate-float" />
+            <p className="mt-1 font-display text-brand-dim text-4xl" style={{ fontWeight: 900, letterSpacing: "-0.03em" }}>
+              osis
+            </p>
           </div>
 
-          <div className="gap-1 grid grid-cols-2 bg-white/[0.03] mb-6 p-1 border border-white/10 rounded-xl">
-            {[
-              ["login", "Masuk"],
-              ["daftar", "Daftar"],
-            ].map(([k, l]) => (
-              <button
-                key={k}
-                type="button"
-                onClick={() => {
-                  setTab(k);
-                  setFormError("");
-                  setNeedVerify(false);
-                  setErrors({});
-                }}
-                className={`rounded-lg py-2 text-sm font-medium transition-colors ${
-                  tab === k
-                    ? "bg-brand/15 text-brand-soft"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}>
-                {l}
-              </button>
-            ))}
+          <div className="mb-6 seg" role="group" aria-label="Pilih mode">
+            <button type="button" aria-pressed={tab === "login"} onClick={() => switchTab("login")}>
+              Masuk
+            </button>
+            <button type="button" aria-pressed={tab === "daftar"} onClick={() => switchTab("daftar")}>
+              Daftar
+            </button>
           </div>
 
-          {tab === "login" ? (
-            <>
-              <h2 className="font-display font-semibold text-slate-50 text-xl">
-                Masuk ke akun kamu
-              </h2>
-              <p className="mt-1 text-slate-500 text-sm">
-                Gunakan email dan kata sandi yang sudah terdaftar.
-              </p>
-            </>
-          ) : (
-            <>
-              <h2 className="font-display font-semibold text-slate-50 text-xl">
-                Buat akun baru
-              </h2>
-              <p className="mt-1 text-slate-500 text-sm">
-                Santri gunakan email sekolah. Admin harus memakai email yang sudah didaftarkan Super Admin. Setelah mendaftar, ikuti langkah verifikasi akun.
-              </p>
-            </>
-          )}
+          <h2 className="font-display text-fg text-2xl" style={{ fontWeight: 900 }}>
+            {tab === "login" ? "Selamat datang kembali!" : "Buat akunmu"}
+          </h2>
+          <p className="mt-1 font-semibold text-fg-3 text-sm leading-relaxed">
+            {tab === "login"
+              ? "Masuk dengan email dan kata sandimu."
+              : "Santri pakai email sekolah. Admin harus memakai email yang sudah didaftarkan Super Admin."}
+          </p>
 
           {needVerify && (
-            <div className="flex gap-2.5 bg-sky-400/[0.06] mt-5 p-3.5 border border-sky-400/20 rounded-xl text-sky-200 text-xs">
-              <MailCheck size={15} className="mt-0.5 shrink-0" />
+            <div className="flex gap-2.5 bg-sky-50 mt-5 p-3.5 border-2 border-sky-200 rounded-2xl font-semibold text-sky-800 text-xs">
+              <MailCheck size={16} className="mt-0.5 shrink-0" />
               <span>
-                Akun dibuat! Verifikasi email dulu lewat tautan yang dikirim,
-                lalu masuk kembali. (Atau matikan “Confirm email” di pengaturan
-                Supabase.)
+                Akun dibuat! Verifikasi email dulu lewat tautan yang dikirim, lalu masuk kembali.
               </span>
             </div>
           )}
 
-          <form onSubmit={submit} className="space-y-4 mt-6" noValidate>
+          <form onSubmit={submit} className="space-y-4 mt-5" noValidate>
             {formError && (
-              <p className="bg-rose-500/10 px-3 py-2 border border-rose-400/20 rounded-lg text-rose-300 text-xs">
+              <p className="bg-rose-50 px-3.5 py-2.5 border-2 border-rose-200 rounded-2xl font-bold text-rose-700 text-xs">
                 {formError}
               </p>
             )}
             <Field label="Email" required error={errors.email}>
               <Input
                 type="email"
+                inputMode="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@student.abudzar.sch.id"
@@ -239,38 +175,50 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Minimal 6 karakter"
-                autoComplete={
-                  tab === "login" ? "current-password" : "new-password"
-                }
+                autoComplete={tab === "login" ? "current-password" : "new-password"}
               />
             </Field>
-            <Button
-              type="submit"
-              variant="primary"
-              icon={tab === "login" ? LogIn : UserPlus}
-              loading={loading}
-              className="w-full">
+            <Button type="submit" variant="primary" size="lg" loading={loading}>
               {tab === "login" ? "Masuk" : "Daftar"}
             </Button>
 
-            {/* MODE TAMU */}
-            <button
+            <div className="flex items-center gap-3 text-fg-4">
+              <span className="flex-1 bg-line h-0.5" />
+              <span className="font-extrabold text-[11px] uppercase tracking-widest">atau</span>
+              <span className="flex-1 bg-line h-0.5" />
+            </div>
+
+            <Button
               type="button"
+              variant="secondary"
+              size="lg"
+              icon={Eye}
               onClick={() => {
                 enterGuest();
                 navigate(entryPath("guest"));
-              }}
-              className="flex justify-center items-center gap-2 bg-white/[0.03] hover:bg-white/[0.06] py-2.5 border border-white/10 rounded-lg w-full text-slate-400 hover:text-slate-200 text-sm transition-colors">
-              <Eye size={15} /> Masuk sebagai Tamu
-            </button>
+              }}>
+              Lihat sebagai tamu
+            </Button>
           </form>
 
-          <p className="mt-6 text-[11px] text-slate-600 text-center leading-relaxed">
-            Mode tamu hanya untuk melihat jadwal &amp; liga — tanpa data
-            pribadi.
+          <p className="mt-5 font-semibold text-[11px] text-fg-3 text-center leading-relaxed">
+            Mode tamu hanya menampilkan jadwal & liga — tanpa data pribadi.
           </p>
+
+          {canInstall && (
+            <button
+              onClick={install}
+              className="flex justify-center items-center gap-2 mt-4 py-2 w-full font-extrabold text-brand-dim text-xs">
+              <Download size={14} strokeWidth={2.6} /> Pasang di layar utama
+            </button>
+          )}
+          {iosHint && (
+            <p className="mt-4 font-semibold text-[11px] text-fg-3 text-center">
+              Di iPhone: ketuk <b>Bagikan</b> lalu <b>Tambah ke Layar Utama</b> agar terasa seperti aplikasi.
+            </p>
+          )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

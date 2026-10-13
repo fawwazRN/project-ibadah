@@ -137,7 +137,7 @@ export function ViolationFormModal({
   return (
     <Modal open={open} onClose={onClose} title="Catat Pelanggaran" size="md">
       {booting ? (
-        <p className="py-6 text-slate-500 text-sm text-center">Memuat…</p>
+        <p className="py-6 text-fg-3 text-sm text-center">Memuat…</p>
       ) : (
         <div className="space-y-4">
           <Field
@@ -152,7 +152,7 @@ export function ViolationFormModal({
                     type="button"
                     key={s.id}
                     onClick={() => toggle(s.id)}
-                    className="inline-flex items-center gap-1 bg-brand/15 px-2 py-1 border border-brand/30 hover:border-rose-400/50 rounded-full text-brand-soft text-xs transition-colors">
+                    className="inline-flex items-center gap-1 bg-brand/15 px-2 py-1 border border-brand/30 hover:border-rose-400/50 rounded-full text-brand-dim text-xs transition-colors">
                     {s.full_name}
                     <X size={11} />
                   </button>
@@ -160,7 +160,7 @@ export function ViolationFormModal({
                 <button
                   type="button"
                   onClick={() => setSelectedIds([])}
-                  className="px-2 py-1 text-slate-500 hover:text-rose-300 text-xs">
+                  className="px-2 py-1 text-fg-3 hover:text-rose-700 text-xs">
                   Kosongkan
                 </button>
               </div>
@@ -172,7 +172,7 @@ export function ViolationFormModal({
             />
             {classes.length > 0 && query === "" && (
               <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                <span className="text-[11px] text-slate-500">
+                <span className="text-[11px] text-fg-3">
                   Pilih satu kelas:
                 </span>
                 {classes.map((c) => (
@@ -182,16 +182,16 @@ export function ViolationFormModal({
                     onClick={() =>
                       addMany(santri.filter((s) => s.class_name === c))
                     }
-                    className="bg-violet-400/10 hover:bg-violet-400/20 px-2 py-0.5 border border-violet-400/25 rounded-md text-[11px] text-violet-300 transition-colors">
+                    className="bg-violet-400/10 hover:bg-violet-400/20 px-2 py-0.5 border border-violet-400/25 rounded-md text-[11px] text-violet-700 transition-colors">
                     {c}
                   </button>
                 ))}
               </div>
             )}
             {query !== "" && (
-              <div className="bg-ink-800 mt-1 border border-white/10 rounded-lg max-h-52 overflow-y-auto">
+              <div className="bg-soft mt-1 border border-line rounded-lg max-h-52 overflow-y-auto">
                 {filtered.length === 0 ? (
-                  <p className="px-3 py-2.5 text-slate-500 text-xs">
+                  <p className="px-3 py-2.5 text-fg-3 text-xs">
                     Tidak ditemukan.
                   </p>
                 ) : (
@@ -199,7 +199,7 @@ export function ViolationFormModal({
                     <button
                       type="button"
                       onClick={() => addMany(filtered)}
-                      className="flex items-center gap-1.5 hover:bg-white/5 px-3 py-2 border-white/10 border-b w-full text-brand-soft text-xs text-left">
+                      className="flex items-center gap-1.5 hover:bg-soft-2 px-3 py-2 border-line border-b w-full text-brand-dim text-xs text-left">
                       <CheckCheck size={13} /> Pilih semua hasil (
                       {filtered.length})
                     </button>
@@ -210,15 +210,15 @@ export function ViolationFormModal({
                           type="button"
                           key={s.id}
                           onClick={() => toggle(s.id)}
-                          className={`flex justify-between items-center hover:bg-white/5 px-3 py-2 w-full text-sm text-left transition-colors ${on ? "bg-brand/10 text-brand-soft" : "text-slate-300"}`}>
+                          className={`flex justify-between items-center hover:bg-soft-2 px-3 py-2 w-full text-sm text-left transition-colors ${on ? "bg-brand/10 text-brand-dim" : "text-fg-2"}`}>
                           <span className="flex items-center gap-2">
                             <span
-                              className={`grid size-4 place-items-center rounded border text-[10px] ${on ? "border-brand bg-brand text-ink-950" : "border-white/20"}`}>
+                              className={`grid size-4 place-items-center rounded border text-[10px] ${on ? "border-brand bg-brand text-on-brand" : "border-line-2"}`}>
                               {on && "✓"}
                             </span>
                             {s.full_name}
                           </span>
-                          <span className="text-slate-500 text-xs">
+                          <span className="text-fg-3 text-xs">
                             {s.class_name}
                           </span>
                         </button>
@@ -239,14 +239,14 @@ export function ViolationFormModal({
               className="appearance-none field">
               <option value="">Pilih aturan…</option>
               {rules.map((r) => (
-                <option key={r.id} value={r.id} className="bg-ink-800">
+                <option key={r.id} value={r.id} className="bg-soft">
                   {r.name} (+{r.points} poin)
                 </option>
               ))}
             </select>
           </Field>
           {rule && (
-            <p className="flex flex-wrap items-center gap-2 -mt-2 text-slate-400 text-xs">
+            <p className="flex flex-wrap items-center gap-2 -mt-2 text-fg-2 text-xs">
               Poin otomatis: <Badge tone="rose">+{rule.points} poin</Badge>
               {rule.creates_suspension && (
                 <Badge tone="violet">

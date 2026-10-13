@@ -303,7 +303,7 @@ export default function SantriManagement() {
         <div className="relative w-64">
           <Search
             size={14}
-            className="top-1/2 left-3 absolute text-slate-500 -translate-y-1/2"
+            className="top-1/2 left-3 absolute text-fg-3 -translate-y-1/2"
           />
           <Input
             value={q}
@@ -355,22 +355,22 @@ export default function SantriManagement() {
                         <div className="flex items-center gap-3">
                           <Avatar name={s.full_name} size="sm" />
                           <div className="min-w-0">
-                            <p className="font-medium text-slate-200 truncate">
+                            <p className="font-medium text-fg truncate">
                               {s.full_name}
                             </p>
-                            <p className="font-mono text-[11px] text-slate-500">
+                            <p className="font-mono text-[11px] text-fg-3">
                               {s.nis ?? "NIS —"}
                             </p>
                           </div>
                         </div>
                       </Td>
-                      <Td className="text-slate-300">{s.class_name}</Td>
+                      <Td className="text-fg-2">{s.class_name}</Td>
                       <Td>
                         {s.user_id ? (
-                          <span className="flex items-center gap-1.5 text-slate-400 text-xs">
+                          <span className="flex items-center gap-1.5 text-fg-2 text-xs">
                             <Mail
                               size={12}
-                              className="text-slate-500 shrink-0"
+                              className="text-fg-3 shrink-0"
                             />
                             <span className="max-w-[170px] truncate">
                               {s.email}
@@ -385,8 +385,8 @@ export default function SantriManagement() {
                           {fmtNum(m.points)}
                         </Badge>
                       </Td>
-                      <Td className="text-slate-300">{fmtNum(m.active)}</Td>
-                      <Td className="text-slate-300">{fmtNum(m.pending)}</Td>
+                      <Td className="text-fg-2">{fmtNum(m.active)}</Td>
+                      <Td className="text-fg-2">{fmtNum(m.pending)}</Td>
                       <Td className="text-right">
                         <Button
                           size="sm"
@@ -448,9 +448,9 @@ export default function SantriManagement() {
               placeholder="Mis. 5261200"
             />
           </Field>
-          <p className="text-[11px] text-slate-600 leading-relaxed">
+          <p className="text-[11px] text-fg-3 leading-relaxed">
             Santri baru langsung muncul di halaman{" "}
-            <span className="font-medium text-slate-400">Pilih Nama</span> dan
+            <span className="font-medium text-fg-2">Pilih Nama</span> dan
             bisa diklaim oleh akunnya.
           </p>
           <div className="flex justify-end gap-2 pt-1">
@@ -529,10 +529,10 @@ export default function SantriManagement() {
             <div className="flex items-center gap-3">
               <Avatar name={detail.full_name} size="md" />
               <div>
-                <p className="font-semibold text-slate-100 text-sm">
+                <p className="font-semibold text-fg text-sm">
                   {detail.full_name}
                 </p>
-                <p className="text-slate-500 text-xs">
+                <p className="text-fg-3 text-xs">
                   Kelas {detail.class_name} · NIS {detail.nis ?? "—"}
                 </p>
               </div>
@@ -547,27 +547,27 @@ export default function SantriManagement() {
             </div>
 
             <div className="gap-2 grid grid-cols-3 text-center">
-              <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+              <div className="bg-soft p-3 border border-line rounded-xl">
+                <p className="text-[10px] text-fg-3 uppercase tracking-wider">
                   Total Riwayat
                 </p>
-                <p className="mt-1 font-display font-semibold text-slate-100 text-lg">
+                <p className="mt-1 font-display font-semibold text-fg text-lg">
                   {fmtNum(detailStats.total)}
                 </p>
               </div>
-              <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+              <div className="bg-soft p-3 border border-line rounded-xl">
+                <p className="text-[10px] text-fg-3 uppercase tracking-wider">
                   Poin Aktif
                 </p>
-                <p className="mt-1 font-display font-semibold text-rose-300 text-lg">
+                <p className="mt-1 font-display font-semibold text-rose-700 text-lg">
                   {fmtNum(detailStats.points)}
                 </p>
               </div>
-              <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+              <div className="bg-soft p-3 border border-line rounded-xl">
+                <p className="text-[10px] text-fg-3 uppercase tracking-wider">
                   Laporan Berjalan
                 </p>
-                <p className="mt-1 font-display font-semibold text-sky-300 text-lg">
+                <p className="mt-1 font-display font-semibold text-sky-700 text-lg">
                   {fmtNum(detailStats.pending)}
                 </p>
               </div>
@@ -575,16 +575,16 @@ export default function SantriManagement() {
 
             {/* Kelola akun — hanya Ibadah + Super Admin */}
             {canManageAccounts && (
-              <div className="bg-white/[0.02] p-4 border border-white/[0.06] rounded-xl">
-                <p className="mb-1 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+              <div className="bg-soft p-4 border border-line rounded-xl">
+                <p className="mb-1 font-semibold text-[11px] text-fg-3 uppercase tracking-wider">
                   Kelola Akun
                 </p>
                 {detail.user_id ? (
                   <>
-                    <p className="flex items-center gap-1.5 mb-3 text-slate-400 text-xs">
-                      <Mail size={12} className="text-slate-500" />{" "}
+                    <p className="flex items-center gap-1.5 mb-3 text-fg-2 text-xs">
+                      <Mail size={12} className="text-fg-3" />{" "}
                       {detail.email}
-                      <span className="text-slate-600">
+                      <span className="text-fg-3">
                         · terklaim{" "}
                         {detail.claimed_at ? fmtDate(detail.claimed_at) : "—"}
                       </span>
@@ -607,19 +607,19 @@ export default function SantriManagement() {
                         Hapus Akun
                       </Button>
                     </div>
-                    <p className="mt-2.5 text-[11px] text-slate-600 leading-relaxed">
-                      <span className="font-medium text-slate-500">
+                    <p className="mt-2.5 text-[11px] text-fg-3 leading-relaxed">
+                      <span className="font-medium text-fg-3">
                         Reset Klaim
                       </span>{" "}
                       = lepas akun dari nama ini.{" "}
-                      <span className="font-medium text-slate-500">
+                      <span className="font-medium text-fg-3">
                         Hapus Akun
                       </span>{" "}
                       = hapus email &amp; sandi; profil &amp; riwayat tetap ada.
                     </p>
                   </>
                 ) : (
-                  <p className="text-slate-500 text-xs">
+                  <p className="text-fg-3 text-xs">
                     <Badge tone="neutral" className="mr-2">
                       Belum terklaim
                     </Badge>
@@ -635,10 +635,10 @@ export default function SantriManagement() {
               detailStats.total === 0 &&
               detailStats.pending === 0 && (
                 <div className="bg-rose-500/[0.04] p-4 border border-rose-400/15 rounded-xl">
-                  <p className="flex items-center gap-1.5 mb-1 font-semibold text-[11px] text-rose-300 uppercase tracking-wider">
+                  <p className="flex items-center gap-1.5 mb-1 font-semibold text-[11px] text-rose-700 uppercase tracking-wider">
                     <ShieldAlert size={12} /> Zona Berbahaya
                   </p>
-                  <p className="mb-3 text-slate-500 text-xs">
+                  <p className="mb-3 text-fg-3 text-xs">
                     Santri ini belum punya riwayat apa pun, jadi profilnya boleh
                     dihapus permanen.
                   </p>
@@ -654,22 +654,22 @@ export default function SantriManagement() {
               )}
 
             <div>
-              <p className="mb-2 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+              <p className="mb-2 font-semibold text-[11px] text-fg-3 uppercase tracking-wider">
                 Riwayat Pelanggaran ({detailViolations.length})
               </p>
               {detailViolations.length === 0 ? (
                 <EmptyState icon={Users} title="Belum ada pelanggaran" />
               ) : (
-                <ul className="border border-white/[0.06] rounded-xl divide-y divide-white/[0.04]">
+                <ul className="border border-line rounded-xl divide-y divide-line">
                   {detailViolations.map((v) => (
                     <li
                       key={v.id}
                       className="flex flex-wrap items-center gap-3 px-4 py-2.5">
                       <div className="flex-1 min-w-0">
-                        <p className="text-slate-200 text-sm truncate">
+                        <p className="text-fg text-sm truncate">
                           {v.rule?.name}
                         </p>
-                        <p className="text-slate-500 text-xs">
+                        <p className="text-fg-3 text-xs">
                           {fmtDate(v.occurred_at)}
                         </p>
                       </div>

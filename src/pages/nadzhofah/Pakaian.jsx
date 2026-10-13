@@ -169,14 +169,14 @@ export default function NadzhofahPakaianPage() {
           <CardHeader
             title="Catat Penyitaan"
             description="Standar: 5.000 per baju"
-            actions={<Shirt size={15} className="text-brand-soft" />}
+            actions={<Shirt size={15} className="text-brand-dim" />}
           />
           <div className="space-y-3 p-5">
             <Field label="Cari santri">
               <div className="relative">
                 <Search
                   size={14}
-                  className="top-1/2 left-3 absolute text-slate-500 -translate-y-1/2"
+                  className="top-1/2 left-3 absolute text-fg-3 -translate-y-1/2"
                 />
                 <Input
                   value={q}
@@ -187,7 +187,7 @@ export default function NadzhofahPakaianPage() {
               </div>
             </Field>
             {!selected && q !== "" && (
-              <div className="bg-ink-800 border border-white/10 rounded-lg max-h-40 overflow-y-auto">
+              <div className="bg-soft border border-line rounded-lg max-h-40 overflow-y-auto">
                 {filtered.map((s) => (
                   <button
                     type="button"
@@ -196,9 +196,9 @@ export default function NadzhofahPakaianPage() {
                       setSelected(s);
                       setQ("");
                     }}
-                    className="block hover:bg-white/5 px-3 py-2 w-full text-slate-300 text-sm text-left">
+                    className="block hover:bg-soft-2 px-3 py-2 w-full text-fg-2 text-sm text-left">
                     {s.full_name}{" "}
-                    <span className="text-slate-500 text-xs">
+                    <span className="text-fg-3 text-xs">
                       {s.class_name}
                     </span>
                   </button>
@@ -208,9 +208,9 @@ export default function NadzhofahPakaianPage() {
             {selected && (
               <div className="space-y-3 bg-brand/[0.05] p-4 border border-brand/25 rounded-xl">
                 <div className="flex justify-between items-center">
-                  <p className="font-semibold text-slate-100 text-sm">
+                  <p className="font-semibold text-fg text-sm">
                     {selected.full_name}
-                    <span className="ml-2 text-slate-500 text-xs">
+                    <span className="ml-2 text-fg-3 text-xs">
                       {selected.class_name}
                     </span>
                   </p>
@@ -258,7 +258,7 @@ export default function NadzhofahPakaianPage() {
           <CardHeader
             title="Daftar Penyitaan"
             description={`${rows.length} catatan`}
-            actions={<Gavel size={15} className="text-amber-300" />}
+            actions={<Gavel size={15} className="text-amber-700" />}
           />
           {rows.length === 0 ? (
             <EmptyState icon={Shirt} title="Belum ada penyitaan" />
@@ -278,22 +278,22 @@ export default function NadzhofahPakaianPage() {
                   {rows.map((c) => (
                     <Tr key={c.id}>
                       <Td>
-                        <p className="font-medium text-slate-200">
+                        <p className="font-medium text-fg">
                           {c.full_name}
                         </p>
-                        <p className="text-slate-500 text-xs">
+                        <p className="text-fg-3 text-xs">
                           {c.class_name}
                           {c.note ? ` · ${c.note}` : ""}
                         </p>
                       </Td>
-                      <Td className="text-slate-300">{c.quantity}</Td>
+                      <Td className="text-fg-2">{c.quantity}</Td>
                       <Td>
                         <p
-                          className={`font-mono font-semibold ${c.auction_price != null ? "text-amber-300" : "text-slate-200"}`}>
+                          className={`font-mono font-semibold ${c.auction_price != null ? "text-amber-700" : "text-fg"}`}>
                           {rp(c.current_value)}
                         </p>
                         {c.auction_price != null && (
-                          <p className="text-[10px] text-slate-500">
+                          <p className="text-[10px] text-fg-3">
                             lelang {fmtDate(c.auction_date)}
                           </p>
                         )}
@@ -323,7 +323,7 @@ export default function NadzhofahPakaianPage() {
                             type="button"
                             onClick={() => removeRow(c)}
                             title="Hapus catatan"
-                            className="place-items-center grid hover:bg-rose-500/10 rounded-md size-7 text-slate-500 hover:text-rose-300 transition-colors">
+                            className="place-items-center grid hover:bg-rose-500/10 rounded-md size-7 text-fg-3 hover:text-rose-700 transition-colors">
                             <Trash2 size={13} />
                           </button>
                         </div>
@@ -345,11 +345,11 @@ export default function NadzhofahPakaianPage() {
         size="sm">
         {auctionFor && (
           <div className="space-y-4">
-            <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
-              <p className="font-semibold text-slate-100 text-sm">
+            <div className="bg-soft p-3 border border-line rounded-xl">
+              <p className="font-semibold text-fg text-sm">
                 {auctionFor.full_name}
               </p>
-              <p className="text-slate-500 text-xs">
+              <p className="text-fg-3 text-xs">
                 {auctionFor.quantity} baju · nilai standar{" "}
                 {rp(auctionFor.standard_fee * auctionFor.quantity)}
               </p>

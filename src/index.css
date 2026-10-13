@@ -1,11 +1,22 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Konfigurasi Tailwind v4 — sebelumnya ada di tailwind.config.js,
-   sekarang seluruhnya lewat @theme di file ini.
+   OSIS MANAGEMENT — SISTEM DESAIN
+   ------------------------------------------------------------
+   Satu set token, DUA "skin" (dipasang di <html data-skin="...">):
+
+   • play  → santri & tamu. Chunky, tombol 3D, sudut besar, huruf
+             bulat (Nunito). Rasa aplikasi, bukan situs web.
+   • work  → admin & qism. Datar, rapat, tajam (Plus Jakarta Sans).
+             Fokus ke kecepatan kerja & keterbacaan tabel.
+
+   Warna AKSEN ikut peran lewat <html data-qism="...">.
+   Komponen cukup memakai kelas semantik (bg-card, text-fg,
+   border-line, bg-brand …) — skin yang mengatur wujudnya.
    ============================================================ */
-@theme {
-  /* Palet dasar gelap (ink) */
+
+@theme static {
+  /* Palet gelap lama — dipertahankan HANYA untuk halaman undangan */
   --color-ink-950: #05070d;
   --color-ink-900: #090e1a;
   --color-ink-850: #0c1322;
@@ -13,124 +24,402 @@
   --color-ink-700: #182238;
   --color-ink-600: #232f4b;
   --color-ink-500: #33405f;
-
-  /* Aksen emerald/teal (brand) */
-  --color-brand: #10b981;
   --color-brand-soft: #34d399;
-  --color-brand-dim: #0b7a5c;
 
-  /* Font → font-display, font-sans, font-mono */
-  --font-display: "Sora", sans-serif;
-  --font-sans: "IBM Plex Sans", sans-serif;
-  --font-mono: "IBM Plex Mono", monospace;
+  /* Aksen (diganti per peran) */
+  --color-brand: #22b573;
+  --color-brand-dim: #0f7a4a;
+  --color-edge: #168a57;
+  --color-tint: #e6f7ee;
+  --color-tint-line: #bfe8d2;
+  --color-on-brand: #ffffff;
 
-  /* Shadow kustom → shadow-card */
-  --shadow-card: 0 10px 34px rgba(2, 6, 16, 0.5);
+  /* Permukaan & teks (diganti per skin) */
+  --color-page: #ffffff;
+  --color-card: #ffffff;
+  --color-soft: #f7f7f7;
+  --color-soft-2: #efefef;
+  --color-line: #e5e5e5;
+  --color-line-2: #cfcfcf;
+  --color-fg: #38393d;
+  --color-fg-2: #54575f;
+  --color-fg-3: #6b6e77;
+  --color-fg-4: #a3a6ae;
 
-  /* Animasi kustom → animate-fade-up, animate-toast-in */
+  /* Warna "hadiah" (api, bintang) */
+  --color-gold: #ffc21a;
+  --color-gold-edge: #d99a00;
+
+  --font-sans: var(--ui-body);
+  --font-display: var(--ui-display);
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --shadow-card: var(--card-shadow);
+}
+
+@theme {
   --animate-fade-up: fade-up 0.3s ease both;
   --animate-toast-in: toast-in 0.22s ease both;
+  --animate-pop: pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  --animate-sheet-up: sheet-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-float: float 3.6s ease-in-out infinite;
 
   @keyframes fade-up {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
   }
   @keyframes toast-in {
-    from {
-      opacity: 0;
-      transform: translateX(14px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes pop {
+    0% { opacity: 0; transform: scale(0.85); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes sheet-up {
+    from { transform: translateY(100%); }
+    to { transform: none; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
   }
 }
 
+/* ---------------------------- SKIN: PLAY ---------------------------- */
+html[data-skin="play"] {
+  --ui-body: "Nunito", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  --ui-display: "Nunito", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  --r-card: 20px;
+  --r-ctl: 14px;
+  --r-badge: 999px;
+  --bw: 2px;
+  --depth: 4px;
+  --btn-case: uppercase;
+  --btn-track: 0.05em;
+  --btn-weight: 800;
+  --field-py: 0.75rem;
+  --field-fs: 0.9375rem;
+  --field-fw: 600;
+  --card-shadow: 0 0 0 0 transparent;
+  --head-weight: 900;
+}
+
+/* ---------------------------- SKIN: WORK ---------------------------- */
+html[data-skin="work"] {
+  --color-page: #f3f5f8;
+  --color-soft: #f6f8fa;
+  --color-soft-2: #eceff4;
+  --color-line: #e2e7ee;
+  --color-line-2: #cbd3de;
+  --color-fg: #0f172a;
+  --color-fg-2: #334155;
+  --color-fg-3: #5b6779;
+  --color-fg-4: #94a3b8;
+  --ui-body: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ui-display: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r-card: 12px;
+  --r-ctl: 8px;
+  --r-badge: 6px;
+  --bw: 1px;
+  --depth: 0px;
+  --btn-case: none;
+  --btn-track: 0;
+  --btn-weight: 600;
+  --field-py: 0.5rem;
+  --field-fs: 0.875rem;
+  --field-fw: 500;
+  --card-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --head-weight: 700;
+}
+
+/* ------------------ AKSEN PER PERAN (html[data-qism]) ------------------ */
+html[data-qism="qism_ibadah"] {
+  --color-brand: #2f80f0; --color-brand-dim: #1c57b8; --color-edge: #1f62c4;
+  --color-tint: #e8f1fe; --color-tint-line: #c5dbfb; --color-on-brand: #ffffff;
+}
+html[data-qism="qism_riyadhah"] {
+  --color-brand: #ef4d43; --color-brand-dim: #b02a22; --color-edge: #c2332a;
+  --color-tint: #fdeceb; --color-tint-line: #f9c8c4; --color-on-brand: #ffffff;
+}
+html[data-qism="nadzhofah"] {
+  --color-brand: #ff9a1f; --color-brand-dim: #a35900; --color-edge: #cf7600;
+  --color-tint: #fff2df; --color-tint-line: #ffdca8; --color-on-brand: #3b2300;
+}
+html[data-qism="lughah"] {
+  --color-brand: #9b6cf2; --color-brand-dim: #6b3fcb; --color-edge: #7a49d6;
+  --color-tint: #f1eafe; --color-tint-line: #dccbfb; --color-on-brand: #ffffff;
+}
+html[data-qism="super_admin"] {
+  --color-brand: #334155; --color-brand-dim: #1e293b; --color-edge: #1e293b;
+  --color-tint: #eef1f5; --color-tint-line: #d3dae3; --color-on-brand: #ffffff;
+}
+
+/* Warna qism "lokal" — dipakai bersamaan di satu layar (jalur, kartu) */
+.q-brand     { --q:#22b573; --q-edge:#168a57; --q-tint:#e6f7ee; --q-line:#bfe8d2; --q-dim:#0f7a4a; --q-on:#fff; }
+.q-ibadah    { --q:#2f80f0; --q-edge:#1f62c4; --q-tint:#e8f1fe; --q-line:#c5dbfb; --q-dim:#1c57b8; --q-on:#fff; }
+.q-riyadhah  { --q:#ef4d43; --q-edge:#c2332a; --q-tint:#fdeceb; --q-line:#f9c8c4; --q-dim:#b02a22; --q-on:#fff; }
+.q-nadzhofah { --q:#ff9a1f; --q-edge:#cf7600; --q-tint:#fff2df; --q-line:#ffdca8; --q-dim:#a35900; --q-on:#3b2300; }
+.q-lughah    { --q:#9b6cf2; --q-edge:#7a49d6; --q-tint:#f1eafe; --q-line:#dccbfb; --q-dim:#6b3fcb; --q-on:#fff; }
+.q-gold      { --q:#ffc21a; --q-edge:#d99a00; --q-tint:#fff6d6; --q-line:#ffe48a; --q-dim:#8a6100; --q-on:#3b2a00; }
+.q-slate     { --q:#334155; --q-edge:#1e293b; --q-tint:#eef1f5; --q-line:#d3dae3; --q-dim:#1e293b; --q-on:#fff; }
+
+/* ------------------------------ BASE ------------------------------ */
 @layer base {
-  :root {
-    color-scheme: dark;
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    overflow-x: clip;
+    max-width: 100vw;
   }
   body {
-    @apply bg-ink-950 font-sans text-slate-300;
-    font-variant-numeric: tabular-nums;
+    background: var(--color-page);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+    max-width: 100vw;
+    overscroll-behavior-y: none;
   }
-  ::selection {
-    @apply bg-brand/30 text-white;
-  }
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
+  html[data-skin="work"] body { font-variant-numeric: tabular-nums; font-size: 14px; }
+  h1, h2, h3, h4 { font-family: var(--font-display); }
+  ::selection { background: color-mix(in oklab, var(--color-brand) 28%, transparent); }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-white/10 bg-clip-padding border-2 border-solid border-transparent;
+    background: var(--color-line-2);
+    border-radius: 999px;
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+  button, a { -webkit-touch-callout: none; }
+  :focus-visible {
+    outline: 3px solid color-mix(in oklab, var(--color-brand) 55%, transparent);
+    outline-offset: 2px;
   }
 }
 
+/* --------------------------- KOMPONEN --------------------------- */
 @layer components {
-  .glass {
-    @apply border border-white/[0.07] bg-white/[0.03] backdrop-blur-xs;
+  /* Kartu */
+  .card {
+    background: var(--color-card);
+    border: var(--bw) solid var(--color-line);
+    border-radius: var(--r-card);
+    box-shadow: var(--card-shadow);
   }
+  .card-press {
+    display: block;
+    background: var(--color-card);
+    border: var(--bw) solid var(--color-line);
+    border-radius: var(--r-card);
+    box-shadow: 0 var(--depth) 0 var(--color-line);
+    transition: transform 0.08s, box-shadow 0.08s, background-color 0.15s, border-color 0.15s;
+  }
+  .card-press:hover { background: var(--color-soft); }
+  .card-press:active { transform: translateY(var(--depth)); box-shadow: 0 0 0 var(--color-line); }
+  html[data-skin="work"] .card-press:hover {
+    border-color: var(--color-line-2);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    background: var(--color-card);
+  }
+  .card-head {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 0.75rem; padding: 1rem 1.25rem;
+    border-bottom: var(--bw) solid var(--color-line);
+  }
+  html[data-skin="work"] .card-head { padding: 0.8rem 1.1rem; }
+
+  /* Tombol */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    border-radius: var(--r-ctl);
+    font-weight: var(--btn-weight);
+    text-transform: var(--btn-case);
+    letter-spacing: var(--btn-track);
+    white-space: nowrap; cursor: pointer; user-select: none;
+    transition: transform 0.08s, box-shadow 0.08s, background-color 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .btn:disabled { pointer-events: none; opacity: 0.5; filter: grayscale(0.3); }
+  .btn-md { height: 2.75rem; padding: 0 1.15rem; font-size: 0.8125rem; }
+  .btn-sm { height: 2.25rem; padding: 0 0.85rem; font-size: 0.75rem; }
+  .btn-lg { height: 3.25rem; padding: 0 1.5rem; font-size: 0.9375rem; width: 100%; }
+  html[data-skin="work"] .btn-md { height: 2.25rem; padding: 0 0.9rem; font-size: 0.8125rem; }
+  html[data-skin="work"] .btn-sm { height: 1.9rem; padding: 0 0.7rem; font-size: 0.75rem; }
+  html[data-skin="work"] .btn-lg { height: 2.75rem; }
+
+  .btn-primary {
+    background: var(--color-brand); color: var(--color-on-brand);
+    box-shadow: 0 var(--depth) 0 var(--color-edge);
+  }
+  .btn-primary:hover { filter: brightness(1.06); }
+  .btn-primary:active { transform: translateY(var(--depth)); box-shadow: 0 0 0 var(--color-edge); }
+  html[data-skin="work"] .btn-primary { box-shadow: inset 0 -1px 0 rgba(0,0,0,.18), 0 1px 2px rgba(15,23,42,.12); }
+  html[data-skin="work"] .btn-primary:active { transform: none; filter: brightness(0.95); }
+
+  .btn-secondary {
+    background: var(--color-card); color: var(--color-fg-2);
+    border: var(--bw) solid var(--color-line);
+    box-shadow: 0 var(--depth) 0 var(--color-line);
+  }
+  .btn-secondary:hover { background: var(--color-soft); }
+  .btn-secondary:active { transform: translateY(var(--depth)); box-shadow: 0 0 0 var(--color-line); }
+  html[data-skin="work"] .btn-secondary { box-shadow: 0 1px 1px rgba(15,23,42,.04); }
+  html[data-skin="work"] .btn-secondary:active { transform: none; background: var(--color-soft-2); }
+
+  .btn-ghost { color: var(--color-fg-3); }
+  .btn-ghost:hover { background: var(--color-soft-2); color: var(--color-fg); }
+
+  .btn-danger {
+    background: #ef4444; color: #fff; box-shadow: 0 var(--depth) 0 #b91c1c;
+  }
+  .btn-danger:hover { filter: brightness(1.06); }
+  .btn-danger:active { transform: translateY(var(--depth)); box-shadow: 0 0 0 #b91c1c; }
+  html[data-skin="work"] .btn-danger { box-shadow: inset 0 -1px 0 rgba(0,0,0,.2); }
+  html[data-skin="work"] .btn-danger:active { transform: none; }
+
+  .btn-danger-soft {
+    background: #fef2f2; color: #b91c1c; border: var(--bw) solid #fecaca;
+    box-shadow: 0 var(--depth) 0 #fecaca;
+  }
+  .btn-danger-soft:hover { background: #fee2e2; }
+  .btn-danger-soft:active { transform: translateY(var(--depth)); box-shadow: 0 0 0 #fecaca; }
+  html[data-skin="work"] .btn-danger-soft { box-shadow: none; }
+  html[data-skin="work"] .btn-danger-soft:active { transform: none; }
+
+  /* Input */
   .field {
-    @apply w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-200
-      outline-none transition placeholder:text-slate-600
-      focus:border-brand/60 focus:ring-2 focus:ring-brand/10;
+    width: 100%;
+    background: var(--color-soft);
+    border: var(--bw) solid var(--color-line);
+    border-radius: var(--r-ctl);
+    padding: var(--field-py) 0.9rem;
+    font-size: var(--field-fs);
+    font-weight: var(--field-fw);
+    color: var(--color-fg);
+    outline: none;
+    transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+  }
+  html[data-skin="work"] .field { background: var(--color-card); padding-left: 0.7rem; padding-right: 0.7rem; }
+  .field::placeholder { color: var(--color-fg-4); font-weight: 500; }
+  .field:focus {
+    background: var(--color-card);
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-brand) 18%, transparent);
+  }
+  .field:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  /* Badge */
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    border: 1px solid; border-radius: var(--r-badge);
+    padding: 0.125rem 0.55rem; font-size: 11px; line-height: 1.25rem;
+    font-weight: var(--btn-weight);
+  }
+  html[data-skin="play"] .badge { font-weight: 800; }
+
+  /* Segmented control */
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px;
+    background: var(--color-soft-2); border-radius: calc(var(--r-ctl) + 4px); }
+  .seg > button { border-radius: var(--r-ctl); padding: 0.55rem 0.8rem; font-weight: 800; font-size: 0.8125rem;
+    color: var(--color-fg-3); transition: all 0.15s; }
+  .seg > button[aria-pressed="true"] { background: var(--color-card); color: var(--color-fg);
+    box-shadow: 0 1px 3px rgba(15,23,42,.12); }
+
+  /* Chip statistik di topbar */
+  .stat-chip { display: inline-flex; align-items: center; gap: 0.35rem; height: 2.25rem; padding: 0 0.7rem;
+    border-radius: 999px; font-weight: 900; font-size: 0.875rem; }
+
+  /* Navigasi santri — rail desktop & tab bawah */
+  .rail-item {
+    display: flex; align-items: center; gap: 0.9rem; height: 3rem; padding: 0 0.9rem;
+    border: 2px solid transparent; border-radius: 14px;
+    font-weight: 800; font-size: 0.8125rem; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--color-fg-3); transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .rail-item:hover { background: var(--color-soft); color: var(--color-fg-2); }
+  .rail-item[aria-current="page"] {
+    background: var(--color-tint); border-color: var(--color-tint-line); color: var(--color-brand-dim);
+  }
+  .tab-item {
+    flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; height: 100%; color: var(--color-fg-4);
+    font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+    transition: color 0.15s;
+  }
+  .tab-item .tab-ico { display: grid; place-items: center; width: 46px; height: 32px; border-radius: 12px;
+    border: 2px solid transparent; transition: all 0.15s; }
+  .tab-item:active .tab-ico { transform: scale(0.92); }
+  .tab-item[data-active="true"] { color: var(--color-brand-dim); }
+  .tab-item[data-active="true"] .tab-ico { background: var(--color-tint); border-color: var(--color-tint-line); }
+
+  /* Jalur qism */
+  .node {
+    position: relative; display: grid; place-items: center; width: 84px; height: 84px; border-radius: 999px;
+    background: var(--q); color: var(--q-on, #fff); box-shadow: 0 8px 0 var(--q-edge);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .node:active { transform: translateY(8px); box-shadow: 0 0 0 var(--q-edge); }
+  .node-locked { background: var(--color-soft-2); color: var(--color-fg-4); box-shadow: 0 8px 0 var(--color-line-2); }
+
+  /* Kartu berwarna qism */
+  .q-card { background: var(--q-tint); border: var(--bw) solid var(--q-line); border-radius: var(--r-card);
+    box-shadow: 0 var(--depth) 0 var(--q-line); color: var(--q-dim); }
+  .q-chip { display: grid; place-items: center; background: var(--q); color: var(--q-on, #fff); }
+  .q-fill-btn { background: var(--q); color: var(--q-on, #fff); box-shadow: 0 var(--depth) 0 var(--q-edge); }
+  .q-fill-btn:active { transform: translateY(var(--depth)); box-shadow: 0 0 0 var(--q-edge); }
+
+  /* Skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, var(--color-soft) 25%, var(--color-soft-2) 50%, var(--color-soft) 75%);
+    background-size: 200% 100%; animation: shimmer 1.3s linear infinite; border-radius: var(--r-ctl);
   }
 }
 
-/* Pola bintang-8 titik yang sangat halus — khusus panel branding halaman login */
-.bg-lattice {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52' viewBox='0 0 52 52'%3E%3Cg fill='none' stroke='%2310B981' stroke-opacity='0.10'%3E%3Crect x='15' y='15' width='22' height='22'/%3E%3Crect x='15' y='15' width='22' height='22' transform='rotate(45 26 26)'/%3E%3C/g%3E%3C/svg%3E");
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes page-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes wave { 0%,100% { transform: rotate(0); } 20% { transform: rotate(14deg); } 40% { transform: rotate(-8deg); } 60% { transform: rotate(12deg); } 80% { transform: rotate(-4deg); } }
+.page-in { animation: page-in 0.32s ease both; }
+
+/* Skin switch — tampilkan salah satu */
+html[data-skin="work"] .only-play { display: none !important; }
+html[data-skin="play"] .only-work { display: none !important; }
+
+/* Utilitas aplikasi */
+.safe-top { padding-top: env(safe-area-inset-top, 0px); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.snap-x-row { scroll-snap-type: x mandatory; }
+.snap-x-row > * { scroll-snap-align: start; }
+:root { --tabbar-h: 4.25rem; }
+html[data-skin="work"] { --tabbar-h: 0px; }
+
+/* Mode terpasang (PWA standalone): hilangkan kesan "tab browser" */
+@media (display-mode: standalone) {
+  body { user-select: none; -webkit-user-select: none; }
+  input, textarea, [contenteditable] { user-select: text; -webkit-user-select: text; }
 }
 
-/* ============================================================
-   TEMA PER QISM (solid, tanpa gradient, latar tetap netral)
-   Diset lewat <html data-qism="..."> oleh DashboardLayout.
-   Hanya warna AKSEN yang berubah; latar gelap sengaja tidak
-   di-tint supaya nyaman di mata (kuning/merah di latar gelap
-   jadi kecoklatan & melelahkan kalau dipakai untuk latar).
-   ============================================================ */
-/* Ibadah = biru */
-html[data-qism="qism_ibadah"] {
-  --color-brand: #3b82f6;
-  --color-brand-soft: #60a5fa;
-  --color-brand-dim: #1d4ed8;
+/* Pola bintang-8 titik halus — panel branding */
+.bg-lattice {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52' viewBox='0 0 52 52'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.16'%3E%3Crect x='15' y='15' width='22' height='22'/%3E%3Crect x='15' y='15' width='22' height='22' transform='rotate(45 26 26)'/%3E%3C/g%3E%3C/svg%3E");
 }
-/* Riyadhah = merah */
-html[data-qism="qism_riyadhah"] {
-  --color-brand: #ef4444;
-  --color-brand-soft: #f87171;
-  --color-brand-dim: #b91c1c;
+
+/* Halaman undangan tetap tema gelap sendiri */
+[data-invitation] {
+  background: #05070d;
+  color: #cbd5e1;
+  color-scheme: dark;
+  overflow-x: clip;
+  font-family: "IBM Plex Sans", "Plus Jakarta Sans", system-ui, sans-serif;
 }
-/* Nadzhofah (kebersihan) = hijau */
-html[data-qism="nadzhofah"] {
-  --color-brand: #22c55e;
-  --color-brand-soft: #4ade80;
-  --color-brand-dim: #15803d;
-}
-/* Lughah = kuning */
-html[data-qism="lughah"] {
-  --color-brand: #eab308;
-  --color-brand-soft: #facc15;
-  --color-brand-dim: #a16207;
-}
-/* Santri = ungu */
-html[data-qism="santri"] {
-  --color-brand: #8b5cf6;
-  --color-brand-soft: #a78bfa;
-  --color-brand-dim: #6d28d9;
-}
-/* Super Admin = abu perak */
-html[data-qism="super_admin"] {
-  --color-brand: #94a3b8;
-  --color-brand-soft: #cbd5e1;
-  --color-brand-dim: #475569;
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ============================ PRINT ============================ */
@@ -239,20 +528,10 @@ html[data-qism="super_admin"] {
   animation: GlowPulse 5s ease-in-out infinite;
 }
 
-html,
-body {
-  overflow-x: hidden;
-  max-width: 100vw;
-}
+/* Laci menu admin (mobile) */
+@keyframes drawer-in { from { transform: translateX(-100%); } to { transform: none; } }
+.drawer-in { animation: drawer-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
-/* Semua section undangan dikunci clip — animasi keluar layar tidak meluber */
-[data-invitation] {
-  overflow-x: clip;
-}
-
-/* Kunci horizontal scroll global */
-html,
-body {
-  overflow-x: hidden;
-  max-width: 100vw;
-}
+/* Ubin qism yang bisa ditekan (tamu) */
+.press-tile { transition: transform 0.08s, box-shadow 0.08s; }
+.press-tile:active { transform: translateY(var(--depth)); box-shadow: 0 0 0 var(--q-line); }

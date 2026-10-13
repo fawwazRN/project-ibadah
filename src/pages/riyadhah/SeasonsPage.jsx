@@ -124,10 +124,10 @@ export default function SeasonsPage() {
                 </div>
               }
             />
-            <ul className="divide-y divide-white/[0.04]">
+            <ul className="divide-y divide-line">
               {(seasonMap[p.id] ?? []).map((s) => (
                 <li key={s.id} className="flex items-center gap-3 px-5 py-3">
-                  <p className="flex-1 text-slate-200 text-sm">{s.name}</p>
+                  <p className="flex-1 text-fg text-sm">{s.name}</p>
                   {s.is_current && <Badge tone="emerald">Berjalan</Badge>}
                   <Badge tone={s.status === "completed" ? "neutral" : "sky"}>
                     {s.status}

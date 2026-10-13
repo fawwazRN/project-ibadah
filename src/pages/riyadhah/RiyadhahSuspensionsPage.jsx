@@ -71,8 +71,8 @@ export default function RiyadhahSuspensionsPage({ role = "qism_riyadhah" }) {
             onClick={() => setTab(t)}
             className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
               tab === t
-                ? "border-brand/40 bg-brand/10 text-brand-soft"
-                : "border-white/10 bg-white/[0.03] text-slate-400"
+                ? "border-brand/40 bg-brand/10 text-brand-dim"
+                : "border-line bg-soft text-fg-2"
             }`}>
             {t === "" ? "Semua" : SUSPENSION_LABELS[t]}
           </button>
@@ -87,21 +87,21 @@ export default function RiyadhahSuspensionsPage({ role = "qism_riyadhah" }) {
         {list.length === 0 ? (
           <EmptyState icon={Ban} title="Tidak ada suspensi" />
         ) : (
-          <ul className="divide-y divide-white/[0.04]">
+          <ul className="divide-y divide-line">
             {list.map((s) => (
               <li
                 key={s.id}
                 className="flex flex-wrap items-center gap-3 px-5 py-3.5">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-slate-200 text-sm">
+                  <p className="font-medium text-fg text-sm">
                     {s.full_name}
-                    <span className="ml-2 text-slate-500 text-xs">
+                    <span className="ml-2 text-fg-3 text-xs">
                       {s.class_name}
                     </span>
                   </p>
-                  <p className="text-slate-500 text-xs truncate">{s.reason}</p>
+                  <p className="text-fg-3 text-xs truncate">{s.reason}</p>
                 </div>
-                <p className="text-slate-400 text-xs">
+                <p className="text-fg-2 text-xs">
                   {fmtDate(s.start_date)} — {fmtDate(s.end_date)} ·{" "}
                   {s.duration_weeks} pekan
                 </p>

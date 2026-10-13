@@ -126,7 +126,7 @@ export default function AdminManagement() {
       />
 
       <Card className="mb-5 p-5">
-        <p className="mb-3 font-medium text-slate-200 text-sm">
+        <p className="mb-3 font-medium text-fg text-sm">
           Tambah Calon Admin
         </p>
         <div className="flex sm:flex-row flex-col sm:items-start gap-3">
@@ -162,8 +162,8 @@ export default function AdminManagement() {
             Tambah
           </Button>
         </div>
-        <p className="flex items-start gap-2 mt-3 text-slate-500 text-xs leading-relaxed">
-          <Info size={13} className="mt-0.5 text-slate-600 shrink-0" />
+        <p className="flex items-start gap-2 mt-3 text-fg-3 text-xs leading-relaxed">
+          <Info size={13} className="mt-0.5 text-fg-3 shrink-0" />
           Untuk peran Super Admin gunakan secukupnya — aksesnya penuh ke semua
           divisi.
         </p>
@@ -190,7 +190,7 @@ export default function AdminManagement() {
               <tbody>
                 {rows.map((r) => (
                   <Tr key={r.email}>
-                    <Td className="text-slate-200">
+                    <Td className="text-fg">
                       {r.email}
                       {r.email === (profile?.email ?? "").toLowerCase() && (
                         <Badge tone="emerald" className="ml-2">

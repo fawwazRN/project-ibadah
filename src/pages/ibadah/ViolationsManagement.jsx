@@ -30,7 +30,9 @@ export default function ViolationsManagement() {
   const [fRule, setFRule] = useState("");
   const [q, setQ] = useState("");
   const [visible, setVisible] = useState(STEP);
-  const [formOpen, setFormOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(
+    () => new URLSearchParams(window.location.search).get("new") === "1",
+  );
   const [detail, setDetail] = useState(null);
 
   const load = useCallback(() => {
@@ -85,7 +87,7 @@ export default function ViolationsManagement() {
       <div className="relative mb-3">
         <Search
           size={15}
-          className="top-1/2 left-3 absolute text-slate-500 -translate-y-1/2 pointer-events-none"
+          className="top-1/2 left-3 absolute text-fg-3 -translate-y-1/2 pointer-events-none"
         />
         <Input
           value={q}
@@ -98,7 +100,7 @@ export default function ViolationsManagement() {
             type="button"
             onClick={() => setQ("")}
             aria-label="Hapus pencarian"
-            className="top-1/2 right-2.5 absolute place-items-center grid size-6 text-slate-500 hover:text-slate-200 -translate-y-1/2">
+            className="top-1/2 right-2.5 absolute place-items-center grid size-6 text-fg-3 hover:text-fg -translate-y-1/2">
             <X size={14} />
           </button>
         )}
@@ -155,25 +157,25 @@ export default function ViolationsManagement() {
               <tbody>
                 {list.slice(0, visible).map((v) => (
                   <Tr key={v.id}>
-                    <Td className="text-slate-400 whitespace-nowrap">
+                    <Td className="text-fg-2 whitespace-nowrap">
                       {fmtOccurred(v)}
                     </Td>
                     <Td>
-                      <p className="font-medium text-slate-200">
+                      <p className="font-medium text-fg">
                         {v.santri?.full_name}
                       </p>
-                      <p className="text-slate-500 text-xs">
+                      <p className="text-fg-3 text-xs">
                         Kelas {v.santri?.class_name}
                       </p>
                     </Td>
-                    <Td className="text-slate-300">{v.rule?.name}</Td>
+                    <Td className="text-fg-2">{v.rule?.name}</Td>
                     <Td>
                       <Badge tone="rose">+{v.rule?.points}</Badge>
                     </Td>
                     <Td>
                       <ViolationStatusBadge status={v.status} />
                     </Td>
-                    <Td className="max-w-[180px] text-slate-500 text-xs truncate">
+                    <Td className="max-w-[180px] text-fg-3 text-xs truncate">
                       {v.note || "—"}
                     </Td>
                     <Td className="text-right">
@@ -191,7 +193,7 @@ export default function ViolationsManagement() {
           </TableWrap>
         )}
         {list.length > 0 && (
-          <div className="flex flex-wrap justify-between items-center gap-2 px-4 py-3 border-white/[0.06] border-t text-slate-500 text-xs">
+          <div className="flex flex-wrap justify-between items-center gap-2 px-4 py-3 border-line border-t text-fg-3 text-xs">
             <span>
               Menampilkan {fmtNum(Math.min(visible, list.length))} dari{" "}
               {fmtNum(list.length)} catatan

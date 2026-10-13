@@ -49,14 +49,14 @@ export function ReportModal({ open, onClose, violation, onSubmitted }) {
   return (
     <Modal open={open} onClose={onClose} title="Ajukan Klarifikasi">
       <div className="space-y-4">
-        <div className="bg-white/[0.03] p-3.5 border border-white/[0.07] rounded-xl">
+        <div className="bg-soft p-3.5 border border-line rounded-xl">
           <div className="flex justify-between items-center gap-2">
-            <p className="font-medium text-slate-200 text-sm">
+            <p className="font-medium text-fg text-sm">
               {violation.rule?.name}
             </p>
             <Badge tone="rose">+{violation.rule?.points} poin</Badge>
           </div>
-          <p className="mt-1 text-slate-500 text-xs">
+          <p className="mt-1 text-fg-3 text-xs">
             Tercatat {new Date(violation.occurred_at).toLocaleString("id-ID")}
           </p>
         </div>
