@@ -125,7 +125,7 @@ export default function NadzhofahDashboard() {
         <CardHeader
           title="Denda Nyeker"
           description="Standar 5.000/catatan · klik status di tabel untuk tandai lunas"
-          actions={<Wallet size={15} className="text-brand-soft" />}
+          actions={<Wallet size={15} className="text-brand-dim" />}
         />
         <div className="gap-4 grid grid-cols-1 sm:grid-cols-3 p-5">
           <StatCard

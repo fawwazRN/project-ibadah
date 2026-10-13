@@ -86,11 +86,11 @@ export default function SantriViolations() {
             onClick={() => setFilter(f.key)}
             className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
               filter === f.key
-                ? "border-brand/40 bg-brand/10 text-brand-soft"
-                : "border-white/10 bg-white/[0.03] text-slate-400 hover:text-slate-200"
+                ? "border-brand/40 bg-brand/10 text-brand-dim"
+                : "border-line bg-soft text-fg-2 hover:text-fg"
             }`}>
             {f.label}{" "}
-            <span className="ml-1 font-mono text-[10px] text-slate-500">
+            <span className="ml-1 font-mono text-[10px] text-fg-3">
               {counts[f.key]}
             </span>
           </button>
@@ -120,14 +120,14 @@ export default function SantriViolations() {
               <tbody>
                 {list.map((v) => (
                   <Tr key={v.id}>
-                    <Td className="text-slate-400 whitespace-nowrap">
+                    <Td className="text-fg-2 whitespace-nowrap">
                       {fmtDateTime(v.occurred_at)}
                     </Td>
                     <Td>
-                      <p className="font-medium text-slate-200">
+                      <p className="font-medium text-fg">
                         {v.rule?.name}
                       </p>
-                      <p className="text-slate-500 text-xs">
+                      <p className="text-fg-3 text-xs">
                         {v.rule?.category}
                       </p>
                     </Td>
@@ -137,7 +137,7 @@ export default function SantriViolations() {
                     <Td>
                       <ViolationStatusBadge status={v.status} />
                     </Td>
-                    <Td className="max-w-[200px] text-slate-500 text-xs truncate">
+                    <Td className="max-w-[200px] text-fg-3 text-xs truncate">
                       {v.note || "—"}
                     </Td>
                     <Td>

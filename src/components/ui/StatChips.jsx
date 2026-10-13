@@ -1,7 +1,7 @@
 // Chip statistik tanpa emoji: dot gol + mini-card kuning/merah
 export function GoalChip({ n, short = false }) {
   return (
-    <span className="inline-flex items-center gap-1.5 bg-emerald-400/10 px-1.5 py-0.5 border border-emerald-400/25 rounded-md font-semibold text-[11px] text-emerald-300">
+    <span className="inline-flex items-center gap-1.5 bg-emerald-400/10 px-1.5 py-0.5 border border-emerald-400/25 rounded-md font-semibold text-[11px] text-emerald-700">
       <span className="bg-emerald-400 rounded-full size-1.5" />
       {n}
       {short ? "" : " gol"}
@@ -13,12 +13,12 @@ export function CardChips({ yellow = 0, red = 0 }) {
   return (
     <span className="inline-flex items-center gap-2">
       {yellow > 0 && (
-        <span className="inline-flex items-center gap-1 font-medium text-[11px] text-amber-300">
+        <span className="inline-flex items-center gap-1 font-medium text-[11px] text-amber-700">
           <span className="bg-amber-400 rounded-[2px] w-2 h-3" /> {yellow}
         </span>
       )}
       {red > 0 && (
-        <span className="inline-flex items-center gap-1 font-medium text-[11px] text-rose-300">
+        <span className="inline-flex items-center gap-1 font-medium text-[11px] text-rose-700">
           <span className="bg-rose-500 rounded-[2px] w-2 h-3" /> {red}
         </span>
       )}

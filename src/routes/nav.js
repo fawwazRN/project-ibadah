@@ -24,40 +24,42 @@ import {
   CheckCircle2,
   ClipboardCheck,
   Sparkles,
+  Home,
+  Medal,
 } from "lucide-react";
 
 export const NAV = {
   // ---------- SANTRI ----------
+  // (dipakai rail desktop; di mobile navigasi utamanya = STUDENT_TABS)
   santri: [
     {
-      section: "Menu",
+      section: "Utama",
       items: [
-        { to: "/santri", label: "Dashboard", icon: LayoutDashboard, end: true },
+        { to: "/santri", label: "Beranda", icon: Home, end: true },
+        { to: "/santri/standings", label: "Klasemen Liga", icon: Trophy },
+        { to: "/santri/leaderboard", label: "Papan Nakal", icon: Medal },
+        { to: "/santri/violations", label: "Catatanku", icon: Flag },
+        { to: "/santri/profile", label: "Profil", icon: UserRound },
+      ],
+    },
+    {
+      section: "Qism",
+      items: [
         { to: "/santri/zikir", label: "Jadwal Zikir", icon: CalendarClock },
-        { to: "/santri/violations", label: "Pelanggaran Saya", icon: Flag },
+        { to: "/santri/nadzhofah", label: "Nadzhofah", icon: Footprints },
+        { to: "/santri/lughah", label: "Lughah", icon: BookOpenCheck },
+        { to: "/santri/team", label: "Tim & Laga", icon: Volleyball },
+      ],
+    },
+    {
+      section: "Lainnya",
+      items: [
         {
           to: "/santri/reports",
-          label: "Laporan Saya",
+          label: "Laporanku",
           icon: MessageSquareWarning,
         },
-        { to: "/santri/team", label: "Tim Saya", icon: Volleyball },
-        { to: "/santri/matches", label: "Pertandingan", icon: CalendarDays },
-        { to: "/santri/nadzhofah", label: "Nadzhofah Saya", icon: Footprints },
-        {
-          to: "/santri/lughah",
-          label: "Kelengkapan & Nilai",
-          icon: BookOpenCheck,
-        },
-        {
-          label: "Leaderboard",
-          icon: Trophy,
-          children: [
-            { to: "/santri/leaderboard", label: "Papan Nakal Ibadah" },
-            { to: "/santri/standings", label: "Klasemen Liga" },
-          ],
-        },
         { to: "/santri/recap", label: "Rekap", icon: FileBarChart },
-        { to: "/santri/profile", label: "Profil", icon: UserRound },
       ],
     },
   ],
@@ -318,4 +320,100 @@ export const pageTitleFor = (pathname, nav) => {
       if (it.children) for (const c of it.children) consider(c);
     }
   return best?.label ?? "OSIS Management";
+};
+
+// Tab bawah (mobile) untuk santri — 5 tujuan utama, sisanya lewat Beranda.
+// `match` = awalan rute yang menyalakan tab (halaman turunan tetap menyala).
+export const STUDENT_TABS = [
+  { to: "/santri", label: "Beranda", icon: Home, exact: true },
+  {
+    to: "/santri/standings",
+    label: "Liga",
+    icon: Trophy,
+    match: ["/santri/standings", "/santri/team", "/santri/matches"],
+  },
+  {
+    to: "/santri/leaderboard",
+    label: "Peringkat",
+    icon: Medal,
+    match: ["/santri/leaderboard"],
+  },
+  {
+    to: "/santri/violations",
+    label: "Catatan",
+    icon: ClipboardList,
+    match: ["/santri/violations", "/santri/reports"],
+  },
+  {
+    to: "/santri/profile",
+    label: "Aku",
+    icon: UserRound,
+    match: ["/santri/profile"],
+  },
+];
+
+export const isTabActive = (tab, pathname) =>
+  tab.exact
+    ? pathname === tab.to
+    : (tab.match ?? [tab.to]).some(
+        (p) => pathname === p || pathname.startsWith(p + "/"),
+      );
+
+// Halaman "akar" = halaman yang punya tab sendiri → tidak perlu tombol kembali.
+export const isStudentRoot = (pathname) =>
+  STUDENT_TABS.some((t) => t.to === pathname);
+
+// Remah roti untuk admin: [nama grup, nama halaman]
+export const crumbsFor = (pathname, nav) => {
+  let best = null;
+  const consider = (it, section) => {
+    if (
+      it.to &&
+      (pathname === it.to ||
+        (pathname.startsWith(it.to + "/") &&
+          (!best || it.to.length > best.to.length)))
+    )
+      best = { to: it.to, label: it.label, section };
+  };
+  for (const g of nav)
+    for (const it of g.items) {
+      consider(it, g.section);
+      if (it.children) for (const c of it.children) consider(c, g.section);
+    }
+  return best;
+};
+
+// Daftar datar semua tujuan (untuk command palette)
+export const flattenNav = (nav) => {
+  const out = [];
+  for (const g of nav)
+    for (const it of g.items) {
+      if (it.to)
+        out.push({ to: it.to, label: it.label, icon: it.icon, section: g.section });
+      if (it.children)
+        for (const c of it.children)
+          out.push({ to: c.to, label: c.label, icon: it.icon, section: g.section });
+    }
+  const seen = new Set();
+  return out.filter((x) => (seen.has(x.to) ? false : seen.add(x.to)));
+};
+
+// Aksi cepat per peran — muncul di command palette (Ctrl/⌘ + K)
+export const QUICK_ACTIONS = {
+  qism_ibadah: [
+    { to: "/ibadah/violations?new=1", label: "Catat pelanggaran baru", icon: Flag },
+  ],
+  qism_riyadhah: [
+    { to: "/riyadhah/matches", label: "Input hasil pertandingan", icon: Gavel },
+  ],
+  nadzhofah: [
+    { to: "/nadzhofah/nyeker", label: "Catat nyeker", icon: Footprints },
+  ],
+  lughah: [{ to: "/lughah/nilai", label: "Input nilai", icon: ClipboardCheck }],
+  super_admin: [
+    { to: "/ibadah/violations?new=1", label: "Catat pelanggaran baru", icon: Flag },
+    { to: "/nadzhofah/nyeker", label: "Catat nyeker", icon: Footprints },
+    { to: "/lughah/nilai", label: "Input nilai", icon: ClipboardCheck },
+    { to: "/riyadhah/matches", label: "Input hasil pertandingan", icon: Gavel },
+  ],
 };

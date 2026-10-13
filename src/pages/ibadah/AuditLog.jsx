@@ -52,7 +52,7 @@ export default function AuditLog() {
         <div className="relative w-64">
           <Search
             size={14}
-            className="top-1/2 left-3 absolute text-slate-500 -translate-y-1/2"
+            className="top-1/2 left-3 absolute text-fg-3 -translate-y-1/2"
           />
           <Input
             value={q}
@@ -104,10 +104,10 @@ export default function AuditLog() {
                   const Icon = m.icon;
                   return (
                     <Tr key={l.id}>
-                      <Td className="text-slate-400 whitespace-nowrap">
+                      <Td className="text-fg-2 whitespace-nowrap">
                         {fmtDateTime(l.created_at)}
                       </Td>
-                      <Td className="text-slate-200">
+                      <Td className="text-fg">
                         {l.actor?.full_name ?? "—"}
                       </Td>
                       <Td>
@@ -115,7 +115,7 @@ export default function AuditLog() {
                           <Icon size={11} /> {m.label}
                         </Badge>
                       </Td>
-                      <Td className="text-slate-400">
+                      <Td className="text-fg-2">
                         {l.target_label ?? "—"}
                       </Td>
                     </Tr>

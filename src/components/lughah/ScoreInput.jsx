@@ -47,11 +47,11 @@ export default function ScoreInput({
     <Modal open={open} onClose={onClose} title="Input Nilai" size="sm">
       {student && (
         <div className="space-y-4">
-          <div className="bg-white/[0.02] p-3.5 border border-white/[0.06] rounded-xl">
-            <p className="font-semibold text-slate-100 text-sm">
+          <div className="bg-soft p-3.5 border border-line rounded-xl">
+            <p className="font-semibold text-fg text-sm">
               {student.full_name}
             </p>
-            <p className="text-slate-500 text-xs">{student.class_name}</p>
+            <p className="text-fg-3 text-xs">{student.class_name}</p>
           </div>
           <Field label="Nilai" required hint="Rentang 0–100.">
             <Input

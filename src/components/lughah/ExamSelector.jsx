@@ -60,7 +60,7 @@ export default function ExamSelector({ periods, value, onChange }) {
         title="Mulai Pekan Baru"
         size="sm">
         <div className="space-y-4">
-          <p className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl text-slate-500 text-xs leading-relaxed">
+          <p className="bg-soft p-3 border border-line rounded-xl text-fg-3 text-xs leading-relaxed">
             Setiap pekan punya data kelengkapan &amp; nilai tersendiri
             (Jumat–Kamis). Pekan baru otomatis menjadi pekan aktif dan datanya
             mulai kosong.

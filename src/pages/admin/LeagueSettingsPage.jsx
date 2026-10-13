@@ -62,11 +62,11 @@ export default function LeagueSettingsPage() {
           title="Aturan Tie-Break"
           description="Panah untuk mengubah prioritas"
         />
-        <ul className="divide-y divide-white/[0.04]">
+        <ul className="divide-y divide-line">
           {order.map((k, i) => (
             <li key={k} className="flex items-center gap-3 px-5 py-3">
-              <span className="font-mono text-slate-500 text-xs">{i + 1}</span>
-              <p className="flex-1 text-slate-200 text-sm">
+              <span className="font-mono text-fg-3 text-xs">{i + 1}</span>
+              <p className="flex-1 text-fg text-sm">
                 {OPTIONS.find((o) => o.key === k)?.label ?? k}
               </p>
               <Button
@@ -86,7 +86,7 @@ export default function LeagueSettingsPage() {
             </li>
           ))}
         </ul>
-        <div className="px-5 py-4 border-white/[0.06] border-t">
+        <div className="px-5 py-4 border-line border-t">
           <Button variant="primary" loading={saving} onClick={save}>
             Simpan Pengaturan
           </Button>

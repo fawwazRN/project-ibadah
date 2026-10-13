@@ -107,15 +107,15 @@ export default function MatchesPage() {
               <tbody>
                 {list.map((m) => (
                   <Tr key={m.id}>
-                    <Td className="font-mono text-slate-500">{m.week}</Td>
-                    <Td className="text-slate-200">
-                      {m.home_name} <span className="text-slate-600">vs</span>{" "}
+                    <Td className="font-mono text-fg-3">{m.week}</Td>
+                    <Td className="text-fg">
+                      {m.home_name} <span className="text-fg-3">vs</span>{" "}
                       {m.away_name}
                     </Td>
-                    <Td className="font-mono text-brand-soft">
+                    <Td className="font-mono text-brand-dim">
                       {m.home_score ?? "–"} - {m.away_score ?? "–"}
                     </Td>
-                    <Td className="text-slate-400">
+                    <Td className="text-fg-2">
                       {m.scheduled_at ? fmtDate(m.scheduled_at) : "—"}
                     </Td>
                     <Td>
@@ -326,7 +326,7 @@ function HistoricalModal({ open, onClose, phases, currentSeason, onSaved }) {
             onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
           />
         </Field>
-        <label className="flex items-center gap-2 text-slate-300 text-sm">
+        <label className="flex items-center gap-2 text-fg-2 text-sm">
           <input
             type="checkbox"
             checked={form.direct_verified}
@@ -373,17 +373,17 @@ function MatchDetailModal({ match, onClose }) {
       size="lg">
       {detail && (
         <div className="space-y-5">
-          <div className="flex justify-between items-center bg-white/[0.02] p-4 border border-white/[0.06] rounded-xl">
-            <p className="font-display font-semibold text-slate-100 text-base">
+          <div className="flex justify-between items-center bg-soft p-4 border border-line rounded-xl">
+            <p className="font-display font-semibold text-fg text-base">
               {detail.home_name}{" "}
-              <span className="font-mono text-brand-soft">
+              <span className="font-mono text-brand-dim">
                 {detail.home_score ?? "–"} : {detail.away_score ?? "–"}
               </span>{" "}
               {detail.away_name}
             </p>
             <div className="flex items-center gap-2">
               {detail.scheduled_at && (
-                <span className="flex items-center gap-1 text-slate-500 text-xs">
+                <span className="flex items-center gap-1 text-fg-3 text-xs">
                   <CalendarDays size={12} /> {fmtDate(detail.scheduled_at)}
                 </span>
               )}
@@ -398,14 +398,14 @@ function MatchDetailModal({ match, onClose }) {
           <EventPanel match={detail} events={events} onChanged={reloadEvents} />
 
           <div>
-            <p className="mb-2 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+            <p className="mb-2 font-semibold text-[11px] text-fg-3 uppercase tracking-wider">
               Kelayakan Pemain
             </p>
             <EligibilityPanel matchId={detail.id} />
           </div>
 
           {detail.notes && (
-            <p className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl text-slate-400 text-xs">
+            <p className="bg-soft p-3 border border-line rounded-xl text-fg-2 text-xs">
               {detail.notes}
             </p>
           )}
@@ -446,7 +446,7 @@ function WeekViolationsPanel({ match }) {
   return (
     <div>
       <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
-        <p className="font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+        <p className="font-semibold text-[11px] text-fg-3 uppercase tracking-wider">
           Pelanggaran Riyadhah — Pekan Sebelum Laga
         </p>
         <Badge tone="sky">
@@ -459,7 +459,7 @@ function WeekViolationsPanel({ match }) {
       ) : (
         <>
           {rows.length === 0 ? (
-            <p className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl text-slate-500 text-xs italic">
+            <p className="bg-soft p-3 border border-line rounded-xl text-fg-3 text-xs italic">
               Bersih — tidak ada pelanggaran ranah Riyadhah pada pekan sebelum
               laga untuk kedua tim.
             </p>
@@ -468,8 +468,8 @@ function WeekViolationsPanel({ match }) {
               {Object.entries(byTeam).map(([tn, list]) => (
                 <div
                   key={tn}
-                  className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
-                  <p className="mb-1.5 font-semibold text-slate-200 text-sm">
+                  className="bg-soft p-3 border border-line rounded-xl">
+                  <p className="mb-1.5 font-semibold text-fg text-sm">
                     {tn}
                   </p>
                   <ul className="space-y-1.5">
@@ -478,13 +478,13 @@ function WeekViolationsPanel({ match }) {
                         key={v.occurred_at + v.student_id}
                         className="flex items-center gap-2 text-xs">
                         <div className="flex-1 min-w-0">
-                          <p className="text-slate-200 truncate">
+                          <p className="text-fg truncate">
                             {v.full_name}
-                            <span className="ml-1.5 text-[10px] text-slate-500">
+                            <span className="ml-1.5 text-[10px] text-fg-3">
                               {v.class_name}
                             </span>
                           </p>
-                          <p className="text-[10px] text-slate-500 truncate">
+                          <p className="text-[10px] text-fg-3 truncate">
                             {v.rule_name} · {fmtDate(v.occurred_at)}
                           </p>
                         </div>
@@ -506,7 +506,7 @@ function WeekViolationsPanel({ match }) {
               ))}
             </div>
           )}
-          <p className="mt-2 text-[10px] text-slate-600 leading-relaxed">
+          <p className="mt-2 text-[10px] text-fg-3 leading-relaxed">
             Rentang = pekan madrasah (Jumat–Kamis) tepat SEBELUM pekan tanggal
             laga — pelanggaran pekan ini yang menjadi dasar penilaian untuk
             laga. Status Terbukti dengan aturan ber-suspensi otomatis membuat
@@ -584,12 +584,12 @@ function EventPanel({ match, events, onChanged }) {
   return (
     <div>
       <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
-        <p className="font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+        <p className="font-semibold text-[11px] text-fg-3 uppercase tracking-wider">
           Event Pertandingan{" "}
-          <span className="text-slate-600">(klik tombol per pemain)</span>
+          <span className="text-fg-3">(klik tombol per pemain)</span>
         </p>
         <div className="flex items-center gap-2">
-          <span className="text-slate-500 text-xs">Menit:</span>
+          <span className="text-fg-3 text-xs">Menit:</span>
           <Input
             type="number"
             min="0"
@@ -609,8 +609,8 @@ function EventPanel({ match, events, onChanged }) {
           {Object.entries(byTeam).map(([teamName, players]) => (
             <div
               key={teamName}
-              className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
-              <p className="mb-2 font-semibold text-slate-200 text-sm">
+              className="bg-soft p-3 border border-line rounded-xl">
+              <p className="mb-2 font-semibold text-fg text-sm">
                 {teamName}
               </p>
               <ul className="space-y-1.5">
@@ -622,13 +622,13 @@ function EventPanel({ match, events, onChanged }) {
                   return (
                     <li
                       key={p.student_id}
-                      className="flex items-center gap-2 bg-white/[0.02] px-2.5 py-1.5 border border-white/[0.05] rounded-lg">
+                      className="flex items-center gap-2 bg-soft px-2.5 py-1.5 border border-line rounded-lg">
                       <div className="flex-1 min-w-0">
                         <p
-                          className={`truncate text-xs font-medium ${p.suspended ? "text-slate-500" : "text-slate-200"}`}>
+                          className={`truncate text-xs font-medium ${p.suspended ? "text-fg-3" : "text-fg"}`}>
                           {p.full_name}
                           {p.suspended && (
-                            <span className="ml-1.5 text-rose-300">
+                            <span className="ml-1.5 text-rose-700">
                               Suspended
                             </span>
                           )}
@@ -637,7 +637,7 @@ function EventPanel({ match, events, onChanged }) {
                           {g > 0 && <GoalChip n={g} short />}
                           <CardChips yellow={y} red={r} />
                           {!hasStats && (
-                            <span className="text-[10px] text-slate-600">
+                            <span className="text-[10px] text-fg-3">
                               —
                             </span>
                           )}
@@ -670,28 +670,28 @@ function EventPanel({ match, events, onChanged }) {
       )}
 
       <div className="mt-3">
-        <p className="mb-1.5 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+        <p className="mb-1.5 font-semibold text-[11px] text-fg-3 uppercase tracking-wider">
           Tercatat ({events.length})
         </p>
         {events.length === 0 ? (
-          <p className="text-slate-600 text-xs italic">Belum ada event.</p>
+          <p className="text-fg-3 text-xs italic">Belum ada event.</p>
         ) : (
-          <ul className="border border-white/[0.06] rounded-xl divide-y divide-white/[0.04]">
+          <ul className="border border-line rounded-xl divide-y divide-line">
             {events.map((e) => (
               <li key={e.id} className="flex items-center gap-3 px-3 py-2">
-                <span className="w-8 font-mono text-[11px] text-slate-500 shrink-0">
+                <span className="w-8 font-mono text-[11px] text-fg-3 shrink-0">
                   {e.minute != null ? `${e.minute}'` : "—"}
                 </span>
-                <span className="flex-1 min-w-0 text-slate-300 text-xs truncate">
+                <span className="flex-1 min-w-0 text-fg-2 text-xs truncate">
                   {e.player_name}{" "}
-                  <span className="text-slate-500">({e.team_name})</span> —{" "}
+                  <span className="text-fg-3">({e.team_name})</span> —{" "}
                   {EVENT_LABEL[e.event_type] ?? e.event_type}
                 </span>
                 <button
                   type="button"
                   disabled={busy}
                   onClick={() => remove(e)}
-                  className="place-items-center grid hover:bg-rose-500/10 rounded-md size-6 text-slate-500 hover:text-rose-300 transition-colors">
+                  className="place-items-center grid hover:bg-rose-500/10 rounded-md size-6 text-fg-3 hover:text-rose-700 transition-colors">
                   <Trash2 size={12} />
                 </button>
               </li>
@@ -716,14 +716,14 @@ function EligibilityPanel({ matchId }) {
   return (
     <div>
       {!elig ? (
-        <p className="text-slate-600 text-xs">Memuat…</p>
+        <p className="text-fg-3 text-xs">Memuat…</p>
       ) : (
         <div className="gap-3 grid sm:grid-cols-2">
           {[...new Set(elig.map((e) => e.team_name))].map((tn) => (
             <div
               key={tn}
-              className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
-              <p className="mb-1.5 font-semibold text-slate-200 text-sm">
+              className="bg-soft p-3 border border-line rounded-xl">
+              <p className="mb-1.5 font-semibold text-fg text-sm">
                 {tn}
               </p>
               <ul className="space-y-1">
@@ -735,15 +735,15 @@ function EligibilityPanel({ matchId }) {
                       className="flex justify-between items-center gap-2 text-xs">
                       <span
                         className={
-                          e.suspended ? "text-slate-500" : "text-slate-300"
+                          e.suspended ? "text-fg-3" : "text-fg-2"
                         }>
                         {e.full_name}{" "}
                         {e.suspended && (
-                          <span className="text-rose-300">Suspended</span>
+                          <span className="text-rose-700">Suspended</span>
                         )}
                       </span>
                       {e.suspended && (
-                        <span className="max-w-[140px] text-[10px] text-rose-300/70 truncate">
+                        <span className="max-w-[140px] text-[10px] text-rose-700 truncate">
                           {e.suspension_info}
                         </span>
                       )}

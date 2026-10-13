@@ -5,22 +5,22 @@ const PODIUM = {
   0: {
     tag: "Peringkat 1",
     ring: "ring-1 ring-rose-400/40",
-    tagCls: "bg-rose-400/10 text-rose-300 border-rose-400/30",
-    num: "text-rose-300/15",
+    tagCls: "bg-rose-400/10 text-rose-700 border-rose-400/30",
+    num: "text-rose-700",
     lift: "sm:-translate-y-3 sm:shadow-card",
   },
   1: {
     tag: "Peringkat 2",
     ring: "ring-1 ring-amber-400/30",
-    tagCls: "bg-amber-400/10 text-amber-300 border-amber-400/25",
-    num: "text-amber-300/15",
+    tagCls: "bg-amber-400/10 text-amber-700 border-amber-400/25",
+    num: "text-amber-700",
     lift: "",
   },
   2: {
     tag: "Peringkat 3",
     ring: "ring-1 ring-slate-400/20",
-    tagCls: "bg-white/5 text-slate-300 border-white/15",
-    num: "text-slate-400/15",
+    tagCls: "bg-soft-2 text-fg-2 border-line-2",
+    num: "text-fg-2",
     lift: "",
   },
 };
@@ -38,7 +38,7 @@ export function TopThree({ entries, meId }) {
         return (
           <div
             key={e.santri_id}
-            className={`relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.025] ${m.ring} ${m.lift} ${e.santri_id === meId ? "!border-brand/40" : ""}`}>
+            className={`relative overflow-hidden rounded-2xl border border-line bg-soft ${m.ring} ${m.lift} ${e.santri_id === meId ? "!border-brand/40" : ""}`}>
             <span
               className={`pointer-events-none absolute bottom-1 right-3 select-none font-display text-6xl font-bold leading-none ${m.num}`}>
               {i + 1}
@@ -51,18 +51,18 @@ export function TopThree({ entries, meId }) {
               <div className="flex items-center gap-3 mt-3.5">
                 <AvatarSlot name={e.full_name} />
                 <div className="min-w-0">
-                  <p className="font-semibold text-slate-100 text-sm truncate">
+                  <p className="font-semibold text-fg text-sm truncate">
                     {e.full_name}
                   </p>
-                  <p className="text-slate-500 text-xs">Kelas {e.class_name}</p>
+                  <p className="text-fg-3 text-xs">Kelas {e.class_name}</p>
                 </div>
               </div>
-              <div className="relative mt-4 pt-3 border-white/[0.06] border-t">
+              <div className="relative mt-4 pt-3 border-line border-t">
                 <div className="flex items-baseline gap-1.5">
-                  <span className="font-mono font-semibold text-rose-300 text-xl">
+                  <span className="font-mono font-semibold text-rose-700 text-xl">
                     {fmtNum(e.score)}
                   </span>
-                  <span className="text-[11px] text-slate-500">
+                  <span className="text-[11px] text-fg-3">
                     poin · {fmtNum(e.violation_count)} pelanggaran
                   </span>
                 </div>
@@ -84,17 +84,17 @@ function AvatarSlot({ name }) {
     .join("")
     .toUpperCase();
   const TINTS = [
-    "text-emerald-300 bg-emerald-500/10",
-    "text-teal-300 bg-teal-500/10",
-    "text-sky-300 bg-sky-500/10",
-    "text-violet-300 bg-violet-500/10",
-    "text-amber-300 bg-amber-500/10",
+    "text-emerald-700 bg-emerald-500/10",
+    "text-teal-700 bg-teal-500/10",
+    "text-sky-700 bg-sky-500/10",
+    "text-violet-700 bg-violet-500/10",
+    "text-amber-700 bg-amber-500/10",
   ];
   const tint =
     TINTS[[...name].reduce((s, c) => s + c.charCodeAt(0), 0) % TINTS.length];
   return (
     <span
-      className={`grid size-10 shrink-0 select-none place-items-center rounded-full border border-white/10 font-display text-xs font-semibold ${tint}`}>
+      className={`grid size-10 shrink-0 select-none place-items-center rounded-full border border-line font-display text-xs font-semibold ${tint}`}>
       {initials || "?"}
     </span>
   );

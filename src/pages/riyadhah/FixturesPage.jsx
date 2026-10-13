@@ -140,8 +140,8 @@ export default function FixturesPage() {
           disabled={week <= 1}
           onClick={() => setWeek((w) => w - 1)}
         />
-        <p className="font-display font-semibold text-slate-200 text-sm">
-          PEKAN {week} <span className="text-slate-600">/ {maxWeek}</span>
+        <p className="font-display font-semibold text-fg text-sm">
+          PEKAN {week} <span className="text-fg-3">/ {maxWeek}</span>
         </p>
         <Button
           variant="secondary"
@@ -164,21 +164,21 @@ export default function FixturesPage() {
             description="Gunakan tombol “Tambah Pertandingan” untuk membuat jadwal secara manual."
           />
         ) : (
-          <ul className="divide-y divide-white/[0.04]">
+          <ul className="divide-y divide-line">
             {weekMatches.map((m) => (
               <li
                 key={m.id}
                 className="flex flex-wrap items-center gap-3 px-5 py-3">
-                <p className="flex-1 min-w-0 text-slate-200 text-sm truncate">
-                  {m.home_name} <span className="text-slate-600">vs</span>{" "}
+                <p className="flex-1 min-w-0 text-fg text-sm truncate">
+                  {m.home_name} <span className="text-fg-3">vs</span>{" "}
                   {m.away_name}
                   {m.home_score != null && (
-                    <span className="ml-2 font-mono font-semibold text-brand-soft">
+                    <span className="ml-2 font-mono font-semibold text-brand-dim">
                       {m.home_score} - {m.away_score}
                     </span>
                   )}
                 </p>
-                <span className="text-slate-500 text-xs">
+                <span className="text-fg-3 text-xs">
                   {m.scheduled_at
                     ? new Date(m.scheduled_at).toLocaleDateString("id-ID", {
                         day: "numeric",
@@ -390,9 +390,9 @@ function AddFixtureModal({ open, onClose, ctx, teams, defaultWeek, onSaved }) {
           />
         </Field>
 
-        <p className="text-[11px] text-slate-600 leading-relaxed">
+        <p className="text-[11px] text-fg-3 leading-relaxed">
           Pertandingan dibuat dengan status{" "}
-          <span className="font-medium text-slate-400">Terjadwal</span>. Hasil
+          <span className="font-medium text-fg-2">Terjadwal</span>. Hasil
           diisi belakangan lewat tombol “Input Hasil”. Kedua tim tidak boleh
           bertemu dua kali dalam satu musim.
         </p>
@@ -452,7 +452,7 @@ function ResultModal({ match, onClose, onSaved }) {
       onClose={onClose}
       title={`Input Hasil — Pekan ${match.week}`}>
       <div className="space-y-4">
-        <p className="text-slate-300 text-sm">
+        <p className="text-fg-2 text-sm">
           <span className="font-semibold">{match.home_name}</span> vs{" "}
           <span className="font-semibold">{match.away_name}</span>
         </p>

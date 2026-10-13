@@ -62,10 +62,10 @@ export function ReportReviewModal({ report, open, onClose, onChanged }) {
       <div className="space-y-4">
         <div className="flex flex-wrap justify-between items-center gap-2">
           <div>
-            <p className="font-display font-semibold text-slate-100 text-base">
+            <p className="font-display font-semibold text-fg text-base">
               {v?.santri?.full_name}
             </p>
-            <p className="text-slate-500 text-xs">
+            <p className="text-fg-3 text-xs">
               Kelas {v?.santri?.class_name} · diajukan{" "}
               {new Date(report.created_at).toLocaleString("id-ID")}
             </p>
@@ -77,38 +77,38 @@ export function ReportReviewModal({ report, open, onClose, onChanged }) {
         </div>
 
         <div className="gap-3 grid sm:grid-cols-2">
-          <div className="bg-white/[0.02] p-3.5 border border-white/[0.06] rounded-xl">
-            <p className="text-[11px] text-slate-500 uppercase tracking-wider">
+          <div className="bg-soft p-3.5 border border-line rounded-xl">
+            <p className="text-[11px] text-fg-3 uppercase tracking-wider">
               Pelanggaran asal
             </p>
             <div className="flex justify-between items-center gap-2 mt-1.5">
-              <p className="font-medium text-slate-200 text-sm">
+              <p className="font-medium text-fg text-sm">
                 {v?.rule?.name}
               </p>
               <Badge tone="rose">+{v?.rule?.points} poin</Badge>
             </div>
-            <p className="mt-1 text-slate-500 text-xs">
+            <p className="mt-1 text-fg-3 text-xs">
               Kejadian {new Date(v?.occurred_at).toLocaleString("id-ID")}
             </p>
             {v?.note && (
-              <p className="mt-2 text-slate-500 text-xs italic">“{v.note}”</p>
+              <p className="mt-2 text-fg-3 text-xs italic">“{v.note}”</p>
             )}
           </div>
-          <div className="bg-white/[0.02] p-3.5 border border-white/[0.06] rounded-xl">
-            <p className="text-[11px] text-slate-500 uppercase tracking-wider">
+          <div className="bg-soft p-3.5 border border-line rounded-xl">
+            <p className="text-[11px] text-fg-3 uppercase tracking-wider">
               Alasan santri
             </p>
-            <p className="mt-1.5 font-medium text-slate-200 text-sm">
+            <p className="mt-1.5 font-medium text-fg text-sm">
               {report.reason}
             </p>
-            <p className="mt-2 pl-3 border-brand/40 border-l-2 text-slate-400 text-sm leading-relaxed">
+            <p className="mt-2 pl-3 border-brand/40 border-l-2 text-fg-2 text-sm leading-relaxed">
               {report.explanation}
             </p>
           </div>
         </div>
 
         <div>
-          <p className="mb-1.5 text-[11px] text-slate-500 uppercase tracking-wider">
+          <p className="mb-1.5 text-[11px] text-fg-3 uppercase tracking-wider">
             Catatan tinjauan
           </p>
           <Textarea
@@ -124,7 +124,7 @@ export function ReportReviewModal({ report, open, onClose, onChanged }) {
         </div>
 
         {openDecision ? (
-          <div className="flex flex-wrap justify-end gap-2 pt-4 border-white/[0.06] border-t">
+          <div className="flex flex-wrap justify-end gap-2 pt-4 border-line border-t">
             {report.status === "pending" && (
               <Button
                 variant="secondary"
@@ -171,8 +171,8 @@ export function ReportReviewModal({ report, open, onClose, onChanged }) {
             </Button>
           </div>
         ) : (
-          <p className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl text-slate-400 text-sm">
-            <span className="font-medium text-slate-300">Keputusan: </span>
+          <p className="bg-soft p-3 border border-line rounded-xl text-fg-2 text-sm">
+            <span className="font-medium text-fg-2">Keputusan: </span>
             {report.status === "accepted"
               ? "Diterima — poin dibatalkan."
               : "Ditolak — pelanggaran dikonfirmasi."}

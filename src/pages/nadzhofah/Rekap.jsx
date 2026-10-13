@@ -176,8 +176,8 @@ export default function NadzhofahRekapPage() {
             onClick={() => setPreset(p.key)}
             className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
               preset === p.key
-                ? "border-brand/40 bg-brand/10 text-brand-soft"
-                : "border-white/10 bg-white/[0.03] text-slate-400 hover:text-slate-200"
+                ? "border-brand/40 bg-brand/10 text-brand-dim"
+                : "border-line bg-soft text-fg-2 hover:text-fg"
             }`}>
             {p.label}
           </button>
@@ -192,7 +192,7 @@ export default function NadzhofahRekapPage() {
                 setCustom((c) => ({ ...c, from: e.target.value }))
               }
             />
-            <span className="text-slate-500 text-xs">s.d.</span>
+            <span className="text-fg-3 text-xs">s.d.</span>
             <Input
               type="date"
               value={custom.to}
@@ -212,7 +212,7 @@ export default function NadzhofahRekapPage() {
           <button
             type="button"
             onClick={() => setFClass("")}
-            className="text-slate-500 text-xs underline">
+            className="text-fg-3 text-xs underline">
             hapus filter kelas
           </button>
         )}
@@ -318,20 +318,20 @@ export default function NadzhofahRekapPage() {
               <tbody>
                 {recap.map((r, i) => (
                   <Tr key={r.student_id}>
-                    <Td className="font-mono text-slate-500 text-xs">
+                    <Td className="font-mono text-fg-3 text-xs">
                       {i + 1}
                     </Td>
-                    <Td className="font-medium text-slate-200">
+                    <Td className="font-medium text-fg">
                       {r.full_name}
                     </Td>
-                    <Td className="text-slate-300">{r.class_name}</Td>
+                    <Td className="text-fg-2">{r.class_name}</Td>
                     <Td>
                       <span
-                        className={`font-mono font-bold ${r.jumlah >= 3 ? "text-rose-300" : "text-slate-200"}`}>
+                        className={`font-mono font-bold ${r.jumlah >= 3 ? "text-rose-700" : "text-fg"}`}>
                         {fmtNum(r.jumlah)}
                       </span>
                     </Td>
-                    <Td className="text-slate-400">{fmtDate(r.terakhir)}</Td>
+                    <Td className="text-fg-2">{fmtDate(r.terakhir)}</Td>
                   </Tr>
                 ))}
               </tbody>
@@ -351,12 +351,12 @@ export default function NadzhofahRekapPage() {
                   <p className="font-display font-bold text-[15px] text-slate-900">
                     QISM NADZHOFah
                   </p>
-                  <p className="font-semibold text-[9.5px] text-slate-600 uppercase tracking-[0.2em]">
+                  <p className="font-semibold text-[9.5px] text-fg-3 uppercase tracking-[0.2em]">
                     Monitoring Kebersihan &amp; Ketertiban
                   </p>
                 </div>
               </div>
-              <div className="text-[9.5px] text-slate-600 text-right">
+              <div className="text-[9.5px] text-fg-3 text-right">
                 <p>Dicetak: {new Date().toLocaleString("id-ID")}</p>
                 <p>Dokumen internal madrasah</p>
               </div>
@@ -365,7 +365,7 @@ export default function NadzhofahRekapPage() {
             <h1 className="mt-5 font-display font-bold text-lg text-center tracking-wide">
               LAPORAN NYEKER &amp; PENYITAAN BAJU
             </h1>
-            <p className="mt-1 font-medium text-[11px] text-slate-700 text-center">
+            <p className="mt-1 font-medium text-[11px] text-fg-3 text-center">
               Periode:{" "}
               {range
                 ? `${fmtDate(range[0])} s.d. ${fmtDate(range[1])}`
@@ -463,7 +463,7 @@ export default function NadzhofahRekapPage() {
                     <tr>
                       <td
                         colSpan={6}
-                        className="px-2 py-2 border border-slate-300 text-[11px] text-slate-500 text-center italic">
+                        className="px-2 py-2 border border-slate-300 text-[11px] text-fg-3 text-center italic">
                         Tidak ada penyitaan.
                       </td>
                     </tr>

@@ -103,8 +103,8 @@ export default function RiyadhahRecapPage() {
               onClick={() => setWeekOffset(off)}
               className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                 weekOffset === off
-                  ? "border-brand/40 bg-brand/10 text-brand-soft"
-                  : "border-white/10 bg-white/[0.03] text-slate-400 hover:text-slate-200"
+                  ? "border-brand/40 bg-brand/10 text-brand-dim"
+                  : "border-line bg-soft text-fg-2 hover:text-fg"
               } disabled:cursor-not-allowed disabled:opacity-40`}>
               {off === 0 ? (
                 <ChevronRight size={12} />
@@ -150,19 +150,19 @@ export default function RiyadhahRecapPage() {
           />
         </div>
         {official.length === 0 ? (
-          <p className="px-4 pb-4 text-slate-500 text-xs italic">
+          <p className="px-4 pb-4 text-fg-3 text-xs italic">
             Belum ada laga resmi pada pekan ini — hasil yang masih
             draft/verifikasi tidak dihitung.
           </p>
         ) : (
-          <ul className="border-white/[0.06] border-t divide-y divide-white/[0.04]">
+          <ul className="border-line border-t divide-y divide-line">
             {official.map((m) => (
               <li
                 key={m.id}
                 className="flex items-center gap-3 px-5 py-2.5 text-sm">
-                <p className="flex-1 min-w-0 text-slate-200 truncate">
+                <p className="flex-1 min-w-0 text-fg truncate">
                   {m.home_name}{" "}
-                  <span className="font-mono font-semibold text-brand-soft">
+                  <span className="font-mono font-semibold text-brand-dim">
                     {m.home_score} - {m.away_score}
                   </span>{" "}
                   {m.away_name}

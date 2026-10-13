@@ -70,7 +70,7 @@ export default function GuestZikirPage() {
                   date === today && <Badge tone="emerald">Hari Ini</Badge>
                 }
               />
-              <ul className="divide-y divide-white/[0.04]">
+              <ul className="divide-y divide-line">
                 {list.map((s) => (
                   <li
                     key={s.id}
@@ -78,8 +78,8 @@ export default function GuestZikirPage() {
                     <span
                       className={`grid size-9 shrink-0 place-items-center rounded-lg border ${
                         s.session_type === "pagi"
-                          ? "border-amber-400/20 bg-amber-400/[0.06] text-amber-300"
-                          : "border-sky-400/20 bg-sky-400/[0.06] text-sky-300"
+                          ? "border-amber-400/20 bg-amber-400/[0.06] text-amber-700"
+                          : "border-sky-400/20 bg-sky-400/[0.06] text-sky-700"
                       }`}>
                       {s.session_type === "pagi" ? (
                         <Sunrise size={16} />
@@ -88,13 +88,13 @@ export default function GuestZikirPage() {
                       )}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="flex items-center gap-2 font-medium text-slate-200 text-sm">
+                      <p className="flex items-center gap-2 font-medium text-fg text-sm">
                         Zikir {s.session_type === "pagi" ? "Pagi" : "Petang"}
-                        <span className="font-mono text-slate-500 text-xs">
+                        <span className="font-mono text-fg-3 text-xs">
                           {timeLabel(s.time_start)} WIB
                         </span>
                       </p>
-                      <p className="flex flex-wrap items-center gap-x-3 mt-0.5 text-slate-500 text-xs">
+                      <p className="flex flex-wrap items-center gap-x-3 mt-0.5 text-fg-3 text-xs">
                         {s.location && (
                           <span className="inline-flex items-center gap-1">
                             <MapPin size={11} /> {s.location}
@@ -105,7 +105,7 @@ export default function GuestZikirPage() {
                           {s.leader_name ? (
                             <>
                               Imam:{" "}
-                              <span className="font-medium text-slate-300">
+                              <span className="font-medium text-fg-2">
                                 {s.leader_name}
                               </span>
                             </>

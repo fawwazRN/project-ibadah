@@ -175,20 +175,20 @@ export default function LughahDashboard() {
             }
           />
           {stats.belum === 0 ? (
-            <p className="px-5 pb-5 text-emerald-300 text-sm">
+            <p className="px-5 pb-5 text-emerald-700 text-sm">
               Semua santri sudah lengkap. Alhamdulillah.
             </p>
           ) : (
-            <ul className="divide-y divide-white/[0.04]">
+            <ul className="divide-y divide-line">
               {stats.belumList.map((r) => (
                 <li
                   key={r.student_id}
                   className="flex items-center gap-3 px-5 py-2.5">
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-200 text-sm truncate">
+                    <p className="font-medium text-fg text-sm truncate">
                       {r.full_name}
                     </p>
-                    <p className="flex flex-wrap items-center gap-1 text-[11px] text-rose-300">
+                    <p className="flex flex-wrap items-center gap-1 text-[11px] text-rose-700">
                       {[
                         "sudah_setor",
                         "sudah_tanda_tangan",
@@ -225,22 +225,22 @@ export default function LughahDashboard() {
             }
           />
           {stats.latest.length === 0 ? (
-            <p className="px-5 pb-5 text-slate-500 text-sm">
+            <p className="px-5 pb-5 text-fg-3 text-sm">
               Belum ada nilai yang diinput.
             </p>
           ) : (
-            <ul className="divide-y divide-white/[0.04]">
+            <ul className="divide-y divide-line">
               {stats.latest.map((r) => (
                 <li
                   key={r.student_id}
                   className="flex items-center gap-3 px-5 py-2.5">
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-200 text-sm truncate">
+                    <p className="font-medium text-fg text-sm truncate">
                       {r.full_name}
                     </p>
-                    <p className="text-[11px] text-slate-500">{r.class_name}</p>
+                    <p className="text-[11px] text-fg-3">{r.class_name}</p>
                   </div>
-                  <span className="font-mono font-bold text-brand-soft">
+                  <span className="font-mono font-bold text-brand-dim">
                     {r.score}
                   </span>
                 </li>
@@ -270,14 +270,14 @@ export default function LughahDashboard() {
         ].map((c) => (
           <Link key={c.to} to={c.to}>
             <Card className="flex items-center gap-3 p-4 hover:border-brand/30 transition-colors">
-              <span className="place-items-center grid bg-white/[0.03] border border-white/[0.07] rounded-lg size-9 text-brand-soft shrink-0">
+              <span className="place-items-center grid bg-soft border border-line rounded-lg size-9 text-brand-dim shrink-0">
                 <ClipboardCheck size={16} />
               </span>
               <div className="min-w-0">
-                <p className="font-medium text-slate-200 text-sm truncate">
+                <p className="font-medium text-fg text-sm truncate">
                   {c.label}
                 </p>
-                <p className="text-slate-500 text-xs truncate">{c.desc}</p>
+                <p className="text-fg-3 text-xs truncate">{c.desc}</p>
               </div>
             </Card>
           </Link>

@@ -59,7 +59,7 @@ export default function LeaderboardDetailPage({ role }) {
             <div className="relative w-56">
               <Search
                 size={14}
-                className="top-1/2 left-3 absolute text-slate-500 -translate-y-1/2"
+                className="top-1/2 left-3 absolute text-fg-3 -translate-y-1/2"
               />
               <Input
                 value={q}

@@ -77,21 +77,21 @@ export default function LeaderboardPage({ role }) {
           {isSantri &&
             (myIndex >= 0 ? (
               <Card className="flex items-center gap-4 mt-4 p-5 border-rose-400/25">
-                <span className="place-items-center grid bg-rose-400/10 border border-rose-400/25 rounded-xl size-11 font-display font-bold text-rose-300 text-base">
+                <span className="place-items-center grid bg-rose-400/10 border border-rose-400/25 rounded-xl size-11 font-display font-bold text-rose-700 text-base">
                   #{myIndex + 1}
                 </span>
                 <div>
-                  <p className="font-medium text-slate-200 text-sm">
+                  <p className="font-medium text-fg text-sm">
                     Peringkat kamu dari {entries.length} santri
                   </p>
-                  <p className="text-slate-500 text-xs">
+                  <p className="text-fg-3 text-xs">
                     {fmtNum(entries[myIndex].score)} poin ·{" "}
                     {fmtNum(entries[myIndex].violation_count)} pelanggaran
                   </p>
                 </div>
               </Card>
             ) : (
-              <Card className="mt-4 p-5 text-slate-400 text-sm">
+              <Card className="mt-4 p-5 text-fg-2 text-sm">
                 Kamu belum memiliki poin pelanggaran bulan ini. Pertahankan.
               </Card>
             ))}

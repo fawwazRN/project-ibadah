@@ -127,8 +127,8 @@ export default function AdminUsersPage() {
             onClick={() => setFRole(fRole === r ? "" : r)}
             className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
               fRole === r
-                ? "border-brand/40 bg-brand/10 text-brand-soft"
-                : "border-white/10 bg-white/[0.03] text-slate-400 hover:text-slate-200"
+                ? "border-brand/40 bg-brand/10 text-brand-dim"
+                : "border-line bg-soft text-fg-2 hover:text-fg"
             }`}>
             {ROLE_LABELS[r]}: {counts[r]}
           </button>
@@ -136,14 +136,14 @@ export default function AdminUsersPage() {
         {fRole && (
           <button
             onClick={() => setFRole("")}
-            className="text-slate-500 text-xs underline">
+            className="text-fg-3 text-xs underline">
             hapus filter
           </button>
         )}
         <div className="relative ml-auto w-64">
           <Search
             size={14}
-            className="top-1/2 left-3 absolute text-slate-500 -translate-y-1/2"
+            className="top-1/2 left-3 absolute text-fg-3 -translate-y-1/2"
           />
           <Input
             value={q}
@@ -191,19 +191,19 @@ export default function AdminUsersPage() {
                       <Td>
                         <div className="flex items-center gap-2.5">
                           <Avatar name={p.full_name} size="sm" />
-                          <span className="text-slate-200">{p.full_name}</span>
+                          <span className="text-fg">{p.full_name}</span>
                           {isMe && <Badge tone="emerald">Kamu</Badge>}
                           {p.role === "santri" && !p.user_id && (
                             <Badge tone="neutral">Belum klaim</Badge>
                           )}
                         </div>
                       </Td>
-                      <Td className="text-slate-500">
+                      <Td className="text-fg-3">
                         {p.role === "santri"
                           ? `${p.class_name ?? "—"}${p.nis ? ` · ${p.nis}` : ""}`
                           : "—"}
                       </Td>
-                      <Td className="max-w-[220px] text-slate-500 truncate">
+                      <Td className="max-w-[220px] text-fg-3 truncate">
                         {p.email ?? "—"}
                       </Td>
                       <Td>
@@ -213,7 +213,7 @@ export default function AdminUsersPage() {
                       </Td>
                       <Td className="text-right">
                         {isMe ? (
-                          <span className="text-slate-600 text-xs">
+                          <span className="text-fg-3 text-xs">
                             tidak bisa ubah diri sendiri
                           </span>
                         ) : (
@@ -223,7 +223,7 @@ export default function AdminUsersPage() {
                             onChange={(e) => changeRole(p, e.target.value)}
                             className="py-1 w-auto text-xs field">
                             {ROLES.map((r) => (
-                              <option key={r} value={r} className="bg-ink-800">
+                              <option key={r} value={r} className="bg-soft">
                                 {ROLE_LABELS[r]}
                               </option>
                             ))}

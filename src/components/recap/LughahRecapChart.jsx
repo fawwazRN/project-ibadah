@@ -12,32 +12,32 @@ export default function LughahRecapChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height={220}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-        <CartesianGrid vertical={false} stroke="rgba(255,255,255,.05)" />
+        <CartesianGrid vertical={false} stroke="var(--color-line)" />
         <XAxis
           dataKey="label"
-          tick={{ fill: "#64748B", fontSize: 11 }}
+          tick={{ fill: "var(--color-fg-3)", fontSize: 11 }}
           tickLine={false}
-          axisLine={{ stroke: "rgba(255,255,255,.08)" }}
+          axisLine={{ stroke: "var(--color-line)" }}
         />
         <YAxis
           allowDecimals={false}
-          tick={{ fill: "#64748B", fontSize: 11 }}
+          tick={{ fill: "var(--color-fg-3)", fontSize: 11 }}
           tickLine={false}
           axisLine={false}
         />
         <Tooltip
-          cursor={{ fill: "rgba(255,255,255,.03)" }}
+          cursor={{ fill: "rgba(15,23,42,.04)" }}
           contentStyle={{
-            background: "#101a2c",
-            border: "1px solid rgba(255,255,255,.1)",
+            background: "#ffffff",
+            border: "1px solid var(--color-line)",
             borderRadius: 8,
           }}
-          labelStyle={{ color: "#94A3B8", fontSize: 11 }}
-          itemStyle={{ color: "#34D399" }}
+          labelStyle={{ color: "var(--color-fg-3)", fontSize: 11 }}
+          itemStyle={{ color: "var(--color-brand-dim)" }}
         />
         <Bar
           dataKey="total"
-          fill="#10B981"
+          fill="var(--color-brand)"
           radius={[4, 4, 0, 0]}
           barSize={40}
         />

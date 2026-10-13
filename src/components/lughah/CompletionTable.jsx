@@ -27,8 +27,8 @@ export function CompletionTable({ rows, onToggle }) {
         onClick={() => onToggle?.(row, field)}
         className={`mx-auto grid size-6 place-items-center rounded-md border transition-colors ${
           row[field]
-            ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
-            : "border-white/15 bg-white/[0.03] text-slate-600 hover:border-white/30"
+            ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-700"
+            : "border-line-2 bg-soft text-fg-3 hover:border-line-2"
         }`}
         title={row[field] ? `Batalkan ${field}` : `Tandai ${field}`}>
         {row[field] ? <Check size={13} /> : <X size={13} />}
@@ -55,9 +55,9 @@ export function CompletionTable({ rows, onToggle }) {
         <tbody>
           {rows.map((r, i) => (
             <Tr key={r.student_id}>
-              <Td className="font-mono text-slate-500 text-xs">{i + 1}</Td>
-              <Td className="font-medium text-slate-200">{r.full_name}</Td>
-              <Td className="text-slate-300">{r.class_name}</Td>
+              <Td className="font-mono text-fg-3 text-xs">{i + 1}</Td>
+              <Td className="font-medium text-fg">{r.full_name}</Td>
+              <Td className="text-fg-2">{r.class_name}</Td>
               {FIELDS.map((f) => (
                 <CheckCell key={f.key} row={r} field={f.key} />
               ))}

@@ -1,16 +1,17 @@
 export function PageHeader({ title, description, actions }) {
   return (
-    <div className="flex sm:flex-row flex-col sm:justify-between sm:items-end gap-3 mb-6">
-      <div className="flex items-stretch gap-3">
-        <span className="bg-brand rounded-full w-1.5 shrink-0" />
-        <div>
-          <h1 className="font-display font-semibold text-slate-50 text-xl sm:text-2xl">
-            {title}
-          </h1>
-          {description && (
-            <p className="mt-1 text-slate-500 text-sm">{description}</p>
-          )}
-        </div>
+    <div className="flex sm:flex-row flex-col sm:justify-between sm:items-end gap-3 mb-5">
+      <div className="min-w-0">
+        <h1
+          className="font-display text-[22px] text-fg sm:text-[26px] leading-tight"
+          style={{ fontWeight: "var(--head-weight)" }}>
+          {title}
+        </h1>
+        {description && (
+          <p className="mt-1 text-fg-3 text-sm leading-relaxed">
+            {description}
+          </p>
+        )}
       </div>
       {actions && (
         <div className="flex flex-wrap items-center gap-2">{actions}</div>

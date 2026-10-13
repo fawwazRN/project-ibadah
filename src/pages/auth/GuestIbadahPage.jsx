@@ -80,7 +80,7 @@ export default function GuestIbadahPage() {
         <CardHeader
           title="Papan Peringkat Nakal"
           description="Top 10 poin pelanggaran bulan ini — yang dibatalkan tidak dihitung"
-          actions={<Trophy size={15} className="text-rose-300" />}
+          actions={<Trophy size={15} className="text-rose-700" />}
         />
         {data.board.length === 0 ? (
           <EmptyState
@@ -89,25 +89,25 @@ export default function GuestIbadahPage() {
             description="Belum ada santri dengan poin bulan ini."
           />
         ) : (
-          <ul className="divide-y divide-white/[0.04]">
+          <ul className="divide-y divide-line">
             {data.board.slice(0, 10).map((e, i) => (
               <li
                 key={e.santri_id}
                 className="flex items-center gap-3 px-5 py-3">
-                <span className="w-7 font-mono text-slate-500 text-sm shrink-0">
+                <span className="w-7 font-mono text-fg-3 text-sm shrink-0">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <Avatar name={e.full_name} size="sm" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-slate-200 text-sm truncate">
+                  <p className="font-medium text-fg text-sm truncate">
                     {e.full_name}
                   </p>
-                  <p className="text-slate-500 text-xs">
+                  <p className="text-fg-3 text-xs">
                     Kelas {e.class_name} · {fmtNum(e.violation_count)}{" "}
                     pelanggaran
                   </p>
                 </div>
-                <span className="font-mono font-semibold text-rose-300 text-sm">
+                <span className="font-mono font-semibold text-rose-700 text-sm">
                   {fmtNum(e.score)}
                 </span>
               </li>
@@ -122,21 +122,21 @@ export default function GuestIbadahPage() {
           <CardHeader
             title="Aturan Poin Aktif"
             description="Pelanggaran Qism Ibadah dicatat dengan waktu shalat · Qism Riyadhah dengan jam"
-            actions={<Scale size={15} className="text-brand-soft" />}
+            actions={<Scale size={15} className="text-brand-dim" />}
           />
           {data.rules.length === 0 ? (
             <EmptyState icon={Scale} title="Belum ada aturan" />
           ) : (
-            <ul className="divide-y divide-white/[0.04]">
+            <ul className="divide-y divide-line">
               {data.rules.map((r) => (
                 <li
                   key={r.name}
                   className="flex flex-wrap items-center gap-3 px-5 py-3">
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-200 text-sm">
+                    <p className="font-medium text-fg text-sm">
                       {r.name}
                     </p>
-                    <p className="text-slate-500 text-xs truncate">
+                    <p className="text-fg-3 text-xs truncate">
                       {r.description || "—"}
                     </p>
                   </div>
@@ -155,24 +155,24 @@ export default function GuestIbadahPage() {
           <CardHeader
             title="Paling Sering Terjadi"
             description="Bulan berjalan"
-            actions={<FileBarChart size={15} className="text-slate-400" />}
+            actions={<FileBarChart size={15} className="text-fg-2" />}
           />
           {data.topRules.length === 0 ? (
             <EmptyState icon={FileBarChart} title="Belum ada data" />
           ) : (
-            <ul className="divide-y divide-white/[0.04]">
+            <ul className="divide-y divide-line">
               {data.topRules.map((r, i) => (
                 <li
                   key={r.rule_name}
                   className="flex items-center gap-3 px-5 py-3">
-                  <span className="font-mono text-slate-500 text-xs">
+                  <span className="font-mono text-fg-3 text-xs">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-slate-200 text-sm truncate">
+                    <p className="text-fg text-sm truncate">
                       {r.rule_name}
                     </p>
-                    <p className="text-slate-500 text-xs">
+                    <p className="text-fg-3 text-xs">
                       {fmtNum(r.occurrences)} kejadian ·{" "}
                       {fmtNum(r.total_points)} poin
                     </p>

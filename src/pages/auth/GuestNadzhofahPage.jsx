@@ -16,22 +16,22 @@ const PODIUM = {
   0: {
     tag: "Ter-nakal 1",
     ring: "ring-1 ring-rose-400/40",
-    tagCls: "bg-rose-400/10 text-rose-300 border-rose-400/30",
-    num: "text-rose-300/15",
+    tagCls: "bg-rose-400/10 text-rose-700 border-rose-400/30",
+    num: "text-rose-700",
     lift: "sm:-translate-y-3",
   },
   1: {
     tag: "Ke-2",
     ring: "ring-1 ring-amber-400/30",
-    tagCls: "bg-amber-400/10 text-amber-300 border-amber-400/25",
-    num: "text-amber-300/15",
+    tagCls: "bg-amber-400/10 text-amber-700 border-amber-400/25",
+    num: "text-amber-700",
     lift: "",
   },
   2: {
     tag: "Ke-3",
     ring: "ring-1 ring-slate-400/20",
-    tagCls: "bg-white/5 text-slate-300 border-white/15",
-    num: "text-slate-400/15",
+    tagCls: "bg-soft-2 text-fg-2 border-line-2",
+    num: "text-fg-2",
     lift: "",
   },
 };
@@ -83,7 +83,7 @@ export default function GuestNadzhofahPage() {
                 return (
                   <div
                     key={e.student_id}
-                    className={`relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.025] ${m.ring} ${m.lift}`}>
+                    className={`relative overflow-hidden rounded-2xl border border-line bg-soft ${m.ring} ${m.lift}`}>
                     <span
                       className={`pointer-events-none absolute bottom-1 right-3 select-none font-display text-6xl font-bold leading-none ${m.num}`}>
                       {i + 1}
@@ -96,24 +96,24 @@ export default function GuestNadzhofahPage() {
                       <div className="flex items-center gap-3 mt-3.5">
                         <Avatar name={e.full_name} size="md" />
                         <div className="min-w-0">
-                          <p className="font-semibold text-slate-100 text-sm truncate">
+                          <p className="font-semibold text-fg text-sm truncate">
                             {e.full_name}
                           </p>
-                          <p className="text-slate-500 text-xs">
+                          <p className="text-fg-3 text-xs">
                             {e.class_name}
                           </p>
                         </div>
                       </div>
-                      <div className="relative flex items-center gap-2 mt-4 pt-3 border-white/[0.06] border-t">
-                        <Footprints size={13} className="text-slate-500" />
-                        <span className="font-mono text-slate-200 text-sm">
+                      <div className="relative flex items-center gap-2 mt-4 pt-3 border-line border-t">
+                        <Footprints size={13} className="text-fg-3" />
+                        <span className="font-mono text-fg text-sm">
                           {fmtNum(e.nyeker_count)}
                         </span>
-                        <Shirt size={13} className="ml-1 text-slate-500" />
-                        <span className="font-mono text-slate-200 text-sm">
+                        <Shirt size={13} className="ml-1 text-fg-3" />
+                        <span className="font-mono text-fg text-sm">
                           {fmtNum(e.clothing_count)}
                         </span>
-                        <span className="ml-auto font-mono font-bold text-rose-300 text-lg">
+                        <span className="ml-auto font-mono font-bold text-rose-700 text-lg">
                           {fmtNum(e.naughty_score)}
                         </span>
                       </div>
@@ -133,20 +133,20 @@ export default function GuestNadzhofahPage() {
             {rest.length === 0 ? (
               <EmptyState icon={Footprints} title="Hanya 3 santri teratas" />
             ) : (
-              <ul className="divide-y divide-white/[0.04]">
+              <ul className="divide-y divide-line">
                 {rest.map((e, i) => (
                   <li
                     key={e.student_id}
                     className="flex items-center gap-3 px-5 py-3">
-                    <span className="w-7 font-mono text-slate-500 text-sm shrink-0">
+                    <span className="w-7 font-mono text-fg-3 text-sm shrink-0">
                       {String((hasTop3 ? 3 : 0) + i + 1).padStart(2, "0")}
                     </span>
                     <Avatar name={e.full_name} size="sm" />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-200 text-sm truncate">
+                      <p className="font-medium text-fg text-sm truncate">
                         {e.full_name}
                       </p>
-                      <p className="text-slate-500 text-xs">{e.class_name}</p>
+                      <p className="text-fg-3 text-xs">{e.class_name}</p>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Badge tone="neutral">

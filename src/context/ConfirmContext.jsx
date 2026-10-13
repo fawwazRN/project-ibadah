@@ -30,15 +30,15 @@ export function ConfirmProvider({ children }) {
         title={state?.title}>
         <div className="flex gap-3">
           {state?.tone === "danger" && (
-            <span className="place-items-center grid bg-rose-500/10 rounded-lg size-9 text-rose-300 shrink-0">
-              <AlertTriangle size={17} />
+            <span className="place-items-center grid bg-rose-100 rounded-xl size-10 text-rose-700 shrink-0">
+              <AlertTriangle size={19} />
             </span>
           )}
-          <p className="text-slate-400 text-sm leading-relaxed">
+          <p className="pt-1 text-fg-2 text-sm leading-relaxed">
             {state?.message}
           </p>
         </div>
-        <div className="flex justify-end gap-2 mt-6">
+        <div className="flex sm:flex-row flex-col-reverse sm:justify-end gap-2 mt-6">
           <Button variant="ghost" onClick={() => close(false)}>
             Batal
           </Button>

@@ -58,10 +58,10 @@ export default function SantriReports() {
             <Card key={r.id} className="p-5">
               <div className="flex flex-wrap justify-between items-start gap-2">
                 <div>
-                  <p className="font-display font-semibold text-slate-100 text-sm">
+                  <p className="font-display font-semibold text-fg text-sm">
                     {r.violation?.rule?.name}
                   </p>
-                  <p className="mt-0.5 text-slate-500 text-xs">
+                  <p className="mt-0.5 text-fg-3 text-xs">
                     Pelanggaran {fmtDateTime(r.violation?.occurred_at)} ·
                     diajukan {timeAgo(r.created_at)}
                   </p>
@@ -71,28 +71,28 @@ export default function SantriReports() {
                   <ReportStatusBadge status={r.status} />
                 </div>
               </div>
-              <p className="mt-3 pl-3 border-brand/40 border-l-2 text-slate-400 text-sm leading-relaxed">
-                <span className="font-medium text-slate-500 text-xs uppercase tracking-wider">
+              <p className="mt-3 pl-3 border-brand/40 border-l-2 text-fg-2 text-sm leading-relaxed">
+                <span className="font-medium text-fg-3 text-xs uppercase tracking-wider">
                   {r.reason}
                 </span>
                 <br />
                 {r.explanation}
               </p>
               {["accepted", "rejected"].includes(r.status) && (
-                <div className="bg-white/[0.02] mt-3 p-3 border border-white/[0.06] rounded-xl text-slate-400 text-xs">
-                  <span className="font-semibold text-slate-300">
+                <div className="bg-soft mt-3 p-3 border border-line rounded-xl text-fg-2 text-xs">
+                  <span className="font-semibold text-fg-2">
                     Hasil tinjauan:{" "}
                   </span>
                   {r.review_note || "—"}
                   {r.reviewer?.full_name && (
-                    <span className="text-slate-600">
+                    <span className="text-fg-3">
                       {" "}
                       · {r.reviewer.full_name}
                     </span>
                   )}
                 </div>
               )}
-              <div className="flex items-center gap-2 mt-3 text-[11px] text-slate-600">
+              <div className="flex items-center gap-2 mt-3 text-[11px] text-fg-3">
                 Status pelanggaran saat ini:{" "}
                 <ViolationStatusBadge status={r.violation?.status} />
               </div>

@@ -67,10 +67,10 @@ export function ViolationDetailModal({
       <div className="space-y-4">
         <div className="flex flex-wrap justify-between items-center gap-2">
           <div>
-            <p className="font-display font-semibold text-slate-100 text-base">
+            <p className="font-display font-semibold text-fg text-base">
               {v.rule?.name}
             </p>
-            <p className="mt-0.5 text-slate-500 text-xs">
+            <p className="mt-0.5 text-fg-3 text-xs">
               Kategori {v.rule?.category}
             </p>
           </div>
@@ -81,29 +81,29 @@ export function ViolationDetailModal({
         </div>
 
         <dl className="gap-3 grid grid-cols-2 text-sm">
-          <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
-            <dt className="text-[11px] text-slate-500 uppercase tracking-wider">
+          <div className="bg-soft p-3 border border-line rounded-xl">
+            <dt className="text-[11px] text-fg-3 uppercase tracking-wider">
               Santri
             </dt>
-            <dd className="mt-1 font-medium text-slate-200">
+            <dd className="mt-1 font-medium text-fg">
               {v.santri?.full_name}
             </dd>
-            <dd className="text-slate-500 text-xs">
+            <dd className="text-fg-3 text-xs">
               Kelas {v.santri?.class_name ?? "—"}
             </dd>
           </div>
-          <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl">
-            <dt className="text-[11px] text-slate-500 uppercase tracking-wider">
+          <div className="bg-soft p-3 border border-line rounded-xl">
+            <dt className="text-[11px] text-fg-3 uppercase tracking-wider">
               Waktu kejadian
             </dt>
-            <dd className="mt-1 font-medium text-slate-200">
+            <dd className="mt-1 font-medium text-fg">
               {new Date(v.occurred_at).toLocaleDateString("id-ID", {
                 day: "numeric",
                 month: "short",
                 year: "numeric",
               })}
             </dd>
-            <dd className="text-slate-500 text-xs">
+            <dd className="text-fg-3 text-xs">
               {new Date(v.occurred_at).toLocaleTimeString("id-ID", {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -113,7 +113,7 @@ export function ViolationDetailModal({
         </dl>
 
         <div>
-          <p className="mb-1 text-[11px] text-slate-500 uppercase tracking-wider">
+          <p className="mb-1 text-[11px] text-fg-3 uppercase tracking-wider">
             Catatan petugas
           </p>
           {canManage ? (
@@ -135,15 +135,15 @@ export function ViolationDetailModal({
               )}
             </div>
           ) : (
-            <p className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-xl text-slate-400 text-sm">
+            <p className="bg-soft p-3 border border-line rounded-xl text-fg-2 text-sm">
               {v.note || "Belum ada catatan."}
             </p>
           )}
         </div>
 
         {canManage && (
-          <div className="pt-4 border-white/[0.06] border-t">
-            <p className="mb-2 font-semibold text-[11px] text-slate-500 uppercase tracking-wider">
+          <div className="pt-4 border-line border-t">
+            <p className="mb-2 font-semibold text-[11px] text-fg-3 uppercase tracking-wider">
               Tindakan
             </p>
             <div className="flex flex-wrap gap-2">
@@ -221,7 +221,7 @@ export function ViolationDetailModal({
         {!canManage &&
           onClarify &&
           OPEN_VIOLATION_STATUSES.includes(v.status) && (
-            <div className="pt-4 border-white/[0.06] border-t">
+            <div className="pt-4 border-line border-t">
               <Button
                 variant="primary"
                 className="w-full"

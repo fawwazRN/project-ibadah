@@ -99,17 +99,17 @@ export default function ClaimPage() {
   };
 
   return (
-    <div className="bg-ink-950 min-h-screen">
-      <header className="bg-ink-900/50 border-white/[0.06] border-b">
+    <div className="bg-page min-h-screen">
+      <header className="bg-card border-line border-b">
         <div className="flex items-center gap-3 mx-auto px-4 lg:px-8 py-4 max-w-5xl">
-          <span className="place-items-center grid bg-brand/10 border border-brand/25 rounded-xl size-9 text-brand-soft">
+          <span className="place-items-center grid bg-brand/10 border border-brand/25 rounded-xl size-9 text-brand-dim">
             <BrandMark className="size-5" />
           </span>
           <div className="flex-1 min-w-0">
-            <p className="font-display font-bold text-slate-50 text-sm">
+            <p className="font-display font-bold text-fg text-sm">
               Ibadah OSIS
             </p>
-            <p className="text-[11px] text-slate-500 truncate">
+            <p className="text-[11px] text-fg-3 truncate">
               Masuk sebagai {session?.user?.email}
             </p>
           </div>
@@ -123,10 +123,10 @@ export default function ClaimPage() {
         {step === "class" ? (
           <>
             <div className="mb-6">
-              <h1 className="font-display font-semibold text-slate-50 text-2xl">
+              <h1 className="font-display font-semibold text-fg text-2xl">
                 Pilih Kelas Kamu
               </h1>
-              <p className="mt-1 text-slate-500 text-sm">
+              <p className="mt-1 text-fg-3 text-sm">
                 Langkah 1 dari 2 — pilih kelas, lalu kamu akan memilih namamu
                 dari daftar kelas tersebut.
               </p>
@@ -154,15 +154,15 @@ export default function ClaimPage() {
                       setQ("");
                       setStep("name");
                     }}
-                    className="flex items-center gap-3 bg-white/[0.025] hover:bg-brand/[0.05] shadow-card p-4 border border-white/[0.06] hover:border-brand/30 rounded-2xl text-left transition-colors">
-                    <span className="place-items-center grid bg-white/[0.03] border border-white/[0.07] rounded-xl size-10 text-brand-soft shrink-0">
+                    className="flex items-center gap-3 bg-soft hover:bg-brand/[0.05] shadow-card p-4 border border-line hover:border-brand/30 rounded-2xl text-left transition-colors">
+                    <span className="place-items-center grid bg-soft border border-line rounded-xl size-10 text-brand-dim shrink-0">
                       <GraduationCap size={18} />
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-100 text-sm truncate">
+                      <p className="font-semibold text-fg text-sm truncate">
                         {c.name}
                       </p>
-                      <p className="text-slate-500 text-xs">
+                      <p className="text-fg-3 text-xs">
                         {c.count} nama tersedia
                       </p>
                     </div>
@@ -189,12 +189,12 @@ export default function ClaimPage() {
                 }}>
                 Ganti kelas
               </Button>
-              <h1 className="font-display font-semibold text-slate-50 text-2xl">
+              <h1 className="font-display font-semibold text-fg text-2xl">
                 Pilih Nama Kamu
               </h1>
-              <p className="mt-1 text-slate-500 text-sm">
+              <p className="mt-1 text-fg-3 text-sm">
                 Langkah 2 dari 2 — kelas{" "}
-                <span className="font-medium text-slate-300">{kelas}</span> ·{" "}
+                <span className="font-medium text-fg-2">{kelas}</span> ·{" "}
                 {namesInClass.length} nama tersedia. Pilihan hanya bisa
                 dilakukan satu kali.
               </p>
@@ -203,7 +203,7 @@ export default function ClaimPage() {
             <div className="relative mb-5 max-w-sm">
               <Search
                 size={15}
-                className="top-1/2 left-3 absolute text-slate-500 -translate-y-1/2"
+                className="top-1/2 left-3 absolute text-fg-3 -translate-y-1/2"
               />
               <Input
                 value={q}
@@ -234,9 +234,9 @@ export default function ClaimPage() {
                   <button
                     key={r.id}
                     onClick={() => setPicked(r)}
-                    className="flex items-center gap-3 bg-white/[0.02] hover:bg-brand/[0.05] px-3 py-2.5 border border-white/[0.06] hover:border-brand/30 rounded-xl text-left transition-colors">
+                    className="flex items-center gap-3 bg-soft hover:bg-brand/[0.05] px-3 py-2.5 border border-line hover:border-brand/30 rounded-xl text-left transition-colors">
                     <Avatar name={r.full_name} size="sm" />
-                    <p className="min-w-0 font-medium text-slate-200 text-sm truncate">
+                    <p className="min-w-0 font-medium text-fg text-sm truncate">
                       {r.full_name}
                     </p>
                   </button>
@@ -254,18 +254,18 @@ export default function ClaimPage() {
         size="sm">
         {picked && (
           <div className="space-y-4">
-            <div className="flex items-center gap-3 bg-white/[0.02] p-3.5 border border-white/[0.06] rounded-xl">
+            <div className="flex items-center gap-3 bg-soft p-3.5 border border-line rounded-xl">
               <Avatar name={picked.full_name} size="md" />
               <div>
-                <p className="font-semibold text-slate-100 text-sm">
+                <p className="font-semibold text-fg text-sm">
                   {picked.full_name}
                 </p>
-                <p className="text-slate-500 text-xs">{picked.class_name}</p>
+                <p className="text-fg-3 text-xs">{picked.class_name}</p>
               </div>
             </div>
-            <p className="text-slate-400 text-sm leading-relaxed">
+            <p className="text-fg-2 text-sm leading-relaxed">
               Pastikan ini benar-benar namamu. Setelah terhubung, pilihan{" "}
-              <span className="font-medium text-slate-200">
+              <span className="font-medium text-fg">
                 tidak bisa diubah lagi
               </span>{" "}
               dan semua data ibadah akan terkait dengan profil ini.

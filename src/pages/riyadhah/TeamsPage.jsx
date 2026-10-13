@@ -210,17 +210,17 @@ export default function TeamsPage() {
               {tm.length === 0 ? (
                 <EmptyState title="Belum ada anggota" />
               ) : (
-                <ul className="divide-y divide-white/[0.04]">
+                <ul className="divide-y divide-line">
                   {tm.map((m) => (
                     <li
                       key={m.id}
                       className="flex items-center gap-2.5 px-5 py-2.5">
                       <Avatar name={m.full_name} size="sm" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-slate-200 text-sm truncate">
+                        <p className="text-fg text-sm truncate">
                           {m.full_name}
                         </p>
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-[11px] text-fg-3">
                           {m.class_name}
                         </p>
                       </div>
@@ -279,7 +279,7 @@ export default function TeamsPage() {
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="Ketik nama…"
                 />
-                <div className="bg-ink-800 mt-2 border border-white/10 rounded-lg max-h-48 overflow-y-auto">
+                <div className="bg-soft mt-2 border border-line rounded-lg max-h-48 overflow-y-auto">
                   {filtered.slice(0, 10).map((s) => (
                     <button
                       type="button"
@@ -287,13 +287,13 @@ export default function TeamsPage() {
                       onClick={() =>
                         setForm((f) => ({ ...f, student_id: s.id }))
                       }
-                      className={`block w-full px-3 py-2 text-left text-sm transition-colors hover:bg-white/5 ${
+                      className={`block w-full px-3 py-2 text-left text-sm transition-colors hover:bg-soft-2 ${
                         form.student_id === s.id
-                          ? "bg-brand/10 text-brand-soft"
-                          : "text-slate-300"
+                          ? "bg-brand/10 text-brand-dim"
+                          : "text-fg-2"
                       }`}>
                       {s.full_name}{" "}
-                      <span className="text-slate-500 text-xs">
+                      <span className="text-fg-3 text-xs">
                         {s.class_name}
                       </span>
                     </button>

@@ -131,8 +131,8 @@ export default function RiyadhahViolationsPage() {
             onClick={() => setFStatus(k)}
             className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
               fStatus === k
-                ? "border-brand/40 bg-brand/10 text-brand-soft"
-                : "border-white/10 bg-white/[0.03] text-slate-400 hover:text-slate-200"
+                ? "border-brand/40 bg-brand/10 text-brand-dim"
+                : "border-line bg-soft text-fg-2 hover:text-fg"
             }`}>
             {l}
           </button>
@@ -166,16 +166,16 @@ export default function RiyadhahViolationsPage() {
               <tbody>
                 {list.slice(0, 100).map((v) => (
                   <Tr key={v.id}>
-                    <Td className="text-slate-400 whitespace-nowrap">
+                    <Td className="text-fg-2 whitespace-nowrap">
                       {fmtOccurred(v)}
                     </Td>
-                    <Td className="text-slate-200">
+                    <Td className="text-fg">
                       {v.santri?.full_name}
-                      <span className="ml-1.5 text-slate-500 text-xs">
+                      <span className="ml-1.5 text-fg-3 text-xs">
                         {v.santri?.class_name}
                       </span>
                     </Td>
-                    <Td className="text-slate-300">
+                    <Td className="text-fg-2">
                       {v.rule?.name}
                       {suspendedRules.has(v.rule_id) && (
                         <Badge tone="violet" className="ml-2">

@@ -73,11 +73,11 @@ export default function ReportsReview() {
             onClick={() => setTab(t.key)}
             className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
               tab === t.key
-                ? "border-brand/40 bg-brand/10 text-brand-soft"
-                : "border-white/10 bg-white/[0.03] text-slate-400 hover:text-slate-200"
+                ? "border-brand/40 bg-brand/10 text-brand-dim"
+                : "border-line bg-soft text-fg-2 hover:text-fg"
             }`}>
             {t.label}{" "}
-            <span className="ml-1 font-mono text-[10px] text-slate-500">
+            <span className="ml-1 font-mono text-[10px] text-fg-3">
               {counts[t.key]}
             </span>
           </button>
@@ -98,26 +98,26 @@ export default function ReportsReview() {
             <Card key={r.id} className="p-5">
               <div className="flex flex-wrap justify-between items-start gap-2">
                 <div>
-                  <p className="font-semibold text-slate-100 text-sm">
+                  <p className="font-semibold text-fg text-sm">
                     {r.violation?.santri?.full_name ?? r.santri?.full_name}
                   </p>
-                  <p className="text-slate-500 text-xs">
+                  <p className="text-fg-3 text-xs">
                     Kelas {r.violation?.santri?.class_name} · diajukan{" "}
                     {timeAgo(r.created_at)}
                   </p>
                 </div>
                 <ReportStatusBadge status={r.status} />
               </div>
-              <div className="flex justify-between items-center gap-2 bg-white/[0.02] mt-3 p-3 border border-white/[0.06] rounded-xl">
+              <div className="flex justify-between items-center gap-2 bg-soft mt-3 p-3 border border-line rounded-xl">
                 <div className="min-w-0">
-                  <p className="text-slate-200 text-sm truncate">
+                  <p className="text-fg text-sm truncate">
                     {r.violation?.rule?.name}
                   </p>
-                  <p className="text-slate-500 text-xs">{r.reason}</p>
+                  <p className="text-fg-3 text-xs">{r.reason}</p>
                 </div>
                 <Badge tone="rose">+{r.violation?.rule?.points}</Badge>
               </div>
-              <p className="mt-3 pl-3 border-brand/40 border-l-2 text-slate-400 text-sm line-clamp-3 leading-relaxed">
+              <p className="mt-3 pl-3 border-brand/40 border-l-2 text-fg-2 text-sm line-clamp-3 leading-relaxed">
                 {r.explanation}
               </p>
               <div className="flex justify-between items-center gap-2 mt-4">

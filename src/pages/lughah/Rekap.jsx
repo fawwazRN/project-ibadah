@@ -165,19 +165,19 @@ export default function LughahRekapPage() {
           {REQ.map((r) => (
             <div key={r.label}>
               <div className="flex justify-between items-center mb-1 text-xs">
-                <span className="font-medium text-slate-300">{r.label}</span>
-                <span className="font-mono text-slate-400">
+                <span className="font-medium text-fg-2">{r.label}</span>
+                <span className="font-mono text-fg-2">
                   {fmtNum(r.n)} / {fmtNum(stats.total)}
                 </span>
               </div>
               <div
                 className={BAR}
-                style={{ background: "rgba(255,255,255,.06)" }}>
+                style={{ background: "var(--color-soft-2)" }}>
                 <div
                   className={BAR}
                   style={{
                     width: `${pct(r.n)}%`,
-                    background: "#10B981",
+                    background: "var(--color-brand)",
                     printColorAdjust: "exact",
                     WebkitPrintColorAdjust: "exact",
                   }}
@@ -187,21 +187,21 @@ export default function LughahRekapPage() {
           ))}
           <div>
             <div className="flex justify-between items-center mb-1 text-xs">
-              <span className="font-semibold text-brand-soft">
+              <span className="font-semibold text-brand-dim">
                 Kelengkapan keseluruhan
               </span>
-              <span className="font-mono text-brand-soft">
+              <span className="font-mono text-brand-dim">
                 {fmtNum(stats.lengkap)} / {fmtNum(stats.total)}
               </span>
             </div>
             <div
               className={BAR}
-              style={{ background: "rgba(255,255,255,.06)" }}>
+              style={{ background: "var(--color-soft-2)" }}>
               <div
                 className={BAR}
                 style={{
                   width: `${pct(stats.lengkap)}%`,
-                  background: "#34D399",
+                  background: "var(--color-brand)",
                   printColorAdjust: "exact",
                   WebkitPrintColorAdjust: "exact",
                 }}
@@ -250,7 +250,7 @@ export default function LughahRekapPage() {
           />
           <div className="p-4">
             {stats.scored === 0 ? (
-              <p className="py-8 text-slate-500 text-xs text-center italic">
+              <p className="py-8 text-fg-3 text-xs text-center italic">
                 Belum ada santri yang dinilai.
               </p>
             ) : (

@@ -66,20 +66,20 @@ export default function SantriLughahPage() {
             )
           }
         />
-        <ul className="divide-y divide-white/[0.04]">
+        <ul className="divide-y divide-line">
           {REQ.map((r) => (
             <li key={r.key} className="flex items-center gap-3 px-5 py-3">
               {record[r.key] ? (
-                <span className="place-items-center grid bg-emerald-400/15 border border-emerald-400/40 rounded-md size-6 text-emerald-300">
+                <span className="place-items-center grid bg-emerald-400/15 border border-emerald-400/40 rounded-md size-6 text-emerald-700">
                   <Check size={13} />
                 </span>
               ) : (
-                <span className="place-items-center grid bg-white/[0.03] border border-white/15 rounded-md size-6 text-slate-600">
+                <span className="place-items-center grid bg-soft border border-line-2 rounded-md size-6 text-fg-3">
                   <X size={13} />
                 </span>
               )}
               <span
-                className={`text-sm ${record[r.key] ? "text-slate-200" : "text-slate-500"}`}>
+                className={`text-sm ${record[r.key] ? "text-fg" : "text-fg-3"}`}>
                 {r.label}
               </span>
             </li>
@@ -87,11 +87,11 @@ export default function SantriLughahPage() {
         </ul>
         <div className="px-5 py-4">
           {record.is_complete ? (
-            <p className="font-medium text-emerald-300 text-sm">
+            <p className="font-medium text-emerald-700 text-sm">
               Kelengkapanmu LENGKAP. Barakallah.
             </p>
           ) : (
-            <p className="font-medium text-amber-300 text-sm">
+            <p className="font-medium text-amber-700 text-sm">
               Kelengkapanmu BELUM LENGKAP — segera lengkapi syarat yang kurang.
             </p>
           )}
@@ -107,15 +107,15 @@ export default function SantriLughahPage() {
           {record.score != null ? (
             <>
               <p
-                className={`font-display text-5xl font-bold ${record.score >= 75 ? "text-emerald-300" : record.score >= 60 ? "text-amber-300" : "text-rose-300"}`}>
+                className={`font-display text-5xl font-bold ${record.score >= 75 ? "text-emerald-700" : record.score >= 60 ? "text-amber-700" : "text-rose-700"}`}>
                 {record.score}
               </p>
-              <p className="flex justify-center items-center gap-1.5 mt-1 text-slate-500 text-xs">
+              <p className="flex justify-center items-center gap-1.5 mt-1 text-fg-3 text-xs">
                 <ClipboardCheck size={12} /> Sudah dinilai
               </p>
             </>
           ) : (
-            <p className="text-slate-500 text-sm">
+            <p className="text-fg-3 text-sm">
               Belum dinilai — nilai akan muncul setelah Qism Lughah menginput.
             </p>
           )}

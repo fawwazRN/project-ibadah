@@ -1,16 +1,13 @@
 import { Loader2 } from "lucide-react";
 
 const VARIANTS = {
-  primary:
-    "bg-brand font-semibold text-ink-950 hover:bg-brand-soft shadow-[0_0_0_1px_color-mix(in_oklab,var(--color-brand)_35%,transparent)]",
-  secondary:
-    "border border-white/10 bg-white/[0.05] text-slate-200 hover:bg-white/[0.09]",
-  ghost: "text-slate-400 hover:bg-white/[0.05] hover:text-slate-100",
-  danger: "bg-rose-500/90 font-semibold text-white hover:bg-rose-500",
-  dangerSoft:
-    "border border-rose-400/20 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20",
+  primary: "btn-primary",
+  secondary: "btn-secondary",
+  ghost: "btn-ghost",
+  danger: "btn-danger",
+  dangerSoft: "btn-danger-soft",
 };
-const SIZES = { sm: "h-8 px-3 text-xs gap-1.5", md: "h-10 px-4 text-sm gap-2" };
+const SIZES = { sm: "btn-sm", md: "btn-md", lg: "btn-lg" };
 
 export function Button({
   variant = "secondary",
@@ -20,18 +17,29 @@ export function Button({
   className = "",
   children,
   disabled,
+  onClick,
   ...rest
 }) {
-  const ic = size === "sm" ? 13 : 15;
+  const ic = size === "sm" ? 14 : size === "lg" ? 18 : 16;
+  const handleClick = (e) => {
+    // Getaran halus (Android) — hanya di tampilan santri/tamu
+    if (
+      variant === "primary" &&
+      document.documentElement.dataset.skin === "play"
+    )
+      navigator.vibrate?.(8);
+    onClick?.(e);
+  };
   return (
     <button
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
+      onClick={handleClick}
+      className={`btn ${VARIANTS[variant] ?? VARIANTS.secondary} ${SIZES[size] ?? SIZES.md} ${className}`}
       {...rest}>
       {loading ? (
         <Loader2 size={ic} className="animate-spin" />
       ) : Icon ? (
-        <Icon size={ic} />
+        <Icon size={ic} strokeWidth={2.4} />
       ) : null}
       {children}
     </button>

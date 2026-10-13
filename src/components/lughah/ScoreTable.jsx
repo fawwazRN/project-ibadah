@@ -28,24 +28,24 @@ export function ScoreTable({ rows, onStudentClick }) {
         <tbody>
           {rows.map((r, i) => (
             <Tr key={r.student_id}>
-              <Td className="font-mono text-slate-500 text-xs">{i + 1}</Td>
+              <Td className="font-mono text-fg-3 text-xs">{i + 1}</Td>
               <Td>
                 <button
                   type="button"
                   onClick={() => onStudentClick?.(r)}
-                  className="font-medium text-slate-200 hover:text-brand-soft hover:underline truncate transition-colors">
+                  className="font-medium text-fg hover:text-brand-dim hover:underline truncate transition-colors">
                   {r.full_name}
                 </button>
               </Td>
-              <Td className="text-slate-300">{r.class_name}</Td>
+              <Td className="text-fg-2">{r.class_name}</Td>
               <Td>
                 {r.score != null ? (
                   <span
-                    className={`font-mono font-bold ${r.score >= 75 ? "text-emerald-300" : r.score >= 60 ? "text-amber-300" : "text-rose-300"}`}>
+                    className={`font-mono font-bold ${r.score >= 75 ? "text-emerald-700" : r.score >= 60 ? "text-amber-700" : "text-rose-700"}`}>
                     {r.score}
                   </span>
                 ) : (
-                  <span className="text-slate-600">—</span>
+                  <span className="text-fg-3">—</span>
                 )}
               </Td>
               <Td>
@@ -55,7 +55,7 @@ export function ScoreTable({ rows, onStudentClick }) {
                   <Badge tone="neutral">Belum dinilai</Badge>
                 )}
               </Td>
-              <Td className="text-slate-500 text-xs whitespace-nowrap">
+              <Td className="text-fg-3 text-xs whitespace-nowrap">
                 {r.updated_at ? fmtDate(r.updated_at) : "—"}
               </Td>
             </Tr>

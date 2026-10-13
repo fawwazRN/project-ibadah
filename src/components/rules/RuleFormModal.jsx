@@ -129,9 +129,9 @@ export function RuleFormModal({
             />
           </Field>
         ) : (
-          <p className="bg-white/[0.03] px-3 py-2 border border-white/10 rounded-lg text-slate-400 text-xs">
+          <p className="bg-soft px-3 py-2 border border-line rounded-lg text-fg-2 text-xs">
             Aturan ini milik{" "}
-            <span className="font-semibold text-slate-200">
+            <span className="font-semibold text-fg">
               {SCOPE_LABELS[scope]}
             </span>{" "}
             — hanya divisi ini yang dapat mencatat pelanggaran dengannya.
@@ -180,7 +180,7 @@ export function RuleFormModal({
         <Field
           label="Menimbulkan suspensi Riyadhah?"
           hint="Bila aktif, pelanggaran berstatus Terbukti otomatis membuat pemain tidak bisa bermain.">
-          <label className="flex items-center gap-2.5 bg-white/[0.03] px-3 py-2.5 border border-white/10 rounded-lg text-slate-300 text-sm cursor-pointer">
+          <label className="flex items-center gap-2.5 bg-soft px-3 py-2.5 border border-line rounded-lg text-fg-2 text-sm cursor-pointer">
             <input
               type="checkbox"
               checked={form.creates_suspension}
