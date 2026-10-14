@@ -1,10 +1,10 @@
 // Presentasi layar penuh untuk TV / laptop — dipandu maskot "Kak Peci".
-// Gaya: ceria ala aplikasi belajar (tombol 3D tebal, papan liga, progres bersegmen).
+// Ilustrasi ringan, aksen warna per bagian, dan tata letak yang rapi.
 // Mode otomatis (geser tiap 20 detik) atau manual (← / → / klik / tombol).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Ban, BookOpenCheck, CalendarClock, CalendarDays, Flag, Footprints, HeartHandshake, History, Maximize, Medal,
+  ArrowUpRight, Ban, BookOpenCheck, CalendarClock, CalendarDays, Flag, Footprints, HeartHandshake, History, Maximize, Medal,
   MessageSquareWarning, MessagesSquare, Minimize, Newspaper, Pause, Play, Printer, Scale, ShieldCheck, Smartphone,
   Sparkles, Target, Trophy, Volleyball, X, Users,
 } from "lucide-react";
@@ -20,40 +20,31 @@ const SITE_LABEL = "project-osis.vercel.app";
 const N = 7;
 const U = (n) => `calc(var(--u) * ${n})`; // 1u ≈ 1% lebar layar (dibatasi tinggi layar)
 
-// palet ceria: c = warna, d = bayangan tebal, t = tint lembut
+// Accent colors are varied by section; cards and typography stay neutral.
 const PAL = {
-  green: { c: "#58cc02", d: "#58a700", t: "#e9f9d6" },
-  blue: { c: "#1cb0f6", d: "#1899d6", t: "#dff3fe" },
-  red: { c: "#ff4b4b", d: "#ea2b2b", t: "#ffe3e3" },
-  orange: { c: "#ff9600", d: "#e08600", t: "#fff0d6" },
-  purple: { c: "#ce82ff", d: "#a568cc", t: "#f5e6ff" },
-  yellow: { c: "#ffc800", d: "#e5b400", t: "#fff6cc" },
+  green: { c: "#2f9e62", d: "#237a4a", t: "#eff8f2" },
+  blue: { c: "#4a84bd", d: "#356b9e", t: "#eef5fb" },
+  teal: { c: "#328f91", d: "#267173", t: "#edf7f6" },
+  violet: { c: "#8264b2", d: "#684a96", t: "#f4f0f8" },
+  orange: { c: "#c47a2c", d: "#9a5d1e", t: "#fbf4eb" },
 };
-const THEMES = [PAL.red, PAL.green, PAL.orange, PAL.blue, PAL.purple, PAL.yellow, PAL.green];
-const CYCLE = [PAL.green, PAL.blue, PAL.purple, PAL.orange, PAL.red, PAL.yellow];
+const THEMES = [PAL.green, PAL.blue, PAL.teal, PAL.violet, PAL.orange, PAL.teal, PAL.green];
+const CYCLE = [PAL.green, PAL.blue, PAL.teal, PAL.violet, PAL.orange];
 const INK = "#3c3c3c";
 const MUTED = "#777777";
 const LINE = "#e5e5e5";
 
 const CSS = `
-@keyframes pres-in{from{opacity:0;transform:translateX(5%)}to{opacity:1;transform:none}}
-@keyframes pres-pop{0%{opacity:0;transform:translateY(30px) scale(.9)}60%{opacity:1;transform:translateY(-6px) scale(1.03)}100%{opacity:1;transform:none}}
+@keyframes pres-in{from{opacity:0;transform:translateX(2%)}to{opacity:1;transform:none}}
 @keyframes pres-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-@keyframes pres-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
-@keyframes pres-wiggle{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
-@keyframes pres-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 @keyframes pres-caret{50%{opacity:0}}
-@keyframes pres-conf{0%{transform:translateY(-10vh) rotate(0);opacity:0}10%{opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:.95}}
-.pres-in{animation:pres-in .55s cubic-bezier(.22,1,.36,1) both}
-.pres-pop{animation:pres-pop .7s cubic-bezier(.34,1.56,.64,1) both}
+.pres-in{animation:pres-in .35s ease-out both}
 .pres-bar{transform-origin:left;animation:pres-grow 1.1s cubic-bezier(.22,1,.36,1) both}
-.pres-bounce{animation:pres-bounce 1.4s ease-in-out infinite}
-.pres-wiggle{animation:pres-wiggle 1.6s ease-in-out infinite}
-.pres-pulse{animation:pres-pulse 1.6s ease-in-out infinite}
 .pres-caret{animation:pres-caret 1s steps(1) infinite}
-.pres-btn{transition:transform .08s,box-shadow .08s}
-.pres-btn:active{transform:translateY(4px);box-shadow:0 0 0 transparent!important}
-@media (prefers-reduced-motion:reduce){.pres-in,.pres-pop,.pres-bar,.pres-bounce,.pres-wiggle,.pres-pulse{animation:none!important}}
+.pres-btn{transition:background-color .15s,color .15s}
+.pres-link{transition:background-color .15s}
+.pres-link:hover{background:#1d6840!important}
+@media (prefers-reduced-motion:reduce){.pres-in,.pres-bar{animation:none!important}}
 `;
 
 // ---------------------------------------------------------------- hooks
@@ -126,21 +117,20 @@ async function loadData() {
 }
 
 // ---------------------------------------------------------------- komponen dasar
-// kartu bergaya "tombol tebal": border + bayangan bawah
-const chunk = (color = LINE, depth = 5) => ({ border: `2px solid ${color}`, borderBottomWidth: depth });
+const chunk = (color = LINE) => ({ border: `1px solid ${color}` });
 
 function Heading({ theme, tag, title, sub, icon: Icon }) {
   return (
-    <div className="flex items-center" style={{ gap: U(1.6) }}>
-      <span className="pres-pop grid place-items-center rounded-[1.4rem] text-white shrink-0"
-        style={{ width: U(5.6), height: U(5.6), background: theme.c, boxShadow: `0 ${U(.45)} 0 ${theme.d}` }}>
-        <Icon style={{ width: U(3), height: U(3) }} strokeWidth={2.6} />
+    <div className="flex min-w-0 items-center" style={{ gap: U(1.2) }}>
+      <span className="grid place-items-center rounded-2xl text-white shrink-0"
+        style={{ width: U(4.6), height: U(4.6), background: theme.c }}>
+        <Icon style={{ width: U(2.5), height: U(2.5) }} strokeWidth={2.2} />
       </span>
       <div className="min-w-0">
-        <span className="inline-block rounded-full font-black text-white uppercase tracking-wider"
-          style={{ background: theme.c, fontSize: U(.95), padding: `${U(.2)} ${U(.9)}` }}>{tag}</span>
-        <h1 className="font-black tracking-tight leading-tight" style={{ fontSize: U(3.3), color: INK }}>{title}</h1>
-        {sub && <p className="font-bold" style={{ fontSize: U(1.3), color: MUTED }}>{sub}</p>}
+        <span className="inline-block font-bold uppercase tracking-wider"
+          style={{ color: theme.d, fontSize: U(.85) }}>{tag}</span>
+        <h1 className="font-extrabold tracking-tight leading-tight" style={{ fontSize: U(2.8), color: INK }}>{title}</h1>
+        {sub && <p className="font-medium" style={{ fontSize: U(1.1), color: MUTED }}>{sub}</p>}
       </div>
     </div>
   );
@@ -148,8 +138,8 @@ function Heading({ theme, tag, title, sub, icon: Icon }) {
 
 function Empty({ text, theme }) {
   return (
-    <div className="pres-pop place-items-center grid rounded-3xl h-full font-black text-center"
-      style={{ ...chunk(theme.c), background: theme.t, color: theme.d, fontSize: U(2), padding: U(2) }}>
+    <div className="place-items-center grid rounded-2xl h-full font-bold text-center"
+      style={{ ...chunk(LINE), background: "#f7faf8", color: theme.d, fontSize: U(1.7), padding: U(2) }}>
       {text}
     </div>
   );
@@ -157,46 +147,46 @@ function Empty({ text, theme }) {
 
 const initials = (n = "") => n.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 const Avatar = ({ name, i, size = 4.4 }) => (
-  <span className="grid place-items-center rounded-full font-black text-white shrink-0"
-    style={{ width: U(size), height: U(size), fontSize: U(size * 0.38), background: CYCLE[i % CYCLE.length].c, boxShadow: `0 ${U(.3)} 0 ${CYCLE[i % CYCLE.length].d}` }}>
+  <span className="grid place-items-center rounded-full font-bold text-white shrink-0"
+    style={{ width: U(size), height: U(size), fontSize: U(size * 0.38), background: CYCLE[i % CYCLE.length].c }}>
     {initials(name)}
   </span>
 );
 
 const RankBadge = ({ i }) =>
   i < 3 ? (
-    <span style={{ fontSize: U(3), width: U(3.4), textAlign: "center" }}>{["🥇", "🥈", "🥉"][i]}</span>
+    <span style={{ fontSize: U(1.8), width: U(2.6), textAlign: "center" }}>{i + 1}</span>
   ) : (
-    <span className="font-black text-center" style={{ fontSize: U(1.9), width: U(3.4), color: MUTED }}>{i + 1}</span>
+    <span className="font-bold text-center" style={{ fontSize: U(1.5), width: U(2.6), color: MUTED }}>{i + 1}</span>
   );
 
 // papan peringkat ala "liga"
 function LeagueRows({ rows, theme, unit }) {
   const max = Math.max(...rows.map((r) => r.value), 1);
   return (
-    <div className="flex flex-col justify-center gap-[1.3vh] h-full">
+    <div className="grid h-full min-h-0 gap-[0.7vh]" style={{ gridTemplateRows: `repeat(${rows.length}, minmax(0, 1fr))` }}>
       {rows.map((r, i) => (
-        <div key={r.key} className="pres-pop relative flex items-center bg-white rounded-3xl"
+        <div key={r.key} className="relative flex min-h-0 items-center overflow-hidden bg-white rounded-2xl"
           style={{
             ...chunk(i === 0 ? theme.c : LINE), background: i === 0 ? theme.t : "#fff",
-            animationDelay: `${0.1 + i * 0.12}s`, gap: U(1.3), padding: `${U(.9)} ${U(1.6)}`,
+            gap: U(.8), padding: `${U(.3)} ${U(1)}`,
           }}>
           <RankBadge i={i} />
-          <Avatar name={r.name} i={i} />
-          <div className="min-w-0" style={{ width: U(17) }}>
-            <p className="font-black truncate" style={{ fontSize: U(1.8), color: INK }}>
-              {r.name} {i === 0 && <span className="inline-block pres-wiggle">👑</span>}
+          <Avatar name={r.name} i={i} size={3.1} />
+          <div className="min-w-0 shrink-0" style={{ width: U(16) }}>
+            <p className="font-bold truncate" style={{ fontSize: U(1.5), color: INK }}>
+              {r.name}
             </p>
-            <p className="font-bold truncate" style={{ fontSize: U(1.05), color: MUTED }}>{r.sub}</p>
+            <p className="font-medium truncate" style={{ fontSize: U(.9), color: MUTED }}>{r.sub}</p>
           </div>
-          <div className="relative flex-1 rounded-full overflow-hidden" style={{ height: U(1.7), background: "#eee" }}>
+          <div className="relative flex-1 rounded-full overflow-hidden" style={{ height: U(.8), background: "#edf1ee" }}>
             <div className="relative rounded-full h-full pres-bar"
               style={{ width: `${Math.max(7, (r.value / max) * 100)}%`, background: theme.c, animationDelay: `${0.3 + i * 0.12}s` }}>
               <span className="top-[22%] right-3 left-3 absolute bg-white/40 rounded-full h-[22%]" />
             </div>
           </div>
-          <p className="font-black tabular-nums text-right" style={{ minWidth: U(9), fontSize: U(2.4), color: theme.d }}>
-            <CountUp to={r.value} /> <span style={{ fontSize: U(1), color: MUTED }}>{unit}</span>
+          <p className="font-bold tabular-nums text-right" style={{ minWidth: U(7), fontSize: U(1.8), color: theme.d }}>
+            <CountUp to={r.value} /> <span style={{ fontSize: U(.85), color: MUTED }}>{unit}</span>
           </p>
         </div>
       ))}
@@ -211,11 +201,11 @@ function SlideIbadah({ data, theme }) {
     sub: `Kelas ${r.class_name ?? "—"} · ${r.violation_count ?? 0} pelanggaran`, value: r.score ?? 0,
   }));
   return (
-    <div className="flex flex-col h-full" style={{ gap: U(1.4) }}>
+    <div className="flex flex-col h-full min-h-0" style={{ gap: U(.9) }}>
       <Heading theme={theme} icon={Flag} tag="Top 5 · Qism Ibadah" title="Pelanggar Ibadah Bulan Ini" sub="Berdasarkan poin pelanggaran bulan berjalan" />
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
         {rows.length ? <LeagueRows rows={rows} theme={theme} unit="poin" />
-          : <Empty theme={PAL.green} text="Alhamdulillah, belum ada pelanggaran bulan ini! 🎉" />}
+          : <Empty theme={PAL.green} text="Alhamdulillah, belum ada pelanggaran bulan ini." />}
       </div>
     </div>
   );
@@ -224,43 +214,43 @@ function SlideIbadah({ data, theme }) {
 function SlideFutsal({ data, theme }) {
   const { ctx, teams, players } = data.league;
   const Panel = ({ color, icon: Icon, title, children }) => (
-    <div className="flex flex-col bg-white rounded-[2rem] min-h-0 overflow-hidden" style={chunk(LINE, 6)}>
-      <div className="flex items-center font-black text-white" style={{ background: color.c, gap: U(.8), fontSize: U(1.7), padding: `${U(.9)} ${U(1.6)}` }}>
-        <Icon style={{ width: U(2.1), height: U(2.1) }} strokeWidth={2.6} /> {title}
+    <div className="flex flex-col bg-white rounded-2xl min-h-0 overflow-hidden" style={chunk(LINE)}>
+      <div className="flex items-center font-bold" style={{ background: color.t, color: INK, gap: U(.8), fontSize: U(1.4), padding: `${U(.7)} ${U(1.2)}` }}>
+        <Icon style={{ width: U(1.8), height: U(1.8), color: color.c }} strokeWidth={2.2} /> {title}
       </div>
-      <div className="flex flex-col flex-1 justify-center gap-[1vh]" style={{ padding: U(1.3) }}>{children}</div>
+      <div className="flex flex-col flex-1 min-h-0 justify-evenly gap-[.5vh] overflow-hidden" style={{ padding: U(1) }}>{children}</div>
     </div>
   );
   const Row = ({ i, name, sub, value, max, unit, color }) => (
-    <div className="pres-pop flex items-center" style={{ gap: U(1), animationDelay: `${0.15 + i * 0.1}s` }}>
+    <div className="flex min-h-0 items-center" style={{ gap: U(.8) }}>
       <RankBadge i={i} />
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-baseline" style={{ gap: U(1) }}>
-          <p className="font-black truncate" style={{ fontSize: U(1.5), color: INK }}>{name}</p>
-          <span className="font-black tabular-nums" style={{ fontSize: U(1.8), color: color.d }}>
+          <p className="font-bold truncate" style={{ fontSize: U(1.3), color: INK }}>{name}</p>
+          <span className="font-bold tabular-nums" style={{ fontSize: U(1.5), color: color.d }}>
             <CountUp to={value} /> <small style={{ fontSize: U(.9), color: MUTED }}>{unit}</small>
           </span>
         </div>
-        <div className="rounded-full overflow-hidden" style={{ height: U(.9), background: "#eee" }}>
+        <div className="rounded-full overflow-hidden" style={{ height: U(.65), background: "#edf1ee" }}>
           <div className="rounded-full h-full pres-bar" style={{ width: `${Math.max(8, (value / max) * 100)}%`, background: color.c, animationDelay: `${0.3 + i * 0.1}s` }} />
         </div>
-        <p className="font-bold truncate" style={{ fontSize: U(.95), color: MUTED }}>{sub}</p>
+        <p className="font-medium truncate" style={{ fontSize: U(.85), color: MUTED }}>{sub}</p>
       </div>
     </div>
   );
   const maxP = Math.max(...teams.map((t) => t.points), 1);
   const maxG = Math.max(...players.map((p) => p.goals), 1);
   return (
-    <div className="flex flex-col h-full" style={{ gap: U(1.4) }}>
+    <div className="flex flex-col h-full min-h-0" style={{ gap: U(.9) }}>
       <Heading theme={theme} icon={Volleyball} tag="Top 5 · Qism Riyadhah" title="Pemain & Tim Futsal Terbaik"
         sub={ctx ? `${ctx.phase_name} · ${ctx.season_name} — hanya laga resmi` : "Liga futsal OSIS"} />
-      <div className="gap-[1.8vw] grid grid-cols-2 flex-1 min-h-0">
+      <div className="gap-[1.4vw] grid grid-cols-2 flex-1 min-h-0">
         <Panel color={PAL.blue} icon={Trophy} title="Klasemen Tim">
           {teams.length ? teams.map((t, i) => <Row key={t.team_id} i={i} name={t.name} sub={`${t.played} laga · SG ${t.gd > 0 ? "+" : ""}${t.gd}`} value={t.points} max={maxP} unit="poin" color={PAL.blue} />)
             : <p className="font-bold" style={{ color: MUTED }}>Belum ada klasemen</p>}
         </Panel>
-        <Panel color={PAL.orange} icon={Target} title="Top Skor Pemain">
-          {players.length ? players.map((p, i) => <Row key={p.student_id ?? p.full_name} i={i} name={p.full_name} sub={`${p.team_name ?? "—"} · ${p.appearances} laga`} value={p.goals} max={maxG} unit="gol ⚽" color={PAL.orange} />)
+        <Panel color={PAL.teal} icon={Target} title="Top Skor Pemain">
+          {players.length ? players.map((p, i) => <Row key={p.student_id ?? p.full_name} i={i} name={p.full_name} sub={`${p.team_name ?? "—"} · ${p.appearances} laga`} value={p.goals} max={maxG} unit="gol" color={PAL.teal} />)
             : <p className="font-bold" style={{ color: MUTED }}>Belum ada gol tercipta</p>}
         </Panel>
       </div>
@@ -274,11 +264,11 @@ function SlideNadzhofah({ data, theme }) {
     sub: `Kelas ${r.class_name ?? "—"} · nyeker ${r.nyeker_count ?? 0}× · baju disita ${r.clothing_count ?? 0}×`, value: r.naughty_score ?? 0,
   }));
   return (
-    <div className="flex flex-col h-full" style={{ gap: U(1.4) }}>
+    <div className="flex flex-col h-full min-h-0" style={{ gap: U(.9) }}>
       <Heading theme={theme} icon={Footprints} tag="Top 5 · Nadzhofah" title="Pelanggar Kebersihan & Kerapian" sub="Gabungan nyeker + baju disita (lelang tidak dihitung)" />
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
         {rows.length ? <LeagueRows rows={rows} theme={theme} unit="poin" />
-          : <Empty theme={PAL.green} text="Semua santri rapi dan bersih, luar biasa! ✨" />}
+          : <Empty theme={PAL.green} text="Semua santri rapi dan bersih. Luar biasa!" />}
       </div>
     </div>
   );
@@ -321,22 +311,37 @@ const FEATURES = [
 ];
 
 function SlideFeatures({ f, theme }) {
+  const moods = ["talk", "read", "care", "think", "wave", "idle"];
+  const vh = useViewportH();
+  const mascotSize = Math.round(Math.min(vh * 0.14, 100));
   return (
-    <div className="flex flex-col h-full" style={{ gap: U(1.4) }}>
+    <div className="flex flex-col h-full min-h-0" style={{ gap: U(.9) }}>
       <Heading theme={theme} icon={Users} tag={`Fitur web · Bagian ${f.part} dari 3`} title={f.title} sub={f.sub} />
       <div className="gap-[1.2vw] grid grid-cols-3 grid-rows-2 flex-1 min-h-0">
         {f.items.map(([Icon, name, desc], i) => {
           const c = CYCLE[(i + f.part) % CYCLE.length];
           return (
-            <div key={name} className="pres-pop flex items-center bg-white rounded-[2rem]"
-              style={{ ...chunk(LINE, 6), animationDelay: `${0.1 + i * 0.09}s`, gap: U(1.2), padding: U(1.3) }}>
-              <span className="grid place-items-center rounded-2xl text-white shrink-0"
-                style={{ width: U(5), height: U(5), background: c.c, boxShadow: `0 ${U(.4)} 0 ${c.d}` }}>
-                <Icon style={{ width: U(2.7), height: U(2.7) }} strokeWidth={2.6} />
-              </span>
-              <div className="min-w-0">
-                <p className="font-black leading-tight" style={{ fontSize: U(1.7), color: INK }}>{name}</p>
-                <p className="mt-1 font-bold leading-snug" style={{ fontSize: U(1.1), color: MUTED }}>{desc}</p>
+            <div key={name} className="flex min-h-0 flex-col overflow-hidden bg-white rounded-2xl"
+              style={{ ...chunk(LINE) }}>
+              <div aria-hidden="true" className="relative flex flex-1 min-h-0 items-end justify-center overflow-hidden"
+                style={{ minHeight: U(7.5), background: c.t }}>
+                <span className="top-[-35%] left-[8%] absolute rounded-full opacity-50"
+                  style={{ width: U(9), height: U(9), background: "#fff" }} />
+                <span className="top-[20%] right-[13%] absolute rounded-full opacity-60"
+                  style={{ width: U(1.1), height: U(1.1), background: c.c }} />
+                <span className="top-[34%] left-[28%] absolute rounded-full opacity-40"
+                  style={{ width: U(.65), height: U(.65), background: c.d }} />
+                <div className="right-[18%] bottom-[17%] absolute z-10 grid place-items-center rounded-2xl bg-white"
+                  style={{ width: U(5.8), height: U(5.8), color: c.d, border: `1px solid ${c.c}30`, transform: "rotate(5deg)", boxShadow: "0 8px 18px -14px rgba(30,50,40,.5)" }}>
+                  <Icon style={{ width: U(3.1), height: U(3.1) }} strokeWidth={1.8} />
+                </div>
+                <div className="left-[18%] bottom-[-5%] absolute z-20">
+                  <BkMascot mood={moods[i]} size={mascotSize} />
+                </div>
+              </div>
+              <div className="min-h-0" style={{ padding: `${U(.65)} ${U(.9)} ${U(.75)}` }}>
+                <p className="font-bold leading-tight" style={{ fontSize: U(1.35), color: INK }}>{name}</p>
+                <p className="mt-1 line-clamp-2 font-medium leading-snug" style={{ fontSize: U(.9), color: MUTED }}>{desc}</p>
               </div>
             </div>
           );
@@ -347,33 +352,57 @@ function SlideFeatures({ f, theme }) {
 }
 
 function SlideEnd() {
-  const cards = [
-    ["📊", "Semua tercatat transparan", PAL.green],
-    ["💬", "Ada Kak Peci & artikel penyegar", PAL.blue],
-    ["📱", "Bisa dibuka di HP kapan saja", PAL.purple],
-  ];
+  const vh = useViewportH();
+  const mascotSize = Math.round(Math.min(vh * 0.24, 180));
   return (
-    <div className="relative flex flex-col justify-center items-center h-full text-center" style={{ gap: U(1.6) }}>
-      {Array.from({ length: 26 }).map((_, i) => (
-        <span key={i} aria-hidden="true" className="top-0 absolute rounded-sm"
-          style={{ left: `${(i * 3.9) % 100}%`, width: U(.8), height: U(1.2), background: Object.values(PAL)[i % 6].c,
-            animation: `pres-conf ${5 + (i % 5)}s linear ${(i % 8) * 0.5}s infinite` }} />
-      ))}
-      <span className="pres-bounce" style={{ fontSize: U(8) }}>🏆</span>
-      <h1 className="pres-pop font-black tracking-tight" style={{ fontSize: U(4.6), color: PAL.yellow.d, animationDelay: ".1s" }}>Pelajaran Selesai!</h1>
-      <p className="pres-pop font-bold" style={{ fontSize: U(1.7), color: INK, animationDelay: ".2s" }}>Yuk jadi santri yang lebih baik, sedikit demi sedikit 🌱</p>
-      <div className="flex" style={{ gap: U(1.2) }}>
-        {cards.map(([e, t, c], i) => (
-          <div key={t} className="pres-pop rounded-3xl" style={{ ...chunk(c.c, 6), background: c.t, animationDelay: `${0.35 + i * 0.12}s`, padding: `${U(1.2)} ${U(1.6)}`, width: U(15) }}>
-            <div style={{ fontSize: U(3) }}>{e}</div>
-            <p className="font-black leading-snug" style={{ fontSize: U(1.3), color: c.d }}>{t}</p>
+    <div className="grid h-full min-h-0 grid-cols-2 items-center overflow-hidden" style={{ gap: U(2), padding: `0 ${U(2)}` }}>
+      <div className="relative flex h-full min-h-0 items-end justify-center overflow-hidden rounded-3xl"
+        style={{ background: PAL.green.t, border: `1px solid ${PAL.green.c}30` }}>
+        <span className="top-[-18%] left-[-6%] absolute rounded-full opacity-70"
+          style={{ width: U(19), height: U(19), background: "#fff" }} />
+        <div className="top-[16%] right-[9%] absolute z-10 rounded-2xl bg-white p-2"
+          style={{ width: "68%", height: "56%", border: `1px solid ${LINE}`, transform: "rotate(3deg)", boxShadow: "0 16px 30px -24px rgba(30,50,40,.45)" }}>
+          <div className="flex items-center gap-1.5 border-b border-[#e8eee9] pb-2">
+            <span className="size-2 rounded-full bg-[#d7e6dc]" />
+            <span className="size-2 rounded-full bg-[#d7e6dc]" />
+            <span className="size-2 rounded-full bg-[#d7e6dc]" />
+            <span className="ml-2 h-2 flex-1 rounded-full bg-[#f0f4f1]" />
           </div>
-        ))}
+          <div className="mt-2 grid h-[78%] grid-cols-[.65fr_1fr] gap-2">
+            <div className="rounded-lg" style={{ background: PAL.green.t }} />
+            <div className="flex flex-col gap-2">
+              <div className="h-2 w-3/4 rounded-full bg-[#dce9df]" />
+              <div className="h-2 w-1/2 rounded-full bg-[#edf2ee]" />
+              <div className="mt-auto rounded-lg" style={{ height: "55%", background: PAL.blue.t }} />
+            </div>
+          </div>
+        </div>
+        <div className="bottom-[-3%] left-[5%] absolute z-20">
+          <BkMascot mood="wave" size={mascotSize} />
+        </div>
+        <div className="bottom-[18%] left-[39%] absolute z-30 rounded-2xl bg-white font-semibold"
+          style={{ padding: `${U(.7)} ${U(1)}`, color: PAL.green.d, fontSize: U(1.05), border: `1px solid ${LINE}` }}>
+          Yuk, kita coba!
+        </div>
       </div>
-      <div className="pres-pop pres-pulse rounded-full font-black text-white"
-        style={{ background: PAL.green.c, boxShadow: `0 ${U(.6)} 0 ${PAL.green.d}`, padding: `${U(1)} ${U(3.2)}`, animationDelay: ".8s" }}>
-        <p className="opacity-90 uppercase tracking-widest" style={{ fontSize: U(.95) }}>Kunjungi sekarang</p>
-        <p style={{ fontSize: U(3.2) }}>{SITE_LABEL}</p>
+      <div className="flex min-w-0 flex-col justify-center" style={{ gap: U(1.1) }}>
+        <div>
+          <p className="font-bold uppercase tracking-widest" style={{ color: PAL.green.d, fontSize: U(.9) }}>Penutup</p>
+          <h1 className="font-extrabold tracking-tight leading-tight" style={{ fontSize: U(3.1), color: INK }}>Sekarang giliran teman-teman.</h1>
+          <p className="mt-2 font-medium leading-relaxed" style={{ fontSize: U(1.15), color: MUTED }}>
+            Kalau penasaran, mari lihat langsung fitur web OSIS. Buka alamat ini di HP atau perangkat di depan.
+          </p>
+        </div>
+        <a href={`https://${SITE_LABEL}`} target="_blank" rel="noopener noreferrer"
+          className="pres-link flex max-w-full items-center justify-between rounded-2xl"
+          style={{ gap: U(1), padding: `${U(1)} ${U(1.4)}`, background: PAL.green.d, color: "#fff", textDecoration: "none" }}>
+          <span className="min-w-0">
+            <span className="block font-medium" style={{ fontSize: U(.9), opacity: .9 }}>Kunjungi website OSIS</span>
+            <span className="block break-all font-extrabold" style={{ fontSize: U(2.1) }}>{SITE_LABEL}</span>
+          </span>
+          <ArrowUpRight className="shrink-0" style={{ width: U(2), height: U(2) }} />
+        </a>
+        <p className="font-medium" style={{ fontSize: U(.95), color: MUTED }}>Terima kasih sudah menyimak. Silakan dicoba bersama!</p>
       </div>
     </div>
   );
@@ -384,24 +413,23 @@ function narration(i, d) {
   const top = d.ibadah[0], pl = d.league.players[0], tm = d.league.teams[0];
   return [
     `Assalamu'alaikum, aku Kak Peci! Yuk lihat 5 santri dengan poin pelanggaran ibadah tertinggi bulan ini${top ? `, tertinggi ${top.score} poin` : ""}. Kita saling mengingatkan ya!`,
-    `Sekarang seru-seruan futsal! ${tm ? `Tim ${tm.name} memimpin klasemen. ` : ""}${pl ? `Top skor: ${pl.full_name} dengan ${pl.goals} gol!` : "Gol-gol pertama masih ditunggu!"}`,
+    `Sekarang kita lihat hasil futsal. ${tm ? `Tim ${tm.name} memimpin klasemen. ` : ""}${pl ? `Top skor: ${pl.full_name} dengan ${pl.goals} gol.` : "Belum ada gol yang tercatat."}`,
     "Nadzhofah itu tentang kebersihan dan kerapian. Ini 5 santri dengan poin nyeker dan baju disita terbanyak. Semangat memperbaiki diri!",
     "Sekarang kenalan dengan fitur web ini. Bagian pertama: teman curhat, artikel, catatan pribadi, kalender, dan laporan untuk santri.",
     "Bagian kedua! Tiap qism punya ruang kerja sendiri: liga futsal, papan peringkat, nadzhofah, lughah, zikir, sampai kartu dan suspensi.",
     "Bagian ketiga: aturan poin otomatis, rekap siap cetak, log audit, pembagian akses, undangan digital, dan bisa dipasang di HP.",
-    `Selesai! Yuk buka ${SITE_LABEL} sekarang dan pakai bersama teman-temanmu. Terima kasih sudah menonton!`,
+    `Teman-teman, kalau penasaran, yuk buka ${SITE_LABEL} dari HP masing-masing atau kita coba bersama. Terima kasih sudah menyimak!`,
   ][i];
 }
-const MOODS = ["care", "cheer", "think", "wave", "talk", "read", "dance"];
+const MOODS = ["care", "cheer", "think", "wave", "talk", "read", "wave"];
 
-// tombol 3D
 function Btn({ color = PAL.green, outline = false, children, style, ...p }) {
   return (
-    <button {...p} className="pres-btn rounded-2xl font-black uppercase tracking-wider"
+    <button {...p} className="pres-btn rounded-xl font-bold"
       style={{
-        fontSize: U(1.3), padding: `${U(.9)} ${U(2.4)}`,
-        background: outline ? "#fff" : color.c, color: outline ? MUTED : "#fff",
-        border: outline ? `2px solid ${LINE}` : "none", boxShadow: `0 ${U(.4)} 0 ${outline ? LINE : color.d}`,
+        fontSize: U(1.2), padding: `${U(.8)} ${U(1.8)}`,
+        background: outline ? "#fff" : color.c, color: outline ? INK : "#fff",
+        border: `1px solid ${outline ? LINE : color.c}`,
         ...style,
       }}>
       {children}
@@ -495,7 +523,7 @@ export default function PresentationPage() {
       <SlideEnd />][idx];
   }, [data, idx]);
 
-  const mascotSize = Math.round(Math.min(vh * 0.2, 170));
+  const mascotSize = Math.round(Math.min(vh * 0.13, 105));
 
   return (
     <div className="z-[300] fixed inset-0 flex flex-col bg-white overflow-hidden font-sans select-none"
@@ -506,19 +534,18 @@ export default function PresentationPage() {
       {!started && (
         <div className="z-30 absolute inset-0 flex flex-col justify-center items-center bg-white text-center" style={{ gap: U(1.4) }}>
           <div className="flex items-end" style={{ gap: U(1) }}>
-            <div className="pres-bounce"><BkMascot mood="wave" size={Math.round(vh * 0.28)} /></div>
-            <div className="relative bg-white mb-[4vh] rounded-3xl font-black" style={{ ...chunk(LINE, 5), fontSize: U(1.6), padding: `${U(1)} ${U(1.6)}` }}>
-              Yuk mulai! 👋
-              <span className="bottom-4 -left-2 absolute bg-white border-b-2 border-l-2 size-4 rotate-45" style={{ borderColor: LINE }} />
+            <BkMascot mood="wave" size={Math.round(Math.min(vh * 0.2, 145))} />
+            <div className="relative bg-white mb-[2vh] rounded-2xl font-semibold" style={{ ...chunk(LINE), fontSize: U(1.3), padding: `${U(.8)} ${U(1.2)}` }}>
+              Yuk mulai!
             </div>
           </div>
-          <h1 className="font-black tracking-tight" style={{ fontSize: U(5), color: PAL.green.c }}>Presentasi OSIS</h1>
-          <p className="font-bold" style={{ fontSize: U(1.5), color: MUTED }}>Dipandu Kak Peci · 7 bagian · geser otomatis tiap 20 detik</p>
-          <div className="flex flex-col items-center" style={{ gap: U(1), width: U(26) }}>
-            <Btn onClick={() => start(true)} disabled={!data} style={{ width: "100%", fontSize: U(1.6), padding: U(1.1), background: PAL.green.c, color: "#fff", border: "none", boxShadow: `0 ${U(.5)} 0 ${PAL.green.d}`, opacity: data ? 1 : 0.6 }}>
+          <h1 className="font-extrabold tracking-tight" style={{ fontSize: U(4), color: PAL.green.d }}>Presentasi OSIS</h1>
+          <p className="font-medium" style={{ fontSize: U(1.3), color: MUTED }}>Kenalan dengan fitur web OSIS bersama Kak Peci</p>
+          <div className="flex flex-col items-center" style={{ gap: U(.8), width: U(28) }}>
+            <Btn onClick={() => start(true)} disabled={!data} style={{ width: "100%", opacity: data ? 1 : 0.6 }}>
               {data ? "Mulai (layar penuh)" : "Menyiapkan data…"}
             </Btn>
-            <Btn outline onClick={() => start(false)} disabled={!data} style={{ width: "100%", fontSize: U(1.2), padding: U(.9), background: "#fff", color: PAL.blue.d, border: `2px solid ${LINE}`, boxShadow: `0 ${U(.4)} 0 ${LINE}` }}>
+            <Btn outline onClick={() => start(false)} disabled={!data} style={{ width: "100%" }}>
               Mulai tanpa layar penuh
             </Btn>
           </div>
@@ -530,7 +557,7 @@ export default function PresentationPage() {
       {started && (
         <>
           {/* ------- progres bersegmen + keluar ------- */}
-          <div className="flex items-center" style={{ gap: U(1.2), padding: `${U(1.4)} ${U(2.4)} 0` }}>
+          <div className="flex shrink-0 items-center" style={{ gap: U(1.2), padding: `${U(1)} ${U(2.4)} 0` }}>
             <button onClick={exit} aria-label="Keluar" className="hover:bg-black/5 p-1.5 rounded-full text-[#afafaf]"><X size={26} /></button>
             <div className="flex flex-1" style={{ gap: U(.5) }}>
               {Array.from({ length: N }).map((_, i) => (
@@ -546,7 +573,7 @@ export default function PresentationPage() {
           </div>
 
           {/* ------- panggung ------- */}
-          <div className="flex-1 min-h-0" style={{ padding: `${U(1.6)} ${U(3.2)} ${U(1)}` }}>
+          <div className="flex-1 min-h-0 overflow-hidden" style={{ padding: `${U(1.2)} ${U(3.2)} ${U(.8)}` }}>
             {slide && <div key={idx} className="h-full pres-in">{slide}</div>}
           </div>
 
@@ -555,22 +582,21 @@ export default function PresentationPage() {
           <button aria-label="Berikutnya" onClick={() => go(idx + 1)} className="top-[10vh] right-0 bottom-[26vh] z-20 absolute w-[5vw] cursor-e-resize" />
 
           {/* ------- footer: maskot + gelembung + tombol ------- */}
-          <div className="flex items-end" style={{ gap: U(1.2), padding: `${U(1)} ${U(3)} ${U(1.4)}`, borderTop: `2px solid ${LINE}`, background: theme.t, transition: "background .5s" }}>
+          <div className="flex shrink-0 items-end" style={{ gap: U(1), padding: `${U(.8)} ${U(3)} ${U(1)}`, borderTop: `1px solid ${LINE}`, background: theme.t }}>
             <div className="shrink-0"><BkMascot key={MOODS[idx]} mood={MOODS[idx]} size={mascotSize} /></div>
-            <div className="relative flex-1 bg-white mb-[1.2vh] rounded-3xl" style={{ ...chunk(LINE, 5), padding: `${U(1.1)} ${U(1.6)}`, minHeight: U(7) }}>
-              <span className="top-6 -left-[9px] absolute bg-white border-b-2 border-l-2 size-4 rotate-45" style={{ borderColor: LINE }} />
-              <span className="inline-block mb-1 rounded-full font-black text-white uppercase tracking-wider" style={{ background: theme.c, fontSize: U(.85), padding: `${U(.15)} ${U(.8)}` }}>Kak Peci</span>
-              <p className="font-extrabold leading-snug" style={{ fontSize: U(1.4), color: INK }}>
+            <div className="relative min-w-0 flex-1 bg-white rounded-2xl" style={{ ...chunk(LINE), padding: `${U(.8)} ${U(1.2)}` }}>
+              <span className="inline-block mb-1 font-semibold" style={{ color: theme.d, fontSize: U(.85) }}>Kak Peci</span>
+              <p className="font-semibold leading-snug" style={{ fontSize: U(1.1), color: INK }}>
                 {typed}<span className="pres-caret" style={{ color: theme.c }}>▍</span>
               </p>
             </div>
-            <div className="flex items-center mb-[1.4vh] transition-opacity duration-500" style={{ gap: U(.8), opacity: active ? 1 : 0.25 }}>
+            <div className="flex shrink-0 items-center transition-opacity duration-500" style={{ gap: U(.6), opacity: active ? 1 : 0.25 }}>
               <button onClick={() => setAuto((v) => !v)} title={auto ? "Jeda" : "Putar otomatis"} aria-label="Jeda atau putar"
-                className="pres-btn grid place-items-center bg-white rounded-2xl" style={{ width: U(4.2), height: U(4.2), ...chunk(LINE, 4), color: MUTED }}>
+                className="pres-btn grid place-items-center bg-white rounded-xl" style={{ width: U(3.5), height: U(3.5), ...chunk(LINE), color: MUTED }}>
                 {auto ? <Pause size={22} /> : <Play size={22} />}
               </button>
               <button onClick={toggleFull} title="Layar penuh (F)" aria-label="Layar penuh"
-                className="pres-btn grid place-items-center bg-white rounded-2xl" style={{ width: U(4.2), height: U(4.2), ...chunk(LINE, 4), color: MUTED }}>
+                className="pres-btn grid place-items-center bg-white rounded-xl" style={{ width: U(3.5), height: U(3.5), ...chunk(LINE), color: MUTED }}>
                 {full ? <Minimize size={22} /> : <Maximize size={22} />}
               </button>
               <Btn outline onClick={() => go(idx - 1)}>Kembali</Btn>

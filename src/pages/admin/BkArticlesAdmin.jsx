@@ -71,6 +71,57 @@ function BodyEditor({ html, onChange, onBusy }) {
     onChange(h);
   };
   const exec = (cmd, val) => { ref.current?.focus(); document.execCommand(cmd, false, val); update(); };
+  const toggleQuote = () => {
+    const selection = window.getSelection();
+    const node = selection?.anchorNode;
+    const element = node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
+    const quote = element?.closest("blockquote");
+    if (!quote) return exec("formatBlock", "blockquote");
+    quote.replaceWith(...Array.from(quote.childNodes));
+    update();
+  };
+  const exitEmptyQuote = (e) => {
+    if (e.key !== "Enter" || e.shiftKey) return;
+    const selection = window.getSelection();
+    if (!selection?.isCollapsed || !selection.anchorNode) return;
+
+    const node = selection.anchorNode;
+    const element = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+    const quote = element?.closest("blockquote");
+    if (!quote) return;
+
+    let line = element;
+    while (line?.parentElement && line.parentElement !== quote) line = line.parentElement;
+    const caretAtQuoteEnd = (() => {
+      const end = document.createRange();
+      end.selectNodeContents(quote);
+      end.collapse(false);
+      return selection.getRangeAt(0).compareBoundaryPoints(Range.START_TO_START, end) === 0;
+    })();
+    const trailingBreak = caretAtQuoteEnd && quote.lastChild?.nodeName === "BR";
+    if (line && line !== quote && (line.textContent ?? "").trim()) return;
+    if (line === quote && quote.textContent.trim() && !trailingBreak) return;
+    if (line !== quote && line?.querySelector("img")) return;
+    let following = line?.nextSibling;
+    while (following) {
+      if ((following.textContent ?? "").trim() || (following.nodeType === Node.ELEMENT_NODE && following.querySelector("img"))) return;
+      following = following.nextSibling;
+    }
+
+    e.preventDefault();
+    const paragraph = document.createElement("p");
+    paragraph.append(document.createElement("br"));
+    quote.after(paragraph);
+    if (line && line !== quote) line.remove();
+    if (trailingBreak) quote.lastChild?.remove();
+    if (!quote.textContent.trim() && !quote.querySelector("img")) quote.remove();
+    const range = document.createRange();
+    range.setStart(paragraph, 0);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    update();
+  };
   const run = async (fn) => {
     pending.current += 1; onBusy(true);
     try { await fn(); } finally { pending.current -= 1; onBusy(pending.current > 0); }
@@ -170,7 +221,7 @@ function BodyEditor({ html, onChange, onBusy }) {
         <Sep />
         <ToolBtn icon={List} label="Daftar" onClick={() => exec("insertUnorderedList")} />
         <ToolBtn icon={ListOrdered} label="Daftar bernomor" onClick={() => exec("insertOrderedList")} />
-        <ToolBtn icon={Quote} label="Kutipan" onClick={() => exec("formatBlock", "blockquote")} />
+        <ToolBtn icon={Quote} label="Kutipan / teks biasa" onClick={toggleQuote} />
         <ToolBtn icon={Link2} label="Tautan" onClick={() => { const u = window.prompt("Alamat tautan (https://…)"); if (u) exec("createLink", u); }} />
         <Sep />
         <ToolBtn icon={ImagePlus} label="Sisipkan gambar" onClick={() => fileRef.current?.click()} />
@@ -186,7 +237,7 @@ function BodyEditor({ html, onChange, onBusy }) {
           </p>
         )}
         <div ref={ref} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true" aria-label="Isi artikel"
-          onInput={update} onPaste={paste} onDrop={drop}
+          onInput={update} onKeyDown={exitEmptyQuote} onPaste={paste} onDrop={drop}
           onDragStart={() => { internalDrag.current = true; }} onDragEnd={() => { internalDrag.current = false; }}
           onDragOver={(e) => { if (!internalDrag.current && hasPayload(e.dataTransfer)) { e.preventDefault(); setDrag(true); } }}
           onDragLeave={() => setDrag(false)}
