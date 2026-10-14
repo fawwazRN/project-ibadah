@@ -5,6 +5,23 @@ const unwrap = ({ data, error }) => {
   return data;
 };
 
+// Perkecil gambar besar (screenshot/foto) otomatis agar tidak kena batas ukuran
+async function shrinkImage(file) {
+  if (!file.type.startsWith("image/") || /gif|svg/.test(file.type)) return file;
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    if (scale === 1 && file.size < 900 * 1024) return file;
+    const c = document.createElement("canvas");
+    c.width = Math.round(bmp.width * scale);
+    c.height = Math.round(bmp.height * scale);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise((r) => c.toBlob(r, "image/webp", 0.86));
+    if (blob && blob.type === "image/webp" && blob.size < file.size) return new File([blob], "img.webp", { type: "image/webp" });
+  } catch { /* pakai file asli */ }
+  return file;
+}
+
 export const bkService = {
   // ---------- Percakapan (santri) ----------
   // Seluruh alur (±50–200 node) kecil → ambil sekali, jalankan di klien.
@@ -96,8 +113,9 @@ export const bkService = {
     await supabase.from("bk_articles").delete().eq("id", id).then(unwrap);
   },
   async uploadImage(file) {
-    if (file.size > 3 * 1024 * 1024) throw new Error("Maksimal 3 MB per gambar.");
-    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    file = await shrinkImage(file);
+    if (file.size > 3 * 1024 * 1024) throw new Error("Gambar masih terlalu besar (maks. 3 MB).");
+    const ext = (file.type.split("/")[1] || "jpg").replace("jpeg", "jpg").replace("svg+xml", "svg");
     const path = `${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage
       .from("bk-media")

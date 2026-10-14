@@ -30,6 +30,7 @@ import {
   MessagesSquare,
   Newspaper,
   Heart,
+  MonitorPlay,
 } from "lucide-react";
 
 export const NAV = {
@@ -220,6 +221,7 @@ export const NAV = {
         { to: "/admin/curhat", label: "Curhat Santri", icon: HeartHandshake },
         { to: "/admin/bk", label: "Alur Kak Peci", icon: MessagesSquare },
         { to: "/admin/bk/artikel", label: "Artikel BK", icon: Newspaper },
+        { to: "/admin/presentasi", label: "Presentasi", icon: MonitorPlay },
       ],
     },
 

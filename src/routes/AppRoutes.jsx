@@ -74,6 +74,7 @@ import SantriCurhat from "../pages/santri/SantriCurhat";
 import AdminCurhat from "../pages/admin/AdminCurhat";
 import CalendarPage from "../pages/shared/CalendarPage";
 import AdminHome from "../pages/admin/AdminHome";
+import PresentationPage from "../pages/admin/PresentationPage";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminManagement from "../pages/admin/AdminManagement";
 import InvitationSettingsPage from "../pages/admin/InvitationSettings";
@@ -231,6 +232,10 @@ export default function AppRoutes() {
       </Route>
 
       <Route element={<ProtectedRoute />}>
+        {/* Presentasi layar penuh — di luar layout dashboard */}
+        <Route element={<RoleRoute role="super_admin" />}>
+          <Route path="/admin/presentasi" element={<PresentationPage />} />
+        </Route>
         <Route element={<DashboardLayout />}>
           {/* ---------------- SANTRI ---------------- */}
           <Route element={<RoleRoute role="santri" />}>

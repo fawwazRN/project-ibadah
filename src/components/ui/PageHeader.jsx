@@ -1,7 +1,7 @@
 // Header halaman: kartu hero modern dengan aksen lembut dan detail dekoratif.
 export function PageHeader({ title, description, actions, icon: Icon }) {
   return (
-    <header className="page-hero relative mb-5 overflow-hidden rounded-[9999px] border px-4 py-3.5 sm:px-6 sm:py-4" style={{ borderWidth: "var(--bw)" }}>
+    <header className="page-hero relative mb-6 overflow-hidden rounded-3xl border py-4 pl-6 pr-5 sm:py-5 sm:pl-8 sm:pr-7" style={{ borderWidth: "var(--bw)" }}>
       <span aria-hidden="true" className="page-hero-blob" />
 
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -13,10 +13,10 @@ export function PageHeader({ title, description, actions, icon: Icon }) {
           )}
 
           <div className="min-w-0">
-            <h1 className="font-display text-[22px] leading-tight text-fg sm:text-[28px] [overflow-wrap:anywhere]" style={{ fontWeight: "var(--head-weight)" }}>
+            <h1 className="font-display text-[24px] leading-tight tracking-tight text-fg sm:text-[30px] [overflow-wrap:anywhere]" style={{ fontWeight: "var(--head-weight)" }}>
               {title}
             </h1>
-            {description && <p className="mt-1 max-w-xl text-sm leading-relaxed text-fg-3">{description}</p>}
+            {description && <p className="mt-1.5 max-w-xl text-[15px] leading-relaxed text-fg-3">{description}</p>}
           </div>
         </div>
 

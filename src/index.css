@@ -589,22 +589,40 @@ html[data-skin="work"] { --tabbar-h: 0px; }
 .article-open > *:nth-child(3) { animation-delay: .2s }  .article-open > *:nth-child(4) { animation-delay: .26s }
 .article-open > *:nth-child(n+5) { animation-delay: .32s }
 .read-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 140; background: var(--color-brand, #22b573); transform-origin: left; transition: transform .1s linear; }
-.article-content { color: var(--color-fg-2); font-size: 1.0625rem; line-height: 1.9; }
-.article-content > div { margin-bottom: 1.35em; }
-.article-content p { margin: 0 0 1em; }
-.article-content h1, .article-content h2, .article-content h3, .article-content h4 { color: var(--color-fg); font-weight: 800; line-height: 1.35; margin: 1.9em 0 .8em; }
-.article-content h1 { font-size: 1.55em; }
-.article-content h2 { font-size: 1.35em; }
-.article-content h3 { font-size: 1.15em; }
-.article-content ul, .article-content ol { margin: .7em 0 1.2em; padding-left: 1.6em; }
+.article-sheet { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 1.75rem; padding: 1.6rem 1.25rem 1.5rem; box-shadow: 0 18px 40px -28px rgba(16, 120, 80, .35); }
+@media (min-width: 640px) { .article-sheet { padding: 2.25rem 2.25rem 2rem; } }
+.article-content { color: var(--color-fg-2); font-size: 1rem; line-height: 1.8; font-weight: 500; overflow-wrap: anywhere; }
+.article-content > div { margin-bottom: 1.15em; }
+.article-content > div:first-child { color: var(--color-fg); }
+.article-content p { margin: 0 0 1.1em; }
+.article-content p:last-child { margin-bottom: 0; }
+.article-content strong, .article-content b { color: var(--color-fg); font-weight: 800; }
+.article-content h1, .article-content h2, .article-content h3, .article-content h4 { color: var(--color-fg); font-weight: 800; line-height: 1.35; letter-spacing: -.01em; margin: 2.1em 0 .6em; }
+.article-content > :first-child { margin-top: 0; }
+.article-content h1 { font-size: 1.4em; }
+.article-content h2 { font-size: 1.22em; display: flex; align-items: center; gap: .55em; }
+.article-content h2::before { content: ""; flex: none; width: .55em; height: .55em; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--color-brand); }
+.article-content h3 { font-size: 1.08em; }
+.article-content ul, .article-content ol { margin: .5em 0 1.3em; padding-left: 1.4em; }
 .article-content ul { list-style: disc; }
 .article-content ol { list-style: decimal; }
-.article-content li + li { margin-top: .35em; }
-.article-content blockquote { border-left: 3px solid var(--color-brand); margin: 1.3em 0; padding-left: 1em; }
-.article-content a { color: var(--color-brand-dim); text-decoration: underline; text-underline-offset: .18em; }
-.article-quote { white-space: pre-wrap; }
-.article-editor { color: var(--color-fg-2); line-height: 1.75; overflow-wrap: anywhere; }
-.article-editor p, .article-editor div { margin: 0 0 .75em; }
+.article-content li { padding-left: .25em; }
+.article-content li + li { margin-top: .45em; }
+.article-content li::marker { color: var(--color-brand); font-weight: 800; }
+.article-content blockquote:not(.article-quote) { border-left: 3px solid var(--color-brand); margin: 1.4em 0; padding: .1em 0 .1em 1em; font-style: italic; }
+.article-content a { color: var(--color-brand-dim); font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-decoration-color: var(--color-tint-line); text-underline-offset: .2em; transition: text-decoration-color .15s; }
+.article-content a:hover { text-decoration-color: var(--color-brand); }
+.article-content img, .article-editor img { display: block; max-width: 100%; height: auto; margin: 1.5em auto; border-radius: 1rem; }
+.article-content figure { margin: 2.2em 0; }
+.article-content figure img { margin: 0; width: 100%; }
+.article-content figcaption { margin-top: .8em; text-align: center; font-size: .82rem; line-height: 1.5; color: var(--color-fg-3); }
+.article-content table, .article-editor table { border-collapse: collapse; margin: 1.4em 0; max-width: 100%; display: block; overflow-x: auto; font-size: .95em; }
+.article-content td, .article-content th, .article-editor td, .article-editor th { border: 1px solid var(--color-line-2); padding: .55em .8em; }
+.article-content th { background: var(--color-soft); }
+.article-content hr { border: 0; height: 1px; background: var(--color-line); margin: 2.4em 0; }
+.article-content blockquote.article-quote { position: relative; margin: 1.6em 0; padding: 1em 1.1em 1em 2.9em; background: var(--color-tint); border-radius: 1rem; color: var(--color-brand-dim); font-size: .98em; font-weight: 600; line-height: 1.7; white-space: pre-wrap; }
+.article-content blockquote.article-quote::before { content: "\201C"; position: absolute; left: .3em; top: .15em; font: 700 2.8em/1 Georgia, "Times New Roman", serif; color: var(--color-brand); opacity: .45; }
+@media (max-width: 640px) { .article-content { font-size: .97rem; } }
 .article-editor ul, .article-editor ol { padding-left: 1.5em; }
 .article-editor ul { list-style: disc; }
 .article-editor ol { list-style: decimal; }
@@ -665,25 +683,18 @@ html[data-skin="work"] { --tabbar-h: 0px; }
 /* ============ Header halaman (hero) ============ */
 .page-hero {
   position: relative;
-  border-color: rgba(148, 194, 170, 0.7);
-  background: linear-gradient(135deg, rgba(223, 238, 232, 0.9) 0%, rgba(247, 251, 249, 0.88) 70%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+  border-color: rgba(148, 194, 170, 0.55);
+  background: linear-gradient(120deg, rgba(223, 238, 232, 0.8) 0%, rgba(255, 255, 255, 0.92) 65%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 8px 20px -14px rgba(16, 120, 80, 0.35);
 }
-.page-hero::before {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background-image: radial-gradient(rgba(34, 181, 115, 0.08) 1.2px, transparent 1.3px);
-  background-size: 16px 16px;
-  mask-image: linear-gradient(115deg, transparent 38%, #000 58%, #000 100%);
+.page-hero::before { /* aksen vertikal di kiri */
+  content: ""; position: absolute; left: 0; top: 16px; bottom: 16px; width: 5px;
+  border-radius: 0 6px 6px 0; background: var(--color-brand); pointer-events: none;
 }
 .page-hero-blob {
-  position: absolute; right: -36px; top: -52px; width: 240px; height: 240px; border-radius: 9999px;
-  background: radial-gradient(circle at 35% 35%, rgba(34, 181, 115, 0.22), rgba(34, 181, 115, 0.08) 38%, transparent 72%);
-  animation: halo-pulse 5s ease-in-out infinite; pointer-events: none;
-}
-@media (max-width: 640px) {
-  .page-hero {
-    border-radius: 28px;
-  }
+  position: absolute; right: -50px; top: -70px; width: 200px; height: 200px; border-radius: 9999px;
+  background: radial-gradient(circle at 35% 35%, rgba(34, 181, 115, 0.16), transparent 70%);
+  pointer-events: none;
 }
 
 /* ============ Tabel responsif: kartu per baris di HP ============ */
@@ -708,3 +719,8 @@ html[data-skin="work"] { --tabbar-h: 0px; }
   .rtable td[data-label=""]::before { display: none; }
   .rtable td[colspan] { display: block; text-align: center; }
 }
+
+/* Editor artikel: samakan dengan tampilan baca */
+.article-editor { caret-color: var(--color-brand); }
+.article-editor img[data-up] { filter: saturate(.6); }
+.article-content > div > :first-child { margin-top: 0; }
