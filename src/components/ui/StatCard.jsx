@@ -1,4 +1,5 @@
 import { Card } from "./Card";
+import { CountUp } from "./Motion";
 
 // Chip ikon — default mengikuti warna aksen peran; `tone` dipakai bila
 // angkanya memang membawa makna (merah = bahaya, hijau = baik, dst).
@@ -18,7 +19,7 @@ const ICON = {
 
 export function StatCard({ label, value, sub, icon: Icon, tone = "default" }) {
   return (
-    <Card className="p-4">
+    <Card className="p-4 lift group">
       <div className="flex justify-between items-start gap-3">
         <div className="min-w-0">
           <p className="font-bold text-[11px] text-fg-3 uppercase tracking-wider">
@@ -27,13 +28,13 @@ export function StatCard({ label, value, sub, icon: Icon, tone = "default" }) {
           <p
             className="mt-1.5 font-display text-[26px] text-fg leading-none"
             style={{ fontWeight: "var(--head-weight)" }}>
-            {value}
+            <CountUp value={value} />
           </p>
           {sub && <p className="mt-1.5 text-fg-3 text-xs truncate">{sub}</p>}
         </div>
         {Icon && (
           <span
-            className={`grid size-10 shrink-0 place-items-center rounded-xl ${ICON[tone] ?? ICON.default}`}>
+            className={`grid size-10 shrink-0 place-items-center rounded-xl transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110 ${ICON[tone] ?? ICON.default}`}>
             <Icon size={18} strokeWidth={2.3} />
           </span>
         )}

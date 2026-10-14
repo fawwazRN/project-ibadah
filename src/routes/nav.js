@@ -1,4 +1,5 @@
 import {
+  HeartHandshake,
   LayoutDashboard,
   Users,
   Flag,
@@ -39,8 +40,9 @@ export const NAV = {
       section: "Utama",
       items: [
         { to: "/santri", label: "Beranda", icon: Home, end: true },
-        { to: "/santri/bintang", label: "Hati & Bintang", icon: Heart },
+        { to: "/santri/kalender", label: "Kalender OSIS", icon: CalendarDays },
         { to: "/santri/bk", label: "Kak Peci", icon: MessagesSquare },
+        { to: "/santri/curhat", label: "Curhat ke OSIS", icon: HeartHandshake },
         { to: "/santri/artikel", label: "Artikel BK", icon: Newspaper },
         { to: "/santri/standings", label: "Klasemen Liga", icon: Trophy },
         { to: "/santri/leaderboard", label: "Papan Nakal", icon: Medal },
@@ -82,7 +84,6 @@ export const NAV = {
       section: "Manajemen",
       items: [
         { to: "/ibadah/santri", label: "Santri", icon: Users },
-        { to: "/ibadah/hukuman", label: "Absensi Penghukuman", icon: Gavel },
         { to: "/ibadah/violations", label: "Pelanggaran", icon: Flag },
         { to: "/ibadah/reports", label: "Laporan", icon: MessageSquareWarning },
         { to: "/ibadah/rules", label: "Aturan Poin", icon: Scale },
@@ -100,6 +101,7 @@ export const NAV = {
         },
         { to: "/ibadah/recap", label: "Rekap", icon: FileBarChart },
         { to: "/ibadah/audit", label: "Log Audit", icon: History },
+        { to: "/ibadah/kalender", label: "Kalender OSIS", icon: CalendarDays },
         { to: "/ibadah/profile", label: "Profil", icon: UserRound },
       ],
     },
@@ -148,6 +150,7 @@ export const NAV = {
           icon: Trophy,
           children: [{ to: "/riyadhah/standings", label: "Klasemen Liga" }],
         },
+        { to: "/riyadhah/kalender", label: "Kalender OSIS", icon: CalendarDays },
         { to: "/riyadhah/profile", label: "Profil", icon: UserRound },
       ],
     },
@@ -176,7 +179,10 @@ export const NAV = {
     },
     {
       section: "Akun",
-      items: [{ to: "/nadzhofah/profile", label: "Profil", icon: UserRound }],
+      items: [
+        { to: "/nadzhofah/kalender", label: "Kalender OSIS", icon: CalendarDays },
+        { to: "/nadzhofah/profile", label: "Profil", icon: UserRound },
+      ],
     },
   ],
 
@@ -193,7 +199,10 @@ export const NAV = {
     },
     {
       section: "Akun",
-      items: [{ to: "/lughah/profile", label: "Profil", icon: UserRound }],
+      items: [
+        { to: "/lughah/kalender", label: "Kalender OSIS", icon: CalendarDays },
+        { to: "/lughah/profile", label: "Profil", icon: UserRound },
+      ],
     },
   ],
 
@@ -208,6 +217,7 @@ export const NAV = {
         { to: "/admin/invitation", label: "Undangan", icon: Sparkles },
         { to: "/admin/audit", label: "Log Audit", icon: History },
         { to: "/admin/settings", label: "Pengaturan Liga", icon: Settings },
+        { to: "/admin/curhat", label: "Curhat Santri", icon: HeartHandshake },
         { to: "/admin/bk", label: "Alur Kak Peci", icon: MessagesSquare },
         { to: "/admin/bk/artikel", label: "Artikel BK", icon: Newspaper },
       ],
@@ -218,7 +228,6 @@ export const NAV = {
       items: [
         { to: "/ibadah", label: "Dashboard Ibadah", icon: Flag, end: true },
         { to: "/ibadah/santri", label: "Santri", icon: Users },
-        { to: "/ibadah/hukuman", label: "Absensi Penghukuman", icon: Gavel },
         { to: "/ibadah/violations", label: "Pelanggaran", icon: Flag },
         { to: "/ibadah/reports", label: "Laporan", icon: MessageSquareWarning },
         { to: "/ibadah/rules", label: "Aturan Poin", icon: Scale },
@@ -309,7 +318,10 @@ export const NAV = {
 
     {
       section: "Akun",
-      items: [{ to: "/admin/profile", label: "Profil", icon: UserRound }],
+      items: [
+        { to: "/admin/kalender", label: "Kalender OSIS", icon: CalendarDays },
+        { to: "/admin/profile", label: "Profil", icon: UserRound },
+      ],
     },
   ],
 };

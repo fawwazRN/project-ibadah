@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BookOpen, RotateCcw } from "lucide-react";
+import { ArrowLeft, BookOpen, ChevronRight, MessagesSquare, RotateCcw } from "lucide-react";
+import { TopicIcon } from "../../components/ui/TopicIcon";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { Card } from "../../components/ui/Card";
+import { Badge } from "../../components/ui/Badge";
 import { useAuth } from "../../context/AuthContext";
 import { bkService } from "../../services/bkService";
 import { BkMascot } from "../../components/ui/BkMascot";
@@ -11,7 +15,8 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export default function SantriBkChat() {
   const { profile } = useAuth();
-  const base = useLocation().pathname.startsWith("/guest") ? "/guest" : "/santri";
+  const location = useLocation();
+  const base = location.pathname.startsWith("/guest") ? "/guest" : "/santri";
   const [flow, setFlow] = useState(null);
   const [error, setError] = useState(null);
   const [msgs, setMsgs] = useState([]);
@@ -20,6 +25,7 @@ export default function SantriBkChat() {
   const [node, setNode] = useState(null); // node aktif → pilihan tampil bila selesai mengetik
   const [ready, setReady] = useState(false);
   const [article, setArticle] = useState(null);
+  const [topic, setTopic] = useState(null); // node pembuka terpilih
   const endRef = useRef(null);
   const run = useRef(0); // token pembatalan
   const sess = useRef({ id: null, path: [] });
@@ -60,19 +66,19 @@ export default function SantriBkChat() {
   }, []);
 
   const begin = useCallback(
-    async (f) => {
+    async (f, start) => {
       const token = ++run.current;
       setMsgs([]);
       setArticle(null);
       setNode(null);
-      if (!f?.start) return;
+      if (!start) return;
       sess.current = { id: null, path: [] };
       if (profile?.id) // tamu tidak menyimpan riwayat
         bkService
           .startSession(profile.id)
           .then((s) => (sess.current.id = s.id))
           .catch(() => {});
-      await play(f.start, token);
+      await play(start, token);
     },
     [play, profile?.id],
   );
@@ -84,7 +90,10 @@ export default function SantriBkChat() {
       .then((f) => {
         if (!alive) return;
         setFlow(f);
-        begin(f);
+        if (f.starts.length === 1 && !location.pathname.startsWith("/santri")) {
+          setTopic(f.starts[0]);
+          begin(f, f.starts[0]);
+        }
       })
       .catch((e) => alive && setError(e));
     return () => {
@@ -104,7 +113,7 @@ export default function SantriBkChat() {
     scroll();
     if (!next) {
       setNode({ ...node, choices: [] });
-      setMood("happy");
+      setMood("cheer");
       setReady(true);
       return;
     }
@@ -120,31 +129,96 @@ export default function SantriBkChat() {
       />
     );
   if (!flow) return <LoadingState rows={3} />;
-  if (!flow.start)
+  if (!flow.starts.length && base !== "/santri")
     return (
       <EmptyState
         title="Kak Peci belum siap ngobrol"
-        description="Super admin perlu menandai satu percakapan sebagai pembuka."
+        description="Super admin perlu menandai minimal satu percakapan sebagai topik."
       />
     );
 
   const ended = ready && node && node.choices.length === 0;
 
+  const pick = (t) => {
+    setTopic(t);
+    begin(flow, t);
+  };
+  const backToTopics = () => {
+    run.current++;
+    setTopic(null);
+    setMsgs([]);
+    setNode(null);
+    setMood("talk");
+  };
+
+  // ---------- Pemilih topik: kartu persis seperti daftar artikel ----------
+  if (!topic)
+    return (
+      <div className="mx-auto max-w-3xl">
+        <PageHeader icon={MessagesSquare} title="Ngobrol sama Kak Peci" description="Pilih topik, lalu ngobrol langsung — Kak Peci siap menyimak." />
+        <div className="gap-3 grid sm:grid-cols-2 stagger">
+          {base === "/santri" && (
+            <Link to="/santri/curhat" className="text-left">
+              <Card className="q-riyadhah group overflow-hidden h-full lift">
+                <div className="place-items-center grid w-full h-36" style={{ background: "var(--q-tint)" }}>
+                  <span className="place-items-center grid bg-white shadow-md rounded-3xl size-20 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" style={{ color: "var(--q)" }}><TopicIcon name="heart" size={38} /></span>
+                </div>
+                <div className="p-4">
+                  <Badge tone="rose">Privat</Badge>
+                  <h3 className="mt-2 font-extrabold text-fg leading-snug">Curhat bersama OSIS</h3>
+                  <p className="mt-1 text-fg-3 text-sm line-clamp-2">Ngobrol langsung dengan Super Admin. Tenang, tidak dibaca orang lain.</p>
+                  <span className="inline-flex items-center gap-1 mt-3 font-bold text-xs" style={{ color: "var(--q-dim)" }}>
+                    <MessagesSquare size={13} /> Mulai curhat <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </Card>
+            </Link>
+          )}
+          {flow.starts.map((t) => (
+            <button key={t.id} onClick={() => pick(t)} className="text-left">
+              <Card className={`q-${t.topic_tone ?? "brand"} group overflow-hidden h-full lift`}>
+                {t.topic_cover ? (
+                  <img src={t.topic_cover} alt="" loading="lazy" className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-500" />
+                ) : (
+                  <div className="relative place-items-center grid w-full h-36 overflow-hidden" style={{ background: "var(--q-tint)" }}>
+                    <span className="place-items-center grid bg-white shadow-md rounded-3xl size-20 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" style={{ color: "var(--q)" }}><TopicIcon name={t.topic_emoji} size={38} /></span>
+                  </div>
+                )}
+                <div className="p-4">
+                  <Badge tone="brand">{t.topic_category || "Obrolan"}</Badge>
+                  <h3 className="mt-2 font-extrabold text-fg leading-snug">{t.title}</h3>
+                  {t.topic_summary && <p className="mt-1 text-fg-3 text-sm line-clamp-2">{t.topic_summary}</p>}
+                  <span className="inline-flex items-center gap-1 mt-3 font-bold text-xs" style={{ color: "var(--q-dim)" }}>
+                    <MessagesSquare size={13} /> Ngobrol sekarang <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </Card>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+
   return (
     <div className="flex flex-col mx-auto max-w-2xl h-[calc(100dvh-var(--tabbar-h,4rem)-5.5rem)] lg:h-[calc(100dvh-6rem)]">
       {/* Kepala */}
       <div className="flex items-center gap-3 pb-3 border-line border-b-2">
+        {(flow.starts.length > 1 || base === "/santri") && (
+          <button onClick={backToTopics} aria-label="Ganti topik" className="place-items-center grid hover:bg-soft-2 rounded-xl size-10 text-fg-2 active:scale-90 transition shrink-0">
+            <ArrowLeft size={20} strokeWidth={2.6} />
+          </button>
+        )}
         <div className="bg-tint rounded-2xl shrink-0">
           <BkMascot mood={typing ? "think" : mood} size={56} />
         </div>
         <div className="min-w-0">
-          <h1 className="font-extrabold text-fg text-lg leading-tight">Kak Peci</h1>
+          <h1 className="font-extrabold text-fg text-lg leading-tight truncate">{topic.title}</h1>
           <p className="text-fg-3 text-xs">
             {typing ? "sedang mengetik…" : "Teman ngobrol & konseling santri"}
           </p>
         </div>
         <button
-          onClick={() => begin(flow)}
+          onClick={() => begin(flow, topic)}
           title="Mulai ulang"
           aria-label="Mulai ulang obrolan"
           className="place-items-center grid ml-auto rounded-xl size-10 text-fg-3 hover:bg-soft-2">
@@ -215,12 +289,16 @@ export default function SantriBkChat() {
         )}
         {ended && (
           <div className="flex gap-2">
-            <Button variant="primary" className="flex-1" icon={RotateCcw} onClick={() => begin(flow)}>
+            <Button variant="primary" className="flex-1" icon={RotateCcw} onClick={() => begin(flow, topic)}>
               Ngobrol lagi
             </Button>
-            <Link to={`${base}/artikel`} className="flex-1">
-              <Button className="w-full" icon={BookOpen}>Artikel</Button>
-            </Link>
+            {(flow.starts.length > 1 || base === "/santri") ? (
+              <Button className="flex-1" onClick={backToTopics}>Topik lain</Button>
+            ) : (
+              <Link to={`${base}/artikel`} className="flex-1">
+                <Button className="w-full" icon={BookOpen}>Artikel</Button>
+              </Link>
+            )}
           </div>
         )}
         {!ready && !ended && (

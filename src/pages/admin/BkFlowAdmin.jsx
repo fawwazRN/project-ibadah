@@ -9,6 +9,7 @@ import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Modal } from "../../components/ui/Modal";
+import { TOPIC_ICONS } from "../../components/ui/TopicIcon";
 import { Field, Input, Select, Textarea } from "../../components/ui/Field";
 import { EmptyState, LoadingState } from "../../components/ui/States";
 
@@ -19,7 +20,7 @@ const MOODS = [
   { value: "think", label: "Berpikir" },
 ];
 const blank = () => ({
-  node: { title: "", message: "", mood: "talk", is_start: false, article_id: null, is_active: true },
+  node: { title: "", message: "", mood: "talk", is_start: false, article_id: null, is_active: true, topic_summary: "", topic_category: "", topic_cover: "", topic_emoji: "chat", topic_tone: "brand", topic_sort: 0 },
   choices: [{ label: "", next_node_id: "" }],
 });
 
@@ -41,6 +42,12 @@ function NodeEditor({ open, onClose, initial, nodes, articles, onSaved }) {
               is_start: initial.is_start,
               article_id: initial.article_id,
               is_active: initial.is_active,
+              topic_summary: initial.topic_summary ?? "",
+              topic_category: initial.topic_category ?? "",
+              topic_cover: initial.topic_cover ?? "",
+              topic_emoji: initial.topic_emoji ?? "chat",
+              topic_tone: initial.topic_tone ?? "brand",
+              topic_sort: initial.topic_sort ?? 0,
             },
             choices: initial.choices.length
               ? initial.choices.map((c) => ({ label: c.label, next_node_id: c.next_node_id ?? "" }))
@@ -133,13 +140,34 @@ function NodeEditor({ open, onClose, initial, nodes, articles, onSaved }) {
         <div className="flex flex-wrap gap-5">
           <label className="flex items-center gap-2 font-bold text-fg-2 text-sm">
             <input type="checkbox" checked={f.node.is_start} onChange={(e) => setNode({ is_start: e.target.checked })} />
-            Jadikan pembuka obrolan
+            Jadikan topik obrolan (pembuka)
           </label>
           <label className="flex items-center gap-2 font-bold text-fg-2 text-sm">
             <input type="checkbox" checked={f.node.is_active} onChange={(e) => setNode({ is_active: e.target.checked })} />
             Aktif
           </label>
         </div>
+
+        {f.node.is_start && (
+          <div className="space-y-3 bg-tint p-3.5 border-2 border-tint-line rounded-2xl">
+            <p className="font-extrabold text-brand-dim text-xs uppercase tracking-wider">Tampilan topik (kartu seperti artikel)</p>
+            <div className="gap-3 grid sm:grid-cols-[11rem_1fr]">
+              <Field label="Ikon"><Select value={TOPIC_ICONS[f.node.topic_emoji] ? f.node.topic_emoji : "chat"} onChange={(e) => setNode({ topic_emoji: e.target.value })} options={Object.entries(TOPIC_ICONS).map(([value, m]) => ({ value, label: m.label }))} /></Field>
+              <Field label="Ringkasan"><Input value={f.node.topic_summary} maxLength={90} onChange={(e) => setNode({ topic_summary: e.target.value })} placeholder="Cerita saat semangat belajar lagi turun" /></Field>
+            </div>
+            <div className="gap-3 grid grid-cols-2">
+              <Field label="Label (mis. Perasaan)"><Input value={f.node.topic_category} onChange={(e) => setNode({ topic_category: e.target.value })} /></Field>
+              <Field label="URL gambar cover (opsional)"><Input value={f.node.topic_cover} onChange={(e) => setNode({ topic_cover: e.target.value })} placeholder="https://…" /></Field>
+            </div>
+            <div className="gap-3 grid grid-cols-2">
+              <Field label="Warna">
+                <Select value={f.node.topic_tone} onChange={(e) => setNode({ topic_tone: e.target.value })}
+                  options={[["brand", "Hijau"], ["ibadah", "Biru"], ["nadzhofah", "Oranye"], ["lughah", "Ungu"], ["riyadhah", "Merah"]].map(([value, label]) => ({ value, label }))} />
+              </Field>
+              <Field label="Urutan"><Input type="number" value={f.node.topic_sort} onChange={(e) => setNode({ topic_sort: Number(e.target.value) || 0 })} /></Field>
+            </div>
+          </div>
+        )}
 
         <div className="flex sm:flex-row flex-col-reverse sm:justify-end gap-2 pt-1">
           <Button variant="ghost" onClick={onClose}>Batal</Button>
@@ -206,7 +234,7 @@ export default function BkFlowAdmin() {
     <div className="mx-auto max-w-6xl">
       <PageHeader
         title="Alur Kak Peci"
-        description={`${nodes.length} percakapan. Santri memilih 1 dari maks. 3 jawaban di tiap langkah.`}
+        description={`${nodes.length} percakapan · ${nodes.filter((n) => n.is_start).length} topik. Tandai node sebagai topik agar muncul sebagai kartu di halaman Kak Peci.`}
         actions={
           <>
             <div className="flex bg-soft p-1 rounded-xl">

@@ -32,6 +32,7 @@ const RAIL = [
   { to: "/guest/leaderboard", label: "Leaderboard", icon: Trophy },
   { to: "/guest/nadzhofah", label: "Santri Nakal", icon: Footprints },
   { to: "/guest/zikir", label: "Jadwal Zikir", icon: CalendarClock },
+  { to: "/guest/kalender", label: "Kalender OSIS", icon: CalendarClock },
   { to: "/guest/bk", label: "Kak Peci", icon: MessagesSquare },
   { to: "/guest/artikel", label: "Artikel BK", icon: Newspaper },
 ];

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { UserPlus, Crown, UserMinus, Plus, Pencil } from "lucide-react";
+import { UserPlus, Crown, UserMinus, Plus, Pencil, AlertTriangle } from "lucide-react";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Badge } from "../../components/ui/Badge";
@@ -227,7 +227,7 @@ export default function TeamsPage() {
                       {m.player_position === "kiper" && (
                         <Badge tone="sky">Kiper</Badge>
                       )}
-                      {m.suspended && <Badge tone="rose">⚠ Suspended</Badge>}
+                      {m.suspended && <Badge tone="rose"><AlertTriangle size={11} className="inline -mt-0.5" /> Suspended</Badge>}
                       <Button
                         size="sm"
                         variant="ghost"

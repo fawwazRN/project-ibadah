@@ -1,14 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import {
-  BookOpenCheck,
-  Download,
-  Eye,
-  Flag,
-  Footprints,
-  MailCheck,
-  Volleyball,
-} from "lucide-react";
+import { Download, Eye, MailCheck } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../hooks/useToast";
 import { useShell } from "../../hooks/useShell";
@@ -16,48 +8,8 @@ import { useInstallPrompt } from "../../hooks/useInstallPrompt";
 import { Button } from "../../components/ui/Button";
 import { Field, Input } from "../../components/ui/Field";
 import { Mascot } from "../../components/ui/Mascot";
-import { BkMascot } from "../../components/ui/BkMascot";
+import IntroStage from "../../components/auth/IntroStage";
 import { entryPath } from "../../routes/AppRoutes";
-
-const QISM = [
-  { icon: Flag, name: "Ibadah", q: "q-ibadah" },
-  { icon: Footprints, name: "Nadzhofah", q: "q-nadzhofah" },
-  { icon: BookOpenCheck, name: "Lughah", q: "q-lughah" },
-  { icon: Volleyball, name: "Riyadhah", q: "q-riyadhah" },
-];
-
-const INTRO_SLIDES = [
-  {
-    title: <>Empat qism,<br />satu aplikasi.</>,
-    description: "Semua kegiatan madrasah tersusun rapi. Pilih qism dan temukan aktivitasmu.",
-    mood: "happy",
-    qism: QISM.map((item) => item.name),
-  },
-  {
-    title: "Ibadah lebih terpantau.",
-    description: "Lihat jadwal, catatan, dan progres ibadahmu dalam satu tempat.",
-    mood: "care",
-    qism: ["Ibadah"],
-  },
-  {
-    title: "Lingkungan bersih, hati senang.",
-    description: "Ikuti kegiatan Nadzhofah dan jaga lingkungan bersama teman-teman.",
-    mood: "happy",
-    qism: ["Nadzhofah"],
-  },
-  {
-    title: "Belajar sedikit demi sedikit.",
-    description: "Pantau kegiatan Lughah dan terus tambah progres belajarmu.",
-    mood: "think",
-    qism: ["Lughah"],
-  },
-  {
-    title: "Main kompak, dukung tim.",
-    description: "Ikuti kabar Riyadhah, jadwal pertandingan, dan klasemen liga.",
-    mood: "happy",
-    qism: ["Riyadhah"],
-  },
-];
 
 export default function LoginPage() {
   useShell({ skin: "play", qism: null, themeColor: "#ffffff" });
@@ -73,18 +25,9 @@ export default function LoginPage() {
   const [formError, setFormError] = useState("");
   const [needVerify, setNeedVerify] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [introIndex, setIntroIndex] = useState(0);
   const [introPaused, setIntroPaused] = useState(false);
-
-  useEffect(() => {
-    if (introPaused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
-    const timer = window.setInterval(() => {
-      if (document.visibilityState === "visible") {
-        setIntroIndex((index) => (index + 1) % INTRO_SLIDES.length);
-      }
-    }, 6000);
-    return () => window.clearInterval(timer);
-  }, [introPaused]);
+  const [focusPass, setFocusPass] = useState(false);
+  const [done, setDone] = useState(false);
 
   if (booting) return null;
   if (session) {
@@ -112,6 +55,7 @@ export default function LoginPage() {
     try {
       if (tab === "login") {
         const p = await signIn(email.trim().toLowerCase(), password);
+        setDone(true);
         push("success", "Berhasil masuk");
         navigate(p ? entryPath(p.role) : "/claim", { replace: true });
       } else {
@@ -134,72 +78,21 @@ export default function LoginPage() {
     <div className="flex bg-page min-h-dvh">
       {/* Panel kiri (desktop) */}
       <aside
-        className="hidden relative lg:flex flex-col justify-between bg-brand p-12 w-[46%] overflow-hidden bg-lattice text-on-brand"
+        className="hidden relative lg:block bg-brand w-[46%] overflow-hidden text-on-brand"
         onMouseEnter={() => setIntroPaused(true)}
         onMouseLeave={() => setIntroPaused(false)}
         onFocus={() => setIntroPaused(true)}
         onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget)) setIntroPaused(false);
         }}>
-        <div className="flex items-center gap-2">
-          <span className="font-display text-4xl" style={{ fontWeight: 900, letterSpacing: "-0.03em" }}>
-            osis
-          </span>
-        </div>
-        <div className="flex flex-col items-center text-center" aria-live="polite" aria-atomic="true">
-          <BkMascot
-            key={introIndex}
-            mood={INTRO_SLIDES[introIndex].mood}
-            size={220}
-            className="login-mascot-enter"
-          />
-          <div key={`copy-${introIndex}`} className="login-feature-enter">
-            <h1 className="mt-6 font-display text-4xl leading-tight" style={{ fontWeight: 900 }}>
-              {INTRO_SLIDES[introIndex].title}
-            </h1>
-            <p className="mx-auto mt-3 max-w-md font-semibold text-white/85 text-sm leading-relaxed">
-              {INTRO_SLIDES[introIndex].description}
-            </p>
-            <div className="flex flex-wrap justify-center gap-2 mt-5">
-              {INTRO_SLIDES[introIndex].qism.map((name) => {
-                const item = QISM.find((qism) => qism.name === name);
-                if (!item) return null;
-                return (
-                  <span
-                    key={item.name}
-                    className={`${item.q} inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-extrabold`}
-                    style={{ color: "var(--q-dim)" }}>
-                    <item.icon size={16} strokeWidth={2.6} /> {item.name}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-          <div className="flex items-center gap-2 mt-7" role="group" aria-label="Pilih pengenalan fitur">
-            <div className="flex items-center gap-2">
-              {INTRO_SLIDES.map((slide, index) => (
-                <button
-                  key={slide.description}
-                  type="button"
-                  aria-label={`Tampilkan fitur ${index + 1}`}
-                  aria-current={introIndex === index ? "step" : undefined}
-                  onClick={() => setIntroIndex(index)}
-                  className={`rounded-full h-2.5 transition-all duration-500 ${introIndex === index ? "bg-white w-7" : "bg-white/45 hover:bg-white/70 w-2.5"}`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-        <p className="font-semibold text-white/80 text-xs">
-          © {new Date().getFullYear()} OSIS · Penggunaan internal madrasah
-        </p>
+        <IntroStage paused={introPaused} />
       </aside>
 
       {/* Form */}
       <main className="flex flex-1 justify-center items-center p-5 safe-top safe-bottom">
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex flex-col items-center mb-6 text-center">
-            <Mascot mood="cheer" size={112} wave className="animate-float" />
+            <Mascot mood={done ? "cheer" : loading ? "think" : formError ? "sad" : focusPass ? "peek" : "wave"} size={120} interactive className="animate-float" />
             <p className="mt-1 font-display text-brand-dim text-4xl" style={{ fontWeight: 900, letterSpacing: "-0.03em" }}>
               osis
             </p>
@@ -232,7 +125,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={submit} className="space-y-4 mt-5" noValidate>
+          <form onSubmit={submit} className="space-y-4 mt-5 stagger" noValidate key={tab}>
             {formError && (
               <p className="bg-rose-50 px-3.5 py-2.5 border-2 border-rose-200 rounded-2xl font-bold text-rose-700 text-xs">
                 {formError}
@@ -253,6 +146,8 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onFocus={() => setFocusPass(true)}
+                onBlur={() => setFocusPass(false)}
                 placeholder="Minimal 6 karakter"
                 autoComplete={tab === "login" ? "current-password" : "new-password"}
               />

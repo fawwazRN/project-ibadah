@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, Eye, EyeOff, ImagePlus, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Bold, Eye, EyeOff, ImagePlus, Italic, List, ListOrdered, Pencil, Plus, Quote, Trash2, Underline } from "lucide-react";
 import { bkService } from "../../services/bkService";
 import { useToast } from "../../hooks/useToast";
 import { useConfirm } from "../../context/ConfirmContext";
@@ -11,6 +11,7 @@ import { Modal } from "../../components/ui/Modal";
 import { Field, Input, Select, Textarea } from "../../components/ui/Field";
 import { EmptyState, LoadingState } from "../../components/ui/States";
 import { ArticleBlocks } from "../bk/ArticlesPage";
+import { sanitizeArticleHtml } from "../../lib/articleContent";
 
 const CATS = ["Umum", "Perasaan", "Belajar", "Pertemanan", "Keluarga", "Ibadah"].map((c) => ({ value: c, label: c }));
 const BLOCKS = [
@@ -20,6 +21,59 @@ const BLOCKS = [
   { type: "image", label: "Gambar" },
 ];
 const empty = { title: "", excerpt: "", category: "Umum", cover_url: null, blocks: [], is_published: false };
+
+function RichTextEditor({ value, onChange, label }) {
+  const editorRef = useRef(null);
+  const toolbar = [
+    { label: "Tebal", icon: Bold, command: "bold" },
+    { label: "Miring", icon: Italic, command: "italic" },
+    { label: "Garis bawah", icon: Underline, command: "underline" },
+    { label: "Daftar", icon: List, command: "insertUnorderedList" },
+    { label: "Daftar bernomor", icon: ListOrdered, command: "insertOrderedList" },
+    { label: "Kutipan", icon: Quote, command: "formatBlock", value: "blockquote" },
+  ];
+
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== sanitizeArticleHtml(value)) {
+      editorRef.current.innerHTML = sanitizeArticleHtml(value);
+    }
+  }, [value]);
+
+  const update = () => onChange(sanitizeArticleHtml(editorRef.current?.innerHTML ?? ""));
+  const format = (command, commandValue) => {
+    editorRef.current?.focus();
+    document.execCommand(command, false, commandValue);
+    update();
+  };
+  const paste = (event) => {
+    event.preventDefault();
+    const html = event.clipboardData.getData("text/html");
+    const text = event.clipboardData.getData("text/plain");
+    const safeHtml = html
+      ? sanitizeArticleHtml(html)
+      : sanitizeArticleHtml(text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;"));
+    document.execCommand("insertHTML", false, safeHtml);
+    update();
+  };
+
+  return (
+    <div className="overflow-hidden bg-card border-2 border-line rounded-xl">
+      <div className="flex flex-wrap items-center gap-1 p-2 border-line border-b" aria-label={`Pemformatan ${label}`}>
+        {toolbar.map(({ label: action, icon: Icon, command, value: commandValue }) => (
+          <Button key={command} type="button" size="sm" variant="ghost" aria-label={action}
+            title={action} onMouseDown={(event) => event.preventDefault()}
+            onClick={() => format(command, commandValue)}>
+            <Icon size={16} />
+          </Button>
+        ))}
+        <span className="self-center ml-1 text-fg-3 text-xs">Format saat ditempel akan dipertahankan</span>
+      </div>
+      <div ref={editorRef} contentEditable suppressContentEditableWarning role="textbox" aria-label={label}
+        aria-multiline="true" onInput={update} onPaste={paste}
+        className="article-editor p-3 min-h-28 outline-none" />
+    </div>
+  );
+}
 
 function ArticleEditor({ open, onClose, initial, onSaved }) {
   const { push } = useToast();
@@ -110,7 +164,7 @@ function ArticleEditor({ open, onClose, initial, onSaved }) {
                     </div>
                   </div>
                   {b.type === "h2" && <Input value={b.text ?? ""} onChange={(e) => setBlock(i, { text: e.target.value })} />}
-                  {(b.type === "p" || b.type === "quote") && <Textarea rows={b.type === "p" ? 4 : 2} value={b.text ?? ""} onChange={(e) => setBlock(i, { text: e.target.value })} />}
+                  {(b.type === "p" || b.type === "quote") && <RichTextEditor label={b.type === "quote" ? "Isi kutipan" : "Isi paragraf"} value={b.text ?? ""} onChange={(text) => setBlock(i, { text })} />}
                   {b.type === "image" && (
                     <div className="space-y-2">
                       {b.url ? <img src={b.url} alt="" className="rounded-xl max-h-40" /> : null}

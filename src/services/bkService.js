@@ -15,8 +15,12 @@ export const bkService = {
     ]);
     const byId = new Map(nodes.map((n) => [n.id, { ...n, choices: [] }]));
     for (const c of choices) byId.get(c.node_id)?.choices.push(c);
-    const startRaw = nodes.find((n) => n.is_start);
-    return { byId, start: startRaw ? byId.get(startRaw.id) : null };
+    // Tiap node pembuka = satu topik obrolan
+    const starts = nodes
+      .filter((n) => n.is_start)
+      .sort((a, b) => (a.topic_sort ?? 0) - (b.topic_sort ?? 0) || a.title.localeCompare(b.title))
+      .map((n) => byId.get(n.id));
+    return { byId, starts, start: starts[0] ?? null };
   },
 
   async startSession(profileId) {
@@ -46,9 +50,7 @@ export const bkService = {
 
   async saveNode(node, choices) {
     const { id, ...fields } = node;
-    // Satu node pembuka saja: lepas penanda dari node lain dulu.
-    if (fields.is_start)
-      await supabase.from("bk_nodes").update({ is_start: false }).eq("is_start", true);
+    // Banyak node pembuka diperbolehkan (satu pembuka = satu topik).
     const row = id
       ? await supabase.from("bk_nodes").update(fields).eq("id", id).select().single().then(unwrap)
       : await supabase.from("bk_nodes").insert(fields).select().single().then(unwrap);

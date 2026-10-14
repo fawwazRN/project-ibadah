@@ -400,7 +400,7 @@ export default function SantriDashboard() {
                 nyeker == null
                   ? "Memuat…"
                   : nyeker.length === 0
-                    ? "Bersih ✓"
+                    ? "Bersih"
                     : `${nyeker.length} nyeker`
               }
               offset={56}

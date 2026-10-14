@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, Flame, LogOut, Star } from "lucide-react";
+import { ArrowLeft, Download, Flame, LogOut } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useConfirm } from "../context/ConfirmContext";
 import {
@@ -21,8 +21,6 @@ import { BrandMark } from "../components/ui/BrandMark";
 import { Avatar } from "../components/ui/Avatar";
 import InvitationCard from "../components/event/InvitationCard";
 import { violationService } from "../services/violationService";
-import { heartService } from "../services/heartService";
-import { Heart, Star as StarIcon } from "../components/ui/HeartStar";
 import { reportService } from "../services/reportService";
 import { computeStudentStats } from "../lib/student";
 import { useShell } from "../hooks/useShell";
@@ -39,19 +37,17 @@ export const useStudentData = () => useContext(StudentCtx);
 function StudentDataProvider({ children }) {
   const [state, setState] = useState({
     violations: null,
-    board: [],
     reports: [],
     error: null,
   });
 
   const load = useCallback(async () => {
     try {
-      const [v, r, b] = await Promise.all([
+      const [v, r] = await Promise.all([
         violationService.list(),
         reportService.listMine(),
-        heartService.board().catch(() => []), // belum dimigrasi → tetap jalan
       ]);
-      setState({ violations: v, reports: r, board: b, error: null });
+      setState({ violations: v, reports: r, error: null });
     } catch (e) {
       setState((s) => ({ ...s, error: e.message ?? "Gagal memuat data" }));
     }
@@ -60,19 +56,13 @@ function StudentDataProvider({ children }) {
     load();
   }, [load]);
 
-  const { profile } = useAuth();
-  const me = useMemo(
-    () => state.board.find((r) => r.student_id === profile?.id) ?? null,
-    [state.board, profile?.id],
-  );
-
   const stats = useMemo(
     () => computeStudentStats(state.violations),
     [state.violations],
   );
 
   return (
-    <StudentCtx.Provider value={{ ...state, stats, me, reload: load }}>
+    <StudentCtx.Provider value={{ ...state, stats, reload: load }}>
       {children}
     </StudentCtx.Provider>
   );
@@ -82,7 +72,7 @@ function StudentDataProvider({ children }) {
 function Topbar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { stats, violations, me } = useStudentData();
+  const { stats, violations } = useStudentData();
   const root = isStudentRoot(pathname);
   const title = pageTitleFor(pathname, NAV.santri);
   const ready = violations !== null;
@@ -118,14 +108,14 @@ function Topbar() {
           {title}
         </h1>
 
-        <Link to="/santri/bintang" title="Hati periode ini" className="bg-rose-50 text-rose-600 stat-chip">
-          <Heart size={20} uid="tb" />
-          {ready ? (me?.hearts ?? "–") : "–"}
-          <span className="hidden sm:inline opacity-80 font-bold text-[11px]">hati</span>
-        </Link>
-        <Link to="/santri/bintang" title="Bintang terkumpul" className="bg-amber-50 text-amber-600 stat-chip">
-          <StarIcon size={19} uid="tbs" />
-          {ready ? (me?.stars ?? 0) : "–"}
+        <Link
+          to="/santri/violations"
+          title="Hari bersih sejak catatan terakhir"
+          className="bg-orange-50 text-orange-600 stat-chip pop-on-change"
+          key={ready ? stats.cleanDays : "x"}>
+          <Flame size={18} strokeWidth={2.6} />
+          {ready ? (stats.cleanDays ?? 0) : "–"}
+          <span className="hidden sm:inline opacity-80 font-bold text-[11px]">hari bersih</span>
         </Link>
       </div>
     </header>

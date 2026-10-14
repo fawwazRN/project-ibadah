@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { UserPlus, X, CheckCheck } from "lucide-react";
+import { UserPlus, X, CheckCheck, Check } from "lucide-react";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
@@ -214,7 +214,7 @@ export function ViolationFormModal({
                           <span className="flex items-center gap-2">
                             <span
                               className={`grid size-4 place-items-center rounded border text-[10px] ${on ? "border-brand bg-brand text-on-brand" : "border-line-2"}`}>
-                              {on && "✓"}
+                              {on && <Check size={12} strokeWidth={3.5} />}
                             </span>
                             {s.full_name}
                           </span>

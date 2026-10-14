@@ -17,9 +17,6 @@ import GuestNadzhofahPage from "../pages/auth/GuestNadzhofahPage";
 
 // ---------- Santri ----------
 import SantriHome from "../pages/santri/SantriHome";
-import SantriStars from "../pages/santri/SantriStars";
-import { HeartApologyGate } from "../components/santri/HeartApologyGate";
-import HukumanPage from "../pages/ibadah/HukumanPage";
 import SantriViolations from "../pages/santri/SantriViolations";
 import SantriReports from "../pages/santri/SantriReports";
 import SantriTeamPage from "../pages/santri/SantriTeamPage";
@@ -73,6 +70,9 @@ import LughahNilaiPage from "../pages/lughah/Nilai";
 import LughahRekapPage from "../pages/lughah/Rekap";
 
 // ---------- Super Admin ----------
+import SantriCurhat from "../pages/santri/SantriCurhat";
+import AdminCurhat from "../pages/admin/AdminCurhat";
+import CalendarPage from "../pages/shared/CalendarPage";
 import AdminHome from "../pages/admin/AdminHome";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminManagement from "../pages/admin/AdminManagement";
@@ -219,6 +219,7 @@ export default function AppRoutes() {
         <Route path="/guest/leaderboard" element={<GuestLeaderboardPage />} />
         <Route path="/guest/nadzhofah" element={<GuestNadzhofahPage />} />
         <Route path="/guest/zikir" element={<GuestZikirPage />} />
+        <Route path="/guest/kalender" element={<CalendarPage />} />
         <Route path="/guest/bk" element={<SantriBkChat />} />
         <Route path="/guest/artikel" element={<ArticleList />} />
         <Route path="/guest/artikel/:id" element={<ArticleDetail />} />
@@ -233,8 +234,10 @@ export default function AppRoutes() {
         <Route element={<DashboardLayout />}>
           {/* ---------------- SANTRI ---------------- */}
           <Route element={<RoleRoute role="santri" />}>
+            <Route path="/santri/kalender" element={<CalendarPage />} />
+            <Route path="/santri/curhat" element={<SantriCurhat />} />
             <Route path="/santri" element={<SantriHome />} />
-            <Route path="/santri/bintang" element={<SantriStars />} />
+            <Route path="/santri/bintang" element={<Navigate to="/santri" replace />} />
             <Route
               path="/santri/zikir"
               element={<ZikirSchedulePage role="santri" />}
@@ -246,15 +249,15 @@ export default function AppRoutes() {
             <Route path="/santri/reports" element={<SantriReports />} />
             <Route
               path="/santri/team"
-              element={<HeartApologyGate><SantriTeamPage /></HeartApologyGate>}
+              element={<SantriTeamPage />}
             />
             <Route
               path="/santri/standings"
-              element={<HeartApologyGate><LeagueStandingsPage /></HeartApologyGate>}
+              element={<LeagueStandingsPage />}
             />
             <Route
               path="/santri/matches"
-              element={<HeartApologyGate><SantriTeamPage /></HeartApologyGate>}
+              element={<SantriTeamPage />}
             />
             <Route path="/santri/nadzhofah" element={<SantriNadzhofahPage />} />
             <Route path="/santri/lughah" element={<SantriLughahPage />} />
@@ -275,6 +278,7 @@ export default function AppRoutes() {
 
           {/* ---------------- QISM IBADAH ---------------- */}
           <Route element={<RoleRoute role="qism_ibadah" />}>
+            <Route path="/ibadah/kalender" element={<CalendarPage />} />
             <Route path="/ibadah" element={<IbadahDashboard />} />
             <Route path="/ibadah/santri" element={<SantriManagement />} />
             <Route
@@ -282,7 +286,6 @@ export default function AppRoutes() {
               element={<ViolationsManagement />}
             />
             <Route path="/ibadah/reports" element={<ReportsReview />} />
-            <Route path="/ibadah/hukuman" element={<HukumanPage />} />
             <Route
               path="/ibadah/rules"
               element={<RulesManagement scope="ibadah" />}
@@ -316,6 +319,7 @@ export default function AppRoutes() {
 
           {/* ---------------- QISM RIYADHAH ---------------- */}
           <Route element={<RoleRoute role="qism_riyadhah" />}>
+            <Route path="/riyadhah/kalender" element={<CalendarPage />} />
             <Route path="/riyadhah" element={<RiyadhahDashboard />} />
             <Route
               path="/riyadhah/violations"
@@ -344,6 +348,7 @@ export default function AppRoutes() {
 
           {/* ---------------- QISM NADZHOFah ---------------- */}
           <Route element={<RoleRoute role="nadzhofah" />}>
+            <Route path="/nadzhofah/kalender" element={<CalendarPage />} />
             <Route path="/nadzhofah" element={<NadzhofahDashboard />} />
             <Route path="/nadzhofah/nyeker" element={<NadzhofahNyekerPage />} />
             <Route path="/nadzhofah/rekap" element={<NadzhofahRekapPage />} />
@@ -363,6 +368,7 @@ export default function AppRoutes() {
 
           {/* ---------------- QISM LUGHAH ---------------- */}
           <Route element={<RoleRoute role="lughah" />}>
+            <Route path="/lughah/kalender" element={<CalendarPage />} />
             <Route path="/lughah" element={<LughahDashboard />} />
             <Route
               path="/lughah/kelengkapan"
@@ -378,6 +384,8 @@ export default function AppRoutes() {
 
           {/* ---------------- SUPER ADMIN ---------------- */}
           <Route element={<RoleRoute role="super_admin" />}>
+            <Route path="/admin/kalender" element={<CalendarPage />} />
+            <Route path="/admin/curhat" element={<AdminCurhat />} />
             <Route path="/admin" element={<AdminHome />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/admins" element={<AdminManagement />} />
