@@ -68,6 +68,7 @@ import LughahDashboard from "../pages/lughah/Dashboard";
 import LughahKelengkapanPage from "../pages/lughah/Kelengkapan";
 import LughahNilaiPage from "../pages/lughah/Nilai";
 import LughahRekapPage from "../pages/lughah/Rekap";
+import LughahMufrodatPage from "../pages/lughah/Mufrodat";
 
 // ---------- Super Admin ----------
 import SantriCurhat from "../pages/santri/SantriCurhat";
@@ -380,6 +381,7 @@ export default function AppRoutes() {
               element={<LughahKelengkapanPage />}
             />
             <Route path="/lughah/nilai" element={<LughahNilaiPage />} />
+            <Route path="/lughah/mufrodat" element={<LughahMufrodatPage />} />
             <Route path="/lughah/rekap" element={<LughahRekapPage />} />
             <Route
               path="/lughah/profile"

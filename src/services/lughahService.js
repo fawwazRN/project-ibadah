@@ -1,6 +1,29 @@
 import { supabase } from "../lib/supabaseClient";
 
 export const lughahService = {
+  // ---- Mufrodat harian ----
+  async listVocab() {
+    const { data, error } = await supabase
+      .from("lughah_vocab").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
+  },
+  async dailyVocab(n = 3) {
+    const { data, error } = await supabase.rpc("get_lughah_daily_vocab", { p_n: n });
+    if (error) throw error;
+    return data ?? [];
+  },
+  async saveVocab(id, payload) {
+    const q = id
+      ? supabase.from("lughah_vocab").update(payload).eq("id", id)
+      : supabase.from("lughah_vocab").insert(payload);
+    const { error } = await q;
+    if (error) throw error;
+  },
+  async removeVocab(id) {
+    const { error } = await supabase.from("lughah_vocab").delete().eq("id", id);
+    if (error) throw error;
+  },
   async listPeriods() {
     const { data, error } = await supabase.rpc("list_exam_periods");
     if (error) throw error;
