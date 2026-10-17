@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  BookOpenCheck, CalendarClock, CalendarDays, ChevronRight, Flame, Footprints,
+  BookOpenCheck, CalendarClock, CalendarDays, ChevronRight, Flame, Footprints, MonitorPlay,
   MessagesSquare, ShieldCheck, Sparkles, Volleyball, ClipboardList,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -15,6 +15,7 @@ import { hijriToday } from "../../lib/date";
 
 const TILES = [
   { to: "/santri/kalender", label: "Kalender", icon: CalendarDays, tone: "bg-emerald-100 text-emerald-700" },
+  { to: "/santri/file-osis", label: "File OSIS", icon: MonitorPlay, tone: "bg-amber-100 text-amber-800" },
   { to: "/santri/zikir", label: "Jadwal Zikir", icon: CalendarClock, tone: "bg-violet-100 text-violet-700" },
   { to: "/santri/nadzhofah", label: "Nadzhofah", icon: Footprints, tone: "bg-amber-100 text-amber-700" },
   { to: "/santri/lughah", label: "Lughah", icon: BookOpenCheck, tone: "bg-sky-100 text-sky-700" },

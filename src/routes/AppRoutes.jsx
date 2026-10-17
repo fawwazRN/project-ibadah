@@ -36,6 +36,7 @@ import LeaderboardDetailPage from "../pages/shared/LeaderboardDetailPage";
 import LeagueStandingsPage from "../pages/shared/LeagueStandingsPage";
 import RecapPage from "../pages/shared/RecapPage";
 import ProfilePage from "../pages/shared/ProfilePage";
+import FileOSISPage from "../pages/shared/FileOSISPage";
 
 // ---------- Qism Ibadah ----------
 import IbadahDashboard from "../pages/ibadah/IbadahDashboard";
@@ -243,6 +244,7 @@ export default function AppRoutes() {
             <Route path="/santri/kalender" element={<CalendarPage />} />
             <Route path="/santri/curhat" element={<SantriCurhat />} />
             <Route path="/santri" element={<SantriHome />} />
+            <Route path="/santri/file-osis" element={<FileOSISPage />} />
             <Route path="/santri/bintang" element={<Navigate to="/santri" replace />} />
             <Route
               path="/santri/zikir"
@@ -394,6 +396,7 @@ export default function AppRoutes() {
             <Route path="/admin/kalender" element={<CalendarPage />} />
             <Route path="/admin/curhat" element={<AdminCurhat />} />
             <Route path="/admin" element={<AdminHome />} />
+            <Route path="/admin/file-osis" element={<FileOSISPage mode="admin" />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/admins" element={<AdminManagement />} />
             <Route
