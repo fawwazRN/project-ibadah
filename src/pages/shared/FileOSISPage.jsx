@@ -344,42 +344,51 @@ export default function FileOSISPage({ mode = "student" }) {
       </section>
 
       {selectedFile && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-[#070910] text-white">
-          <div className="flex min-h-dvh flex-col">
-            <header className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-7">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-200/10 text-amber-200"><Clapperboard size={20} /></span>
-                <div className="min-w-0"><p className="text-[9px] font-black tracking-[0.3em] text-amber-200">FILE OSIS CINEMA</p><h2 className="truncate font-extrabold">{selectedFile.title}</h2></div>
-              </div>
-              <button onClick={async () => { setSelectedFile(null); setCinemaReady(false); if (document.fullscreenElement) { try { await document.exitFullscreen(); } catch {} } }} aria-label="Tutup pemutar" className="grid size-10 shrink-0 place-items-center rounded-xl border border-white/10 text-white/80 hover:bg-white/10"><X size={20} /></button>
-            </header>
-            {!cinemaReady ? (
+        <div className="fixed inset-0 z-[100] h-dvh w-screen overflow-hidden bg-black text-white">
+          {!cinemaReady ? (
+            <div className="flex h-dvh w-full flex-col">
+              <header className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-7">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-200/10 text-amber-200"><Clapperboard size={20} /></span>
+                  <div className="min-w-0"><p className="text-[9px] font-black tracking-[0.3em] text-amber-200">FILE OSIS CINEMA</p><h2 className="truncate font-extrabold">{selectedFile.title}</h2></div>
+                </div>
+                <button onClick={() => { setSelectedFile(null); setCinemaReady(false); }} aria-label="Tutup pemutar" className="grid size-10 shrink-0 place-items-center rounded-xl border border-white/10 text-white/80 hover:bg-white/10"><X size={20} /></button>
+              </header>
               <div className="grid flex-1 place-items-center px-5 py-12">
                 <div className="max-w-xl text-center">
                   <div className="mx-auto grid size-20 place-items-center rounded-full border border-amber-200/20 bg-amber-200/10 text-amber-200"><Headphones size={34} /></div>
                   <p className="mt-6 text-[10px] font-black tracking-[0.35em] text-amber-200">WAKTUNYA MENONTON</p>
                   <h3 className="mt-2 text-3xl font-black tracking-tight sm:text-5xl">Siapkan headset-mu.</h3>
-                  <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-white/60">Cari posisi yang nyaman, kecilkan gangguan, lalu nikmati dokumentasi ini bersama.</p>
+                  <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-white/60">Tekan mulai untuk membuka ruang menonton dalam layar penuh.</p>
                   <button onClick={startWatching} className="mt-7 inline-flex items-center gap-2 rounded-full bg-amber-200 px-6 py-3 font-black text-[#17120a] transition hover:bg-amber-100"><Play size={17} fill="currentColor" /> Mulai menonton <Maximize size={16} /></button>
                   <button onClick={() => { setSelectedFile(null); setCinemaReady(false); }} className="mx-auto mt-4 flex items-center gap-1 text-sm text-white/55 hover:text-white"><ArrowLeft size={14} /> Kembali ke arsip</button>
                 </div>
               </div>
-            ) : embedUrl ? (
-              <div className={`flex flex-1 flex-col ${selectedFile.player_style === "cinema" ? "justify-center px-2 py-4 sm:px-6" : "p-4 sm:p-7"}`}>
-                <div className={`mx-auto w-full overflow-hidden border border-white/10 bg-black shadow-2xl ${selectedFile.player_style === "cinema" ? "max-w-[1500px] rounded-xl" : "max-w-5xl rounded-2xl"}`}>
-                  <div className="aspect-video">
-                    <iframe src={embedUrl} title={selectedFile.title} className="h-full w-full" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
-                  </div>
+            </div>
+          ) : embedUrl ? (
+            <div className="relative h-dvh w-screen overflow-hidden bg-black">
+              <iframe
+                src={embedUrl}
+                title={selectedFile.title}
+                className="absolute inset-0 h-full w-full border-0 bg-black"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
+              <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-24 bg-gradient-to-b from-black/65 to-transparent" />
+              <div className="absolute left-3 right-3 top-3 z-20 flex items-center justify-between gap-3 sm:left-6 sm:right-6 sm:top-5">
+                <div className="pointer-events-none min-w-0 rounded-lg bg-black/45 px-3 py-2 backdrop-blur-sm">
+                  <p className="text-[9px] font-black tracking-[0.3em] text-amber-200">FILE OSIS CINEMA</p>
+                  <h2 className="max-w-[65vw] truncate text-sm font-semibold text-white sm:text-base">{selectedFile.title}</h2>
                 </div>
-                <div className="mx-auto mt-4 flex w-full max-w-[1500px] items-center justify-between gap-3 text-xs text-white/45">
-                  <span className="inline-flex items-center gap-1.5"><LockKeyhole size={13} /> Pemutaran melalui Google Drive</span>
-                  <a href={`https://drive.google.com/file/d/${selectedFile.drive_file_id}/view`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 hover:text-amber-200">Buka di Drive <ExternalLink size={13} /></a>
-                </div>
+                <button onClick={async () => { setSelectedFile(null); setCinemaReady(false); if (document.fullscreenElement) { try { await document.exitFullscreen(); } catch {} } }} aria-label="Keluar dari layar penuh" className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/20 bg-black/60 px-3 py-2 text-xs font-bold text-white backdrop-blur transition hover:bg-white/15 sm:px-4 sm:text-sm">
+                  <X size={16} /> <span className="hidden sm:inline">Keluar</span>
+                </button>
               </div>
-            ) : (
-              <div className="grid flex-1 place-items-center p-8 text-center"><p className="text-white/70">Tautan Drive belum memiliki ID video yang valid.</p></div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="grid h-dvh place-items-center p-8 text-center"><p className="text-white/70">Tautan Drive belum memiliki ID video yang valid.</p></div>
+          )}
         </div>
       )}
     </div>
