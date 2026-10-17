@@ -223,6 +223,7 @@ export default function AppRoutes() {
         <Route path="/guest/nadzhofah" element={<GuestNadzhofahPage />} />
         <Route path="/guest/zikir" element={<GuestZikirPage />} />
         <Route path="/guest/kalender" element={<CalendarPage />} />
+        <Route path="/guest/file-osis" element={<FileOSISPage mode="guest" />} />
         <Route path="/guest/bk" element={<SantriBkChat />} />
         <Route path="/guest/artikel" element={<ArticleList />} />
         <Route path="/guest/artikel/:id" element={<ArticleDetail />} />

@@ -42,6 +42,7 @@ function Field({ label, children }) {
 const inputClass = "w-full rounded-xl border border-line bg-card px-3 py-2.5 text-sm text-fg outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10";
 const buttonClass = "inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-on-brand transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";
 
+// mode: "student" | "guest" (tanpa login, hanya menonton) | "admin" (kelola)
 export default function FileOSISPage({ mode = "student" }) {
   const isAdmin = mode === "admin";
   const confirm = useConfirm();
@@ -183,6 +184,31 @@ export default function FileOSISPage({ mode = "student" }) {
     setBusy(false);
   };
 
+  const deleteFolder = async (folder) => {
+    const count = files.filter((file) => file.folder_id === folder.id).length;
+    const ok = await confirm({
+      title: "Hapus folder?",
+      message: count
+        ? `Folder “${folder.name}” beserta ${count} tautan video di dalamnya akan dihapus. File aslinya di Google Drive tidak ikut terhapus.`
+        : `Folder “${folder.name}” akan dihapus.`,
+      tone: "danger",
+      confirmText: "Ya, hapus folder",
+    });
+    if (!ok) return;
+    setBusy(true); setError(""); setNotice("");
+    // hapus isi dulu agar tidak terhalang relasi folder → video
+    const { error: filesError } = await supabase.from("file_osis_files").delete().eq("folder_id", folder.id);
+    const { error: folderError } = filesError ? { error: filesError } : await supabase.from("file_osis_folders").delete().eq("id", folder.id);
+    if (folderError) setError(folderError.message);
+    else {
+      setNotice("Folder dihapus.");
+      if (activeFolder === folder.id) setActiveFolder("all");
+      setTargetFolder((current) => (current === folder.id ? "" : current));
+      await load();
+    }
+    setBusy(false);
+  };
+
   return (
     <div className={isAdmin ? "mx-auto max-w-6xl space-y-5" : "mx-auto max-w-5xl space-y-5"}>
       <section className="relative overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-[#101522] via-[#151b2b] to-[#263029] p-5 text-white sm:p-7">
@@ -284,6 +310,9 @@ export default function FileOSISPage({ mode = "student" }) {
                 <p className="mt-0.5 line-clamp-2 text-sm text-fg-3">{selectedFolder.description || "Arsip kegiatan OSIS"}</p>
               </div>
               <span className="hidden items-center gap-1.5 rounded-full bg-soft px-3 py-1.5 text-xs font-bold text-fg-2 sm:inline-flex"><FileVideo2 size={14} />{visibleFiles.length} video</span>
+              {isAdmin && (
+                <button onClick={() => deleteFolder(selectedFolder)} disabled={busy} aria-label="Hapus folder" title="Hapus folder" className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-rose-200 px-3 py-2 text-xs font-bold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"><Trash2 size={14} /> <span className="hidden sm:inline">Hapus folder</span></button>
+              )}
             </div>
 
             {visibleFiles.length ? (
@@ -305,7 +334,7 @@ export default function FileOSISPage({ mode = "student" }) {
                     {isAdmin && (
                       <div className="-mt-px flex items-center justify-between rounded-b-xl border border-t-0 border-line bg-card px-4 py-2.5">
                         <button onClick={() => togglePublished("file", file)} disabled={busy} className="text-xs font-bold text-brand-dim">{file.published ? "Tayang · sembunyikan" : "Draft · publikasikan"}</button>
-                        <button onClick={() => deleteFile(file)} disabled={busy} title="Hapus tautan" className="grid size-8 place-items-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 size={15} /></button>
+                        <button onClick={() => deleteFile(file)} disabled={busy} title="Hapus video" className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"><Trash2 size={14} /> Hapus</button>
                       </div>
                     )}
                   </article>
@@ -350,6 +379,7 @@ export default function FileOSISPage({ mode = "student" }) {
                           <div className="mt-2 flex items-center justify-center gap-2">
                             <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${folder.published ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{folder.published ? "Tayang" : "Draft"}</span>
                             <button onClick={() => togglePublished("folder", folder)} disabled={busy} className="text-xs font-bold text-brand-dim underline">{folder.published ? "Sembunyikan" : "Publikasikan"}</button>
+                            <button onClick={() => deleteFolder(folder)} disabled={busy} title="Hapus folder" className="grid size-6 place-items-center rounded-md text-rose-600 hover:bg-rose-50 disabled:opacity-50"><Trash2 size={13} /></button>
                           </div>
                         )}
                       </div>

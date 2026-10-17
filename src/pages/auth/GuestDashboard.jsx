@@ -6,6 +6,7 @@ import {
   Flag,
   Footprints,
   MessagesSquare,
+  MonitorPlay,
   Newspaper,
   Trophy,
   Volleyball,
@@ -31,6 +32,7 @@ const fmtDate = (d) =>
     : "—";
 
 const TILES = [
+  { to: "/guest/file-osis", title: "File OSIS", desc: "Nonton dokumentasi", icon: MonitorPlay, q: "q-lughah" },
   { to: "/guest/bk", title: "Kak Peci", desc: "Teman ngobrol santri", icon: MessagesSquare, q: "q-brand" },
   { to: "/guest/artikel", title: "Artikel BK", desc: "Bacaan ringan", icon: Newspaper, q: "q-ibadah" },
   { to: "/guest/ibadah", title: "Qism Ibadah", desc: "Aktivitas ibadah", icon: Flag, q: "q-ibadah" },
