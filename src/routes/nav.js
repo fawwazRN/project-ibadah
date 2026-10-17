@@ -41,6 +41,7 @@ export const NAV = {
       section: "Utama",
       items: [
         { to: "/santri", label: "Beranda", icon: Home, end: true },
+        { to: "/santri/file-osis", label: "File OSIS", icon: MonitorPlay },
         { to: "/santri/kalender", label: "Kalender OSIS", icon: CalendarDays },
         { to: "/santri/bk", label: "Kak Peci", icon: MessagesSquare },
         { to: "/santri/curhat", label: "Curhat ke OSIS", icon: HeartHandshake },
@@ -214,6 +215,7 @@ export const NAV = {
       section: "Super Admin",
       items: [
         { to: "/admin", label: "Ringkasan", icon: LayoutDashboard, end: true },
+        { to: "/admin/file-osis", label: "Kelola File OSIS", icon: MonitorPlay },
         { to: "/admin/users", label: "Pengguna & Peran", icon: Users },
         { to: "/admin/admins", label: "Calon Admin", icon: ShieldCheck },
         { to: "/admin/invitation", label: "Undangan", icon: Sparkles },
