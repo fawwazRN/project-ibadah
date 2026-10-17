@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
-  ArrowLeft, Check, Clapperboard, ExternalLink, FileVideo2, FolderOpen,
-  Headphones, LoaderCircle, LockKeyhole, Maximize, Play, Plus, RefreshCw,
-  Trash2, Video, X,
+  ArrowLeft, Check, Clapperboard, FileVideo2, FolderOpen,
+  Headphones, LoaderCircle, Play, Plus, RefreshCw,
+  Trash2, Video,
 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { useConfirm } from "../../context/ConfirmContext";
 import { supabase } from "../../lib/supabaseClient";
+import OsisFolder, { toneFor } from "../../components/osis/OsisFolder";
+import VideoThumb from "../../components/osis/VideoThumb";
+import CinemaPlayer from "../../components/osis/CinemaPlayer";
 
 function parseDriveId(value) {
   try {
@@ -40,16 +44,18 @@ const buttonClass = "inline-flex items-center justify-center gap-2 rounded-xl bg
 
 export default function FileOSISPage({ mode = "student" }) {
   const isAdmin = mode === "admin";
-  const { profile } = useAuth();
+  const confirm = useConfirm();
+  const [params, setParams] = useSearchParams();
   const [folders, setFolders] = useState([]);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [activeFolder, setActiveFolder] = useState("all");
+  // folder yang dibuka disimpan di URL (?folder=…) → tombol Back browser kembali ke daftar folder
+  const activeFolder = params.get("folder") || "all";
+  const setActiveFolder = (id) => setParams(id === "all" ? {} : { folder: id });
   const [selectedFile, setSelectedFile] = useState(null);
-  const [cinemaReady, setCinemaReady] = useState(false);
   const [folderName, setFolderName] = useState("");
   const [folderDescription, setFolderDescription] = useState("");
   const [newFolderPublished, setNewFolderPublished] = useState(true);
@@ -82,19 +88,20 @@ export default function FileOSISPage({ mode = "student" }) {
     () => isAdmin ? folders : folders.filter((folder) => folder.published),
     [folders, isAdmin],
   );
-  const visibleFiles = useMemo(() => {
+  // video yang boleh dilihat (santri hanya yang tayang di folder yang tayang), terbaru di atas
+  const accessibleFiles = useMemo(() => {
     const allowedFolderIds = new Set(visibleFolders.map((folder) => folder.id));
-    return files.filter((file) => {
-      const allowed = isAdmin || (file.published && allowedFolderIds.has(file.folder_id));
-      return allowed && (activeFolder === "all" || file.folder_id === activeFolder);
-    });
-  }, [files, visibleFolders, isAdmin, activeFolder]);
+    return files.filter((file) => isAdmin || (file.published && allowedFolderIds.has(file.folder_id)));
+  }, [files, visibleFolders, isAdmin]);
 
-  const folderCounts = useMemo(() => {
-    const counts = {};
-    for (const file of files) counts[file.folder_id] = (counts[file.folder_id] || 0) + 1;
-    return counts;
-  }, [files]);
+  const filesByFolder = useMemo(() => {
+    const map = {};
+    for (const file of accessibleFiles) (map[file.folder_id] ||= []).push(file);
+    return map;
+  }, [accessibleFiles]);
+
+  const selectedFolder = visibleFolders.find((folder) => folder.id === activeFolder) || null;
+  const visibleFiles = selectedFolder ? (filesByFolder[selectedFolder.id] || []) : accessibleFiles;
 
   const addFolder = async (event) => {
     event.preventDefault();
@@ -162,25 +169,19 @@ export default function FileOSISPage({ mode = "student" }) {
   };
 
   const deleteFile = async (file) => {
-    if (!window.confirm(`Hapus tautan “${file.title}” dari File OSIS?`)) return;
+    const ok = await confirm({
+      title: "Hapus tautan video?",
+      message: `“${file.title}” akan dihapus dari File OSIS. File aslinya di Google Drive tidak ikut terhapus.`,
+      tone: "danger",
+      confirmText: "Ya, hapus",
+    });
+    if (!ok) return;
     setBusy(true); setError(""); setNotice("");
     const { error: deleteError } = await supabase.from("file_osis_files").delete().eq("id", file.id);
     if (deleteError) setError(deleteError.message);
     else { setNotice("Tautan video dihapus."); if (selectedFile?.id === file.id) setSelectedFile(null); await load(); }
     setBusy(false);
   };
-
-  const startWatching = async () => {
-    setCinemaReady(true);
-    if (selectedFile?.player_style === "cinema" && document.documentElement.requestFullscreen) {
-      try { await document.documentElement.requestFullscreen(); } catch { /* fullscreen can be blocked by browser */ }
-    }
-  };
-
-  const embedUrl = selectedFile?.drive_file_id
-    ? `https://drive.google.com/file/d/${selectedFile.drive_file_id}/preview?autoplay=1`
-    : null;
-  const selectedFolder = folders.find((folder) => folder.id === activeFolder);
 
   return (
     <div className={isAdmin ? "mx-auto max-w-6xl space-y-5" : "mx-auto max-w-5xl space-y-5"}>
@@ -262,80 +263,104 @@ export default function FileOSISPage({ mode = "student" }) {
         </section>
       )}
 
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-black text-fg">{isAdmin ? "Folder & video" : "Jelajahi arsip"}</h2>
-            <p className="text-sm text-fg-3">{visibleFolders.length} folder · {visibleFiles.length} video yang {isAdmin ? "terdaftar" : "tersedia"}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => setActiveFolder("all")} className={`rounded-xl px-3 py-2 text-xs font-bold transition ${activeFolder === "all" ? "bg-brand text-on-brand" : "border border-line bg-card text-fg-2"}`}>Semua folder</button>
-            {visibleFolders.map((folder) => (
-              <button key={folder.id} onClick={() => setActiveFolder(folder.id)} className={`rounded-xl px-3 py-2 text-xs font-bold transition ${activeFolder === folder.id ? "bg-brand text-on-brand" : "border border-line bg-card text-fg-2"}`}>{folder.name}</button>
-            ))}
-          </div>
-        </div>
-
+      <section className="space-y-5">
         {loading ? (
-          <div className="grid min-h-32 place-items-center rounded-2xl border border-line bg-card text-fg-3"><LoaderCircle size={24} className="animate-spin" /></div>
-        ) : (
-          <>
-            {activeFolder === "all" && visibleFolders.length > 0 && (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {visibleFolders.map((folder) => (
-                  <button key={folder.id} onClick={() => setActiveFolder(folder.id)} className="group relative overflow-hidden rounded-2xl border border-line bg-card p-4 text-left transition hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-lg">
-                    <div className="absolute -right-5 -top-5 size-24 rounded-full bg-amber-300/10 transition group-hover:scale-150" />
-                    <div className="relative flex items-start gap-3">
-                      <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-800"><FolderOpen size={22} /></span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-extrabold text-fg">{folder.name}</span>
-                        <span className="mt-1 block line-clamp-2 text-xs text-fg-3">{folder.description || "Arsip kegiatan OSIS"}</span>
-                        <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-brand-dim"><FileVideo2 size={14} />{folderCounts[folder.id] || 0} video</span>
-                      </span>
-                    </div>
-                    {isAdmin && <span className={`mt-3 inline-flex rounded-full px-2 py-1 text-[10px] font-bold ${folder.published ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{folder.published ? "Tayang" : "Draft"}</span>}
-                    {isAdmin && <span className="mt-2 block"><span role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); togglePublished("folder", folder); }} className="text-xs font-bold text-brand-dim underline">{folder.published ? "Sembunyikan folder" : "Publikasikan folder"}</span></span>}
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="grid min-h-48 place-items-center rounded-2xl border border-line bg-card text-fg-3"><LoaderCircle size={26} className="animate-spin" /></div>
+        ) : selectedFolder ? (
+          /* ------------------------- ISI SATU FOLDER ------------------------- */
+          <div key={selectedFolder.id} className="animate-fade-up space-y-5">
+            <nav className="flex flex-wrap items-center gap-2 text-sm">
+              <button onClick={() => setActiveFolder("all")} className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-card px-3 py-1.5 font-bold text-fg-2 transition hover:border-brand/50 hover:text-brand-dim">
+                <ArrowLeft size={14} /> Semua folder
+              </button>
+              <span className="text-fg-4">/</span>
+              <span className="font-extrabold text-fg">{selectedFolder.name}</span>
+            </nav>
 
-            {activeFolder !== "all" && (
-              <button onClick={() => setActiveFolder("all")} className="inline-flex items-center gap-1 text-sm font-bold text-brand-dim"><ArrowLeft size={15} /> Kembali ke semua folder</button>
-            )}
+            <div className="osf-tone-head flex items-center gap-4 rounded-2xl border border-line bg-card p-4 sm:p-5" data-tone={toneFor(selectedFolder.id)}>
+              <span className="osf-tone-chip grid size-14 shrink-0 place-items-center rounded-2xl text-white"><FolderOpen size={28} /></span>
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate text-xl font-black text-fg sm:text-2xl">{selectedFolder.name}</h2>
+                <p className="mt-0.5 line-clamp-2 text-sm text-fg-3">{selectedFolder.description || "Arsip kegiatan OSIS"}</p>
+              </div>
+              <span className="hidden items-center gap-1.5 rounded-full bg-soft px-3 py-1.5 text-xs font-bold text-fg-2 sm:inline-flex"><FileVideo2 size={14} />{visibleFiles.length} video</span>
+            </div>
 
             {visibleFiles.length ? (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {visibleFiles.map((file) => {
-                  const folder = folders.find((item) => item.id === file.folder_id);
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {visibleFiles.map((file, i) => (
+                  <article key={file.id} className="animate-fade-up" style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}>
+                    <button type="button" onClick={() => setSelectedFile(file)} className="osv group">
+                      <div className="osv-thumb">
+                        <VideoThumb file={file} width={640} />
+                        <div className="osv-shade" />
+                        <span className="osv-play"><Play size={22} fill="currentColor" /></span>
+                        <span className="absolute left-3 top-3 rounded-md bg-black/55 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white backdrop-blur">{file.player_style === "cinema" ? "Bioskop" : "Biasa"}</span>
+                      </div>
+                      <div className="p-4">
+                        <h3 className="line-clamp-2 font-extrabold text-fg">{file.title}</h3>
+                        <p className="mt-1 text-xs text-fg-3">Ditambahkan {humanDate(file.created_at)}</p>
+                      </div>
+                    </button>
+                    {isAdmin && (
+                      <div className="-mt-px flex items-center justify-between rounded-b-xl border border-t-0 border-line bg-card px-4 py-2.5">
+                        <button onClick={() => togglePublished("file", file)} disabled={busy} className="text-xs font-bold text-brand-dim">{file.published ? "Tayang · sembunyikan" : "Draft · publikasikan"}</button>
+                        <button onClick={() => deleteFile(file)} disabled={busy} title="Hapus tautan" className="grid size-8 place-items-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 size={15} /></button>
+                      </div>
+                    )}
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-line bg-card px-5 py-14 text-center">
+                <FolderOpen size={32} className="mx-auto text-fg-3" />
+                <p className="mt-3 font-bold text-fg">Belum ada video di folder ini</p>
+                <p className="mt-1 text-sm text-fg-3">{isAdmin ? "Tambahkan tautan Google Drive lewat form di atas." : "Video yang dipublikasikan akan muncul di sini."}</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* --------------------------- DAFTAR FOLDER ------------------------- */
+          <>
+            <div>
+              <h2 className="text-lg font-black text-fg">{isAdmin ? "Folder & video" : "Jelajahi arsip"}</h2>
+              <p className="text-sm text-fg-3">
+                {visibleFolders.length} folder · {accessibleFiles.length} video {isAdmin ? "terdaftar" : "tersedia"}
+                {visibleFolders.length > 0 && <span className="ml-1 hidden text-fg-4 [@media(hover:hover)]:inline">— arahkan kursor ke folder untuk mengintip isinya</span>}
+              </p>
+            </div>
+
+            {visibleFolders.length ? (
+              <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-3">
+                {visibleFolders.map((folder) => {
+                  const inFolder = filesByFolder[folder.id] || [];
                   return (
-                    <article key={file.id} className="overflow-hidden rounded-2xl border border-line bg-card transition hover:shadow-lg">
-                      <button onClick={() => { setSelectedFile(file); setCinemaReady(false); }} className="group block w-full text-left">
-                        <div className="relative grid aspect-video place-items-center overflow-hidden bg-[#0c1019] text-amber-200">
-                          <div className="absolute inset-0 bg-gradient-to-br from-amber-200/10 via-transparent to-emerald-200/10 transition group-hover:scale-110" />
-                          <span className="relative grid size-14 place-items-center rounded-full border border-white/15 bg-white/10 backdrop-blur transition group-hover:scale-110"><Play size={24} fill="currentColor" /></span>
-                          <span className="absolute bottom-3 left-3 rounded-md bg-black/55 px-2 py-1 text-[10px] font-black uppercase tracking-wider">{file.player_style === "cinema" ? "Cinema" : "Normal"}</span>
-                          <span className="absolute bottom-3 right-3 rounded-md bg-black/55 px-2 py-1 text-[10px] text-white/80">{folder?.name || "File OSIS"}</span>
-                        </div>
-                        <div className="p-4">
-                          <h3 className="line-clamp-2 font-extrabold text-fg">{file.title}</h3>
-                          <p className="mt-1 text-xs text-fg-3">Ditambahkan {humanDate(file.created_at)}</p>
-                        </div>
-                      </button>
-                      {isAdmin && (
-                        <div className="flex items-center justify-between border-t border-line px-4 py-3">
-                          <button onClick={() => togglePublished("file", file)} disabled={busy} className="text-xs font-bold text-brand-dim">{file.published ? "Tayang · sembunyikan" : "Draft · publikasikan"}</button>
-                          <button onClick={() => deleteFile(file)} disabled={busy} title="Hapus tautan" className="grid size-8 place-items-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 size={15} /></button>
-                        </div>
-                      )}
-                    </article>
+                    <div key={folder.id} className="min-w-0">
+                      <OsisFolder
+                        folder={folder}
+                        files={inFolder}
+                        count={inFolder.length}
+                        onOpen={(f) => setActiveFolder(f.id)}
+                        onPlay={setSelectedFile}
+                      />
+                      <div className="-mt-1 px-1 text-center">
+                        <h3 className="truncate font-extrabold text-fg">{folder.name}</h3>
+                        <p className="mt-0.5 line-clamp-1 text-xs text-fg-3">{folder.description || "Arsip kegiatan OSIS"}</p>
+                        {isAdmin && (
+                          <div className="mt-2 flex items-center justify-center gap-2">
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${folder.published ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{folder.published ? "Tayang" : "Draft"}</span>
+                            <button onClick={() => togglePublished("folder", folder)} disabled={busy} className="text-xs font-bold text-brand-dim underline">{folder.published ? "Sembunyikan" : "Publikasikan"}</button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   );
                 })}
               </div>
             ) : (
-              <div className="rounded-2xl border border-dashed border-line bg-card px-5 py-12 text-center">
-                <FolderOpen size={30} className="mx-auto text-fg-3" />
-                <p className="mt-3 font-bold text-fg">{visibleFolders.length ? "Belum ada video di folder ini" : "Belum ada folder yang tersedia"}</p>
+              <div className="rounded-2xl border border-dashed border-line bg-card px-5 py-14 text-center">
+                <FolderOpen size={32} className="mx-auto text-fg-3" />
+                <p className="mt-3 font-bold text-fg">Belum ada folder yang tersedia</p>
                 <p className="mt-1 text-sm text-fg-3">{isAdmin ? "Buat folder, lalu tambahkan tautan Google Drive." : "Video yang dipublikasikan akan muncul di sini."}</p>
               </div>
             )}
@@ -343,45 +368,7 @@ export default function FileOSISPage({ mode = "student" }) {
         )}
       </section>
 
-      {selectedFile && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-[#070910] text-white">
-          <div className="flex min-h-dvh flex-col">
-            <header className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-7">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-200/10 text-amber-200"><Clapperboard size={20} /></span>
-                <div className="min-w-0"><p className="text-[9px] font-black tracking-[0.3em] text-amber-200">FILE OSIS CINEMA</p><h2 className="truncate font-extrabold">{selectedFile.title}</h2></div>
-              </div>
-              <button onClick={async () => { setSelectedFile(null); setCinemaReady(false); if (document.fullscreenElement) { try { await document.exitFullscreen(); } catch {} } }} aria-label="Tutup pemutar" className="grid size-10 shrink-0 place-items-center rounded-xl border border-white/10 text-white/80 hover:bg-white/10"><X size={20} /></button>
-            </header>
-            {!cinemaReady ? (
-              <div className="grid flex-1 place-items-center px-5 py-12">
-                <div className="max-w-xl text-center">
-                  <div className="mx-auto grid size-20 place-items-center rounded-full border border-amber-200/20 bg-amber-200/10 text-amber-200"><Headphones size={34} /></div>
-                  <p className="mt-6 text-[10px] font-black tracking-[0.35em] text-amber-200">WAKTUNYA MENONTON</p>
-                  <h3 className="mt-2 text-3xl font-black tracking-tight sm:text-5xl">Siapkan headset-mu.</h3>
-                  <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-white/60">Cari posisi yang nyaman, kecilkan gangguan, lalu nikmati dokumentasi ini bersama.</p>
-                  <button onClick={startWatching} className="mt-7 inline-flex items-center gap-2 rounded-full bg-amber-200 px-6 py-3 font-black text-[#17120a] transition hover:bg-amber-100"><Play size={17} fill="currentColor" /> Mulai menonton <Maximize size={16} /></button>
-                  <button onClick={() => { setSelectedFile(null); setCinemaReady(false); }} className="mx-auto mt-4 flex items-center gap-1 text-sm text-white/55 hover:text-white"><ArrowLeft size={14} /> Kembali ke arsip</button>
-                </div>
-              </div>
-            ) : embedUrl ? (
-              <div className={`flex flex-1 flex-col ${selectedFile.player_style === "cinema" ? "justify-center px-2 py-4 sm:px-6" : "p-4 sm:p-7"}`}>
-                <div className={`mx-auto w-full overflow-hidden border border-white/10 bg-black shadow-2xl ${selectedFile.player_style === "cinema" ? "max-w-[1500px] rounded-xl" : "max-w-5xl rounded-2xl"}`}>
-                  <div className="aspect-video">
-                    <iframe src={embedUrl} title={selectedFile.title} className="h-full w-full" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
-                  </div>
-                </div>
-                <div className="mx-auto mt-4 flex w-full max-w-[1500px] items-center justify-between gap-3 text-xs text-white/45">
-                  <span className="inline-flex items-center gap-1.5"><LockKeyhole size={13} /> Pemutaran melalui Google Drive</span>
-                  <a href={`https://drive.google.com/file/d/${selectedFile.drive_file_id}/view`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 hover:text-amber-200">Buka di Drive <ExternalLink size={13} /></a>
-                </div>
-              </div>
-            ) : (
-              <div className="grid flex-1 place-items-center p-8 text-center"><p className="text-white/70">Tautan Drive belum memiliki ID video yang valid.</p></div>
-            )}
-          </div>
-        </div>
-      )}
+      {selectedFile && <CinemaPlayer key={selectedFile.id} file={selectedFile} onClose={() => setSelectedFile(null)} />}
     </div>
   );
 }
