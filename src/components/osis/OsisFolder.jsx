@@ -1,6 +1,5 @@
 import { Clapperboard, FileVideo2, Play } from "lucide-react";
 import VideoThumb from "./VideoThumb";
-import { BkMascot } from "../ui/BkMascot";
 import "./osis.css";
 
 const TONES = ["amber", "emerald", "sky", "rose", "violet"];
@@ -31,7 +30,6 @@ export default function OsisFolder({ folder, files = [], count = 0, onOpen, onPl
         <div className="osf-body">
           <div className="osf-glow" />
           <div className="osf-shadow" />
-          <div className="osf-peek" aria-hidden="true"><BkMascot mood="peek" size={96} /></div>
           <div className="osf-back" />
 
           {n === 0 && (

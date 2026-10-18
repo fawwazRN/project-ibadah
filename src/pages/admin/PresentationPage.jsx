@@ -21,10 +21,8 @@ import { lughahService } from "../../services/lughahService";
 import { computeStandings } from "../../utils/standings";
 import { startOfWeek, endOfWeek } from "../../lib/date";
 import { readPresentationVocabOverride } from "../../lib/lughah";
-import { supabase } from "../../lib/supabaseClient";
 
 const SLIDE_MS = 14000; // minimum per slide; slide dengan gulir menunggu gulir selesai
-const CLIP_MS = 60000; // durasi klip video penutup
 const RESUME_KEY = "pres-resume";
 const SITE_LABEL = "project-osis.vercel.app";
 const U = (n) => `calc(var(--u) * ${n})`; // 1u ≈ 1% lebar layar (dibatasi tinggi layar)
@@ -803,65 +801,13 @@ function OutroScreen({ onDone, vh }) {
   );
 }
 
-const DIRECT_VIDEO = /\.(mp4|webm|mov)(\?|$)/i;
-function ClipScreen({ clip, onDone }) {
-  const vref = useRef(null);
-  const [mode, setMode] = useState(clip ? (clip.external_url && DIRECT_VIDEO.test(clip.external_url) ? "video" : clip.drive_file_id ? "video" : "none") : "none");
-  const [shown, setShown] = useState(false);
-  const [out, setOut] = useState(false);
-  const src = clip?.external_url && DIRECT_VIDEO.test(clip.external_url)
-    ? clip.external_url
-    : clip?.drive_file_id ? `https://drive.google.com/uc?export=download&id=${clip.drive_file_id}` : null;
-
-  useEffect(() => { if (mode === "none") onDone(); }, [mode, onDone]);
-  useEffect(() => {
-    if (mode === "none") return;
-    setShown(true);
-    const t = [setTimeout(() => setOut(true), CLIP_MS - 1200), setTimeout(onDone, CLIP_MS)];
-    return () => t.forEach(clearTimeout);
-  }, [mode, onDone]);
-  // video langsung diputar; kalau tidak mulai dalam 7 detik → pakai pemutar Drive
-  useEffect(() => {
-    if (mode !== "video") return;
-    let started = false;
-    const v = vref.current;
-    const begin = () => { started = true; };
-    v?.addEventListener("playing", begin);
-    const guard = setTimeout(() => { if (!started) setMode(clip?.drive_file_id ? "iframe" : "none"); }, 7000);
-    return () => { clearTimeout(guard); v?.removeEventListener("playing", begin); };
-  }, [mode, clip]);
-
-  const onMeta = (e) => {
-    const v = e.currentTarget;
-    const room = Math.max(0, (v.duration || 0) - CLIP_MS / 1000 - 2);
-    if (room > 0) v.currentTime = Math.random() * room; // potong acak
-    v.play().catch(() => { v.muted = true; v.play().catch(() => {}); });
-  };
-
-  return (
-    <div className="z-40 fixed inset-0 bg-black" style={{ opacity: shown && !out ? 1 : 0, transition: "opacity 1.2s ease-in-out" }}>
-      {mode === "video" && (
-        <video ref={vref} src={src} autoPlay playsInline preload="auto" onLoadedMetadata={onMeta}
-          onError={() => setMode(clip?.drive_file_id ? "iframe" : "none")}
-          className="w-full h-full object-contain" />
-      )}
-      {mode === "iframe" && (
-        <iframe src={`https://drive.google.com/file/d/${clip.drive_file_id}/preview?autoplay=1`} title="klip"
-          allow="autoplay; fullscreen; encrypted-media" className="w-full h-full border-0" />
-      )}
-    </div>
-  );
-}
-
 // ---------------------------------------------------------------- halaman utama
 export default function PresentationPage() {
   const nav = useNavigate();
   const vh = useViewportH();
   const [data, setData] = useState(null);
   const [started, setStarted] = useState(false);
-  const [phase, setPhase] = useState("slides"); // intro → slides → outro → clip → refresh
-  const [clips, setClips] = useState([]);
-  const [clip, setClip] = useState(null);
+  const [phase, setPhase] = useState("slides"); // intro → slides → outro → refresh
   const idxRef = useRef(0);
   const [idx, setIdx] = useState(0);
   const [auto, setAuto] = useState(true);
@@ -876,29 +822,9 @@ export default function PresentationPage() {
   const needCtx = useMemo(() => ({ set: (id, ms) => (ms ? needs.current.set(id, ms) : needs.current.delete(id)) }), []);
 
   useEffect(() => { loadData().then(setData); }, []);
-  useEffect(() => {
-    (async () => {
-      try {
-        const [f, v] = await Promise.all([
-          supabase.from("file_osis_folders").select("id,name").eq("published", true),
-          supabase.from("file_osis_files").select("id,title,drive_file_id,external_url,folder_id").eq("published", true),
-        ]);
-        const ok = new Set((f.data || []).map((x) => x.id));
-        const all = (v.data || []).filter((x) => ok.has(x.folder_id) && (x.drive_file_id || x.external_url));
-        // folder bernama "Klip..." (berisi video pendek ±1 menit) diutamakan; kalau tidak ada, pakai semua video
-        const klip = new Set((f.data || []).filter((x) => /klip/i.test(x.name || "")).map((x) => x.id));
-        const pref = all.filter((x) => klip.has(x.folder_id));
-        setClips(pref.length ? pref : all);
-      } catch { /* tanpa klip → langsung refresh */ }
-    })();
-  }, []);
   idxRef.current = idx;
   const toIntro = useCallback(() => setPhase("slides"), []);
   const toOutro = useCallback(() => setPhase("outro"), []);
-  const toClip = useCallback(() => {
-    setClip(clips.length ? clips[Math.floor(Math.random() * clips.length)] : null);
-    setPhase("clip");
-  }, [clips]);
   const refreshPresentation = useCallback(() => {
     try { sessionStorage.setItem(RESUME_KEY, "1"); } catch { /* abaikan */ }
     window.location.reload();
@@ -1005,8 +931,7 @@ export default function PresentationPage() {
       )}
 
       {started && phase === "intro" && <IntroScreen vh={vh} onDone={toIntro} />}
-      {started && phase === "outro" && <OutroScreen vh={vh} onDone={toClip} />}
-      {started && phase === "clip" && <ClipScreen clip={clip} onDone={refreshPresentation} />}
+      {started && phase === "outro" && <OutroScreen vh={vh} onDone={refreshPresentation} />}
 
       {started && phase === "slides" && (
         <NeedCtx.Provider value={needCtx}>
