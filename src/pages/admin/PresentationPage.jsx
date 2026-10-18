@@ -880,11 +880,15 @@ export default function PresentationPage() {
     (async () => {
       try {
         const [f, v] = await Promise.all([
-          supabase.from("file_osis_folders").select("id").eq("published", true),
+          supabase.from("file_osis_folders").select("id,name").eq("published", true),
           supabase.from("file_osis_files").select("id,title,drive_file_id,external_url,folder_id").eq("published", true),
         ]);
         const ok = new Set((f.data || []).map((x) => x.id));
-        setClips((v.data || []).filter((x) => ok.has(x.folder_id) && (x.drive_file_id || x.external_url)));
+        const all = (v.data || []).filter((x) => ok.has(x.folder_id) && (x.drive_file_id || x.external_url));
+        // folder bernama "Klip..." (berisi video pendek ±1 menit) diutamakan; kalau tidak ada, pakai semua video
+        const klip = new Set((f.data || []).filter((x) => /klip/i.test(x.name || "")).map((x) => x.id));
+        const pref = all.filter((x) => klip.has(x.folder_id));
+        setClips(pref.length ? pref : all);
       } catch { /* tanpa klip → langsung refresh */ }
     })();
   }, []);

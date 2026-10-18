@@ -31,6 +31,7 @@ export default function OsisFolder({ folder, files = [], count = 0, onOpen, onPl
         <div className="osf-body">
           <div className="osf-glow" />
           <div className="osf-shadow" />
+          <div className="osf-peek" aria-hidden="true"><BkMascot mood="peek" size={96} /></div>
           <div className="osf-back" />
 
           {n === 0 && (
@@ -61,7 +62,7 @@ export default function OsisFolder({ folder, files = [], count = 0, onOpen, onPl
           ))}
 
           <button type="button" className="osf-front" onClick={() => onOpen(folder)} aria-label={`Buka folder ${folder.name}`}>
-            <span className="osf-front-emblem"><BkMascot mood="peek" size={96} /></span>
+            <span className="osf-front-name">{folder.name}</span>
             <span className="osf-front-count"><FileVideo2 size={12} />{count} video</span>
           </button>
         </div>

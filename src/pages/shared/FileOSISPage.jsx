@@ -373,8 +373,7 @@ export default function FileOSISPage({ mode = "student" }) {
                         onPlay={setSelectedFile}
                       />
                       <div className="-mt-1 px-1 text-center">
-                        <h3 className="truncate font-extrabold text-fg">{folder.name}</h3>
-                        <p className="mt-0.5 line-clamp-1 text-xs text-fg-3">{folder.description || "Arsip kegiatan OSIS"}</p>
+                                                <p className="mt-0.5 line-clamp-1 text-xs text-fg-3">{folder.description || "Arsip kegiatan OSIS"}</p>
                         {isAdmin && (
                           <div className="mt-2 flex items-center justify-center gap-2">
                             <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${folder.published ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{folder.published ? "Tayang" : "Draft"}</span>
