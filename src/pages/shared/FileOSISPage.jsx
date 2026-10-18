@@ -211,28 +211,28 @@ export default function FileOSISPage({ mode = "student" }) {
 
   return (
     <div className={isAdmin ? "mx-auto max-w-6xl space-y-5" : "mx-auto max-w-5xl space-y-5"}>
-      <section className="relative overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-[#101522] via-[#151b2b] to-[#263029] p-5 text-white sm:p-7">
-        <div className="pointer-events-none absolute -right-8 -top-12 size-48 rounded-full bg-amber-300/10 blur-2xl" />
+      <section className="fo-hero p-5 sm:p-7">
+        <div className="pointer-events-none absolute -right-10 -top-14 size-48 rounded-full bg-white/10" />
         <div className="relative flex items-start gap-4">
-          <div className="grid size-12 shrink-0 place-items-center rounded-2xl border border-amber-200/20 bg-amber-200/10 text-amber-200">
+          <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-white text-[#58a700] border-b-4 border-black/10">
             <Clapperboard size={25} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-black tracking-[0.3em] text-amber-200">ARSIP DIGITAL OSIS</p>
+            <p className="text-[10px] font-black tracking-[0.3em] text-white/80">ARSIP DIGITAL OSIS</p>
             <h1 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">{isAdmin ? "Kelola File OSIS" : "File OSIS"}</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/70">
+            <p className="mt-2 max-w-2xl text-sm font-semibold leading-relaxed text-white/90">
               {isAdmin
                 ? "Tambahkan video dari Google Drive tanpa mengunggah ulang file ke Supabase. Pilih folder dan gaya pemutar."
                 : "Dokumentasi kegiatan, video, dan kenangan OSIS dalam satu ruang."}
             </p>
           </div>
-          <button onClick={load} title="Muat ulang" className="relative grid size-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-white/80 transition hover:bg-white/10">
+          <button onClick={load} title="Muat ulang" className="fo-hero-btn relative grid size-10 shrink-0 place-items-center text-white transition hover:bg-white/30">
             <RefreshCw size={17} className={loading ? "animate-spin" : ""} />
           </button>
         </div>
         {!isAdmin && (
-          <div className="relative mt-5 flex items-center gap-2 text-xs text-white/65">
-            <Headphones size={16} className="text-amber-200" />
+          <div className="relative mt-5 flex items-center gap-2 text-xs font-semibold text-white/90">
+            <Headphones size={16} className="text-white" />
             <span>Gunakan headset untuk pengalaman menonton yang lebih fokus.</span>
           </div>
         )}

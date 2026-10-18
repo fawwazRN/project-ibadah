@@ -3,12 +3,13 @@ import {
   Armchair, ArrowLeft, Clapperboard, ExternalLink, Headphones, Maximize, Minimize,
   Play, Sparkles, X,
 } from "lucide-react";
+import { BkMascot } from "../ui/BkMascot";
 import "./osis.css";
 
 const STEPS = [
-  { icon: Headphones, title: "Pakai headset", text: "Suaranya jauh lebih hidup. Colokkan, lalu pasang di telinga." },
-  { icon: Armchair, title: "Duduk tenang & santai", text: "Cari posisi paling nyaman. Biarkan semua yang lain menunggu." },
-  { icon: Sparkles, title: "Enjoy", text: "Layar akan penuh dan video langsung main. Nikmati momennya." },
+  { c: "#1cb0f6", icon: Headphones, title: "Pakai headset", text: "Suaranya jauh lebih hidup. Colokkan, lalu pasang di telinga." },
+  { c: "#ff9600", icon: Armchair, title: "Duduk tenang & santai", text: "Cari posisi paling nyaman. Biarkan semua yang lain menunggu." },
+  { c: "#58cc02", icon: Sparkles, title: "Enjoy", text: "Layar akan penuh dan video langsung main. Nikmati momennya." },
 ];
 
 const requestFs = (el) => (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el);
@@ -84,14 +85,14 @@ export default function CinemaPlayer({ file, onClose }) {
     : null;
 
   return (
-    <div ref={rootRef} className="cine-root" data-style={style} onMouseMove={wake} onTouchStart={wake} role="dialog" aria-modal="true" aria-label={file.title}>
+    <div ref={rootRef} className="cine-root" data-style={style} data-phase={playing ? "play" : "brief"} onMouseMove={wake} onTouchStart={wake} role="dialog" aria-modal="true" aria-label={file.title}>
       <div className="cine-ambient" />
 
       <header className="cine-bar" data-hidden={playing && barHidden}>
         <div className="flex min-w-0 items-center gap-3">
-          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-amber-200/10 text-amber-200"><Clapperboard size={18} /></span>
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#58cc02] text-white"><Clapperboard size={18} /></span>
           <div className="min-w-0">
-            <p className="text-[9px] font-black tracking-[0.3em] text-amber-200">{style === "cinema" ? "FILE OSIS · BIOSKOP" : "FILE OSIS"}</p>
+            <p className="text-[9px] font-black tracking-[0.3em] text-[#58a700]">{style === "cinema" ? "FILE OSIS · BIOSKOP" : "FILE OSIS"}</p>
             <h2 className="truncate text-sm font-extrabold">{file.title}</h2>
           </div>
         </div>
@@ -115,33 +116,32 @@ export default function CinemaPlayer({ file, onClose }) {
       {!playing ? (
         <div className="cine-brief">
           <div>
-            <p className="cine-fade-in text-[10px] font-black tracking-[0.4em] text-amber-200">WAKTUNYA MENONTON</p>
-            <h3 className="cine-title cine-fade-in mt-3 text-4xl font-black leading-[1.05] tracking-tight sm:text-6xl" style={{ animationDelay: "80ms" }}>
+            <div className="cine-fade-in flex justify-center"><BkMascot mood="wave" size={104} /></div>
+            <h3 className="cine-title cine-fade-in mt-2 text-3xl font-black leading-tight tracking-tight text-[#3c3c3c] sm:text-5xl" style={{ animationDelay: "80ms" }}>
               {file.title}
             </h3>
-            <p className="cine-sub cine-fade-in mx-auto mt-4 max-w-md text-sm text-white/55" style={{ animationDelay: "160ms" }}>
-              Sebelum mulai, siapkan dulu tiga hal ini.
+            <p className="cine-sub cine-fade-in mx-auto mt-3 max-w-md text-sm font-bold text-[#777]" style={{ animationDelay: "160ms" }}>
+              Siapkan tiga hal ini dulu, ya!
             </p>
 
-            <ol className="mt-9 grid gap-3 text-left sm:grid-cols-3 sm:gap-4">
-              {STEPS.map(({ icon: Icon, title, text }, i) => (
-                <li key={title} className="cine-step" style={{ animationDelay: `${260 + i * 140}ms` }}>
-                  <span className="absolute right-4 top-3 text-[2.6rem] font-black leading-none text-white/[0.06]">{i + 1}</span>
-                  <div className="cine-step-ico"><Icon size={30} strokeWidth={1.7} /></div>
+            <ol className="mt-7 grid gap-3 text-left sm:grid-cols-3 sm:gap-4">
+              {STEPS.map(({ icon: Icon, title, text, c }, i) => (
+                <li key={title} className="cdu-step" style={{ animationDelay: `${260 + i * 120}ms` }}>
+                  <div className="cdu-ico" style={{ background: c }}><Icon size={28} strokeWidth={2} /></div>
                   <div className="cine-step-text">
-                    <h4 className="text-center text-lg font-black">{title}</h4>
-                    <p className="mt-1.5 text-center text-[13px] leading-relaxed text-white/55">{text}</p>
+                    <h4 className="text-center text-lg font-black text-[#3c3c3c]">{title}</h4>
+                    <p className="mt-1 text-center text-[13px] font-semibold leading-relaxed text-[#777]">{text}</p>
                   </div>
                 </li>
               ))}
             </ol>
 
-            <div className="cine-cta cine-fade-in mt-10" style={{ animationDelay: "760ms" }}>
-              <button ref={startRef} onClick={start} className="cine-start">
+            <div className="cine-cta cine-fade-in mt-8" style={{ animationDelay: "700ms" }}>
+              <button ref={startRef} onClick={start} className="cdu-start">
                 <Play size={19} fill="currentColor" /> Mulai
               </button>
-              <button onClick={close} className="mx-auto mt-5 flex items-center gap-1.5 text-sm text-white/45 transition hover:text-white">
-                <ArrowLeft size={14} /> Nanti saja, kembali ke arsip
+              <button onClick={close} className="mx-auto mt-4 flex items-center gap-1.5 text-sm font-bold text-[#afafaf] transition hover:text-[#777]">
+                <ArrowLeft size={14} /> Nanti saja
               </button>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { Clapperboard, FileVideo2, Play } from "lucide-react";
 import VideoThumb from "./VideoThumb";
+import { BkMascot } from "../ui/BkMascot";
 import "./osis.css";
 
 const TONES = ["amber", "emerald", "sky", "rose", "violet"];
@@ -60,7 +61,7 @@ export default function OsisFolder({ folder, files = [], count = 0, onOpen, onPl
           ))}
 
           <button type="button" className="osf-front" onClick={() => onOpen(folder)} aria-label={`Buka folder ${folder.name}`}>
-            <Clapperboard className="osf-front-emblem" size={44} strokeWidth={1.6} />
+            <span className="osf-front-emblem"><BkMascot mood="peek" size={96} /></span>
             <span className="osf-front-count"><FileVideo2 size={12} />{count} video</span>
           </button>
         </div>

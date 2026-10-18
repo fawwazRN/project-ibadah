@@ -21,8 +21,11 @@ import { lughahService } from "../../services/lughahService";
 import { computeStandings } from "../../utils/standings";
 import { startOfWeek, endOfWeek } from "../../lib/date";
 import { readPresentationVocabOverride } from "../../lib/lughah";
+import { supabase } from "../../lib/supabaseClient";
 
 const SLIDE_MS = 14000; // minimum per slide; slide dengan gulir menunggu gulir selesai
+const CLIP_MS = 60000; // durasi klip video penutup
+const RESUME_KEY = "pres-resume";
 const SITE_LABEL = "project-osis.vercel.app";
 const U = (n) => `calc(var(--u) * ${n})`; // 1u ≈ 1% lebar layar (dibatasi tinggi layar)
 
@@ -756,12 +759,110 @@ function Btn({ color = PAL.green, outline = false, children, style, ...p }) {
   );
 }
 
+
+// ---------------------------------------------------------------- intro / outro / klip
+function IntroScreen({ onDone, vh }) {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const t = [setTimeout(() => setStep(1), 2300), setTimeout(() => setStep(2), 4600), setTimeout(onDone, 7600)];
+    return () => t.forEach(clearTimeout);
+  }, [onDone]);
+  const word = step === 0 ? { t: "ISCAR", c: PAL.orange } : { t: "IBADAH", c: PAL.green };
+  return (
+    <div onClick={onDone} className="z-40 absolute inset-0 flex flex-col justify-center items-center text-center"
+      style={{ gap: U(1.2), background: `linear-gradient(180deg, ${PAL.green.t}, #fff 75%)`, cursor: "pointer" }}>
+      <div className="pres-pop"><BkMascot mood={step === 2 ? "cheer" : "wave"} size={Math.round(Math.min(vh * 0.26, 190))} /></div>
+      <p className="font-extrabold uppercase tracking-widest pres-pop" style={{ fontSize: U(1.2), color: MUTED, "--d": ".2s" }}>Presentasi OSIS</p>
+      <h1 className="font-black tracking-tight leading-none" style={{ fontSize: U(7.2), color: INK }}>
+        Dari <span key={word.t} className="pres-pop inline-block" style={{ color: word.c.d }}>{word.t}</span>
+      </h1>
+      <div style={{ height: U(6), minHeight: U(6) }}>
+        {step === 2 && (
+          <p className="pres-pop font-black" style={{ fontSize: U(3.6), color: PAL.blue.d }}>Untuk semua</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function OutroScreen({ onDone, vh }) {
+  const [fade, setFade] = useState(false);
+  useEffect(() => {
+    const t = [setTimeout(() => setFade(true), 5000), setTimeout(onDone, 6700)];
+    return () => t.forEach(clearTimeout);
+  }, [onDone]);
+  return (
+    <div className="z-40 absolute inset-0 flex flex-col justify-center items-center text-center"
+      style={{ gap: U(1.2), background: `linear-gradient(180deg, ${PAL.green.t}, #fff 75%)` }}>
+      <div className="pres-pop"><BkMascot mood="cheer" size={Math.round(Math.min(vh * 0.3, 220))} /></div>
+      <h1 className="font-black tracking-tight pres-pop" style={{ fontSize: U(6.4), color: PAL.green.d, "--d": ".15s" }}>Terima kasih!</h1>
+      <p className="font-bold pres-pop" style={{ fontSize: U(1.9), color: MUTED, "--d": ".35s" }}>Sudah menyimak presentasi dari Ibadah, untuk semua.</p>
+      <div aria-hidden="true" className="fixed inset-0 z-50 pointer-events-none"
+        style={{ background: "#000", opacity: fade ? 1 : 0, transition: "opacity 1.6s ease-in-out" }} />
+    </div>
+  );
+}
+
+const DIRECT_VIDEO = /\.(mp4|webm|mov)(\?|$)/i;
+function ClipScreen({ clip, onDone }) {
+  const vref = useRef(null);
+  const [mode, setMode] = useState(clip ? (clip.external_url && DIRECT_VIDEO.test(clip.external_url) ? "video" : clip.drive_file_id ? "video" : "none") : "none");
+  const [shown, setShown] = useState(false);
+  const [out, setOut] = useState(false);
+  const src = clip?.external_url && DIRECT_VIDEO.test(clip.external_url)
+    ? clip.external_url
+    : clip?.drive_file_id ? `https://drive.google.com/uc?export=download&id=${clip.drive_file_id}` : null;
+
+  useEffect(() => { if (mode === "none") onDone(); }, [mode, onDone]);
+  useEffect(() => {
+    if (mode === "none") return;
+    setShown(true);
+    const t = [setTimeout(() => setOut(true), CLIP_MS - 1200), setTimeout(onDone, CLIP_MS)];
+    return () => t.forEach(clearTimeout);
+  }, [mode, onDone]);
+  // video langsung diputar; kalau tidak mulai dalam 7 detik → pakai pemutar Drive
+  useEffect(() => {
+    if (mode !== "video") return;
+    let started = false;
+    const v = vref.current;
+    const begin = () => { started = true; };
+    v?.addEventListener("playing", begin);
+    const guard = setTimeout(() => { if (!started) setMode(clip?.drive_file_id ? "iframe" : "none"); }, 7000);
+    return () => { clearTimeout(guard); v?.removeEventListener("playing", begin); };
+  }, [mode, clip]);
+
+  const onMeta = (e) => {
+    const v = e.currentTarget;
+    const room = Math.max(0, (v.duration || 0) - CLIP_MS / 1000 - 2);
+    if (room > 0) v.currentTime = Math.random() * room; // potong acak
+    v.play().catch(() => { v.muted = true; v.play().catch(() => {}); });
+  };
+
+  return (
+    <div className="z-40 fixed inset-0 bg-black" style={{ opacity: shown && !out ? 1 : 0, transition: "opacity 1.2s ease-in-out" }}>
+      {mode === "video" && (
+        <video ref={vref} src={src} autoPlay playsInline preload="auto" onLoadedMetadata={onMeta}
+          onError={() => setMode(clip?.drive_file_id ? "iframe" : "none")}
+          className="w-full h-full object-contain" />
+      )}
+      {mode === "iframe" && (
+        <iframe src={`https://drive.google.com/file/d/${clip.drive_file_id}/preview?autoplay=1`} title="klip"
+          allow="autoplay; fullscreen; encrypted-media" className="w-full h-full border-0" />
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------- halaman utama
 export default function PresentationPage() {
   const nav = useNavigate();
   const vh = useViewportH();
   const [data, setData] = useState(null);
   const [started, setStarted] = useState(false);
+  const [phase, setPhase] = useState("slides"); // intro → slides → outro → clip → refresh
+  const [clips, setClips] = useState([]);
+  const [clip, setClip] = useState(null);
+  const idxRef = useRef(0);
   const [idx, setIdx] = useState(0);
   const [auto, setAuto] = useState(true);
   const [prog, setProg] = useState(0);
@@ -775,19 +876,45 @@ export default function PresentationPage() {
   const needCtx = useMemo(() => ({ set: (id, ms) => (ms ? needs.current.set(id, ms) : needs.current.delete(id)) }), []);
 
   useEffect(() => { loadData().then(setData); }, []);
+  useEffect(() => {
+    (async () => {
+      try {
+        const [f, v] = await Promise.all([
+          supabase.from("file_osis_folders").select("id").eq("published", true),
+          supabase.from("file_osis_files").select("id,title,drive_file_id,external_url,folder_id").eq("published", true),
+        ]);
+        const ok = new Set((f.data || []).map((x) => x.id));
+        setClips((v.data || []).filter((x) => ok.has(x.folder_id) && (x.drive_file_id || x.external_url)));
+      } catch { /* tanpa klip → langsung refresh */ }
+    })();
+  }, []);
+  idxRef.current = idx;
+  const toIntro = useCallback(() => setPhase("slides"), []);
+  const toOutro = useCallback(() => setPhase("outro"), []);
+  const toClip = useCallback(() => {
+    setClip(clips.length ? clips[Math.floor(Math.random() * clips.length)] : null);
+    setPhase("clip");
+  }, [clips]);
+  const refreshPresentation = useCallback(() => {
+    try { sessionStorage.setItem(RESUME_KEY, "1"); } catch { /* abaikan */ }
+    window.location.reload();
+  }, []);
 
   const go = useCallback((n) => { elapsed.current = 0; setProg(0); setIdx(((n % N) + N) % N); }, [N]);
 
   useEffect(() => {
-    if (!started || !auto) return;
+    if (!started || !auto || phase !== "slides") return;
     const t = setInterval(() => {
       elapsed.current += 100;
       const limit = Math.max(SLIDE_MS, ...needs.current.values());
       setProg(elapsed.current / limit);
-      if (elapsed.current >= limit) { elapsed.current = 0; setProg(0); setIdx((v) => (v + 1) % N); }
+      if (elapsed.current >= limit) {
+        elapsed.current = 0; setProg(0);
+        if (idxRef.current >= N - 1) setPhase("outro"); else setIdx((v) => v + 1);
+      }
     }, 100);
     return () => clearInterval(t);
-  }, [started, auto, N]);
+  }, [started, auto, N, phase]);
 
   const toggleFull = useCallback(async () => {
     try {
@@ -816,7 +943,7 @@ export default function PresentationPage() {
     };
     const key = (e) => {
       wake();
-      if (!started) return;
+      if (!started || phase !== "slides") return;
       if (e.key === "ArrowRight" || e.key === "PageDown") go(idx + 1);
       else if (e.key === "ArrowLeft" || e.key === "PageUp") go(idx - 1);
       else if (e.key === " " || e.key.toLowerCase() === "p") { e.preventDefault(); setAuto((v) => !v); }
@@ -828,12 +955,18 @@ export default function PresentationPage() {
     window.addEventListener("keydown", key);
     wake();
     return () => { window.removeEventListener("mousemove", wake); window.removeEventListener("keydown", key); clearTimeout(hideT.current); };
-  }, [started, idx, go, toggleFull, N]);
+  }, [started, phase, idx, go, toggleFull, N]);
 
   const start = (fullscreen) => {
-    setStarted(true); setIdx(0); setAuto(true); elapsed.current = 0;
+    setStarted(true); setIdx(0); setAuto(true); elapsed.current = 0; setPhase("intro");
     if (fullscreen) toggleFull();
   };
+  useEffect(() => {
+    if (!data || started) return;
+    let resume = false;
+    try { resume = sessionStorage.getItem(RESUME_KEY) === "1"; sessionStorage.removeItem(RESUME_KEY); } catch { /* abaikan */ }
+    if (resume) { setStarted(true); setIdx(0); setAuto(true); setPhase("intro"); }
+  }, [data, started]);
   const exit = () => { if (document.fullscreenElement) document.exitFullscreen(); nav("/admin"); };
 
   const S = slides[idx] ?? SLIDES[0];
@@ -867,7 +1000,11 @@ export default function PresentationPage() {
         </div>
       )}
 
-      {started && (
+      {started && phase === "intro" && <IntroScreen vh={vh} onDone={toIntro} />}
+      {started && phase === "outro" && <OutroScreen vh={vh} onDone={toClip} />}
+      {started && phase === "clip" && <ClipScreen clip={clip} onDone={refreshPresentation} />}
+
+      {started && phase === "slides" && (
         <NeedCtx.Provider value={needCtx}>
           {/* progres bersegmen + bagian + keluar */}
           <div className="relative z-10 flex shrink-0 items-center" style={{ gap: U(1), padding: `${U(.9)} ${U(2.4)} 0` }}>

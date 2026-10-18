@@ -400,3 +400,92 @@
   padding: 1.4rem 0 calc(1rem + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(180deg, transparent, #05060b 38%);
 }
+
+/* ==========================================================================
+   GAYA DUOLINGO (override) — datar, garis tebal, "dasar" keras, tanpa blur/glow
+   Animasi kertas terbang tetap dipakai; hanya tampilan yang diganti.
+   ========================================================================== */
+.osf { --c1: #ffc800; --c2: #ff9600; --cb: #e58700; --cd: #b36a00; }
+.osf[data-tone="emerald"] { --c1: #89e219; --c2: #58cc02; --cb: #58a700; --cd: #3f7d00; }
+.osf[data-tone="sky"]     { --c1: #49c0f8; --c2: #1cb0f6; --cb: #1899d6; --cd: #0f78a8; }
+.osf[data-tone="rose"]    { --c1: #ff7878; --c2: #ff4b4b; --cb: #ea2b2b; --cd: #b81c1c; }
+.osf[data-tone="violet"]  { --c1: #e0a6ff; --c2: #ce82ff; --cb: #a568cc; --cd: #7e4a9e; }
+
+.osf-glow { display: none; }
+.osf-shadow { background: rgba(0, 0, 0, 0.10); filter: none; height: 4.5cqw; border-radius: 999px; bottom: -3.4cqw; opacity: 1; }
+.osf-back { background: var(--cb); box-shadow: 0 1.4cqw 0 var(--cd); border-radius: 3.5cqw; }
+.osf-back::before, .osf-back::after { background: var(--cb); }
+.osf-back::before { border-radius: 2.6cqw 2.6cqw 0 0; }
+
+.osf-sheet {
+  background: #fff; border: 0.55cqw solid #e5e5e5; border-bottom-width: 1.1cqw; border-radius: 2.8cqw;
+  box-shadow: none;
+}
+.osf-sheet:hover { box-shadow: none; border-color: var(--c2); }
+.osf-sheet-thumb { border-radius: 1.8cqw 1.8cqw 0 0; }
+.osf-sheet-title { color: #3c3c3c; font-weight: 900; }
+.osf-sheet-play { background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.3)); }
+.osf-sheet-play > span { background: var(--c2); border: 0; box-shadow: 0 0.9cqw 0 var(--cd); backdrop-filter: none; width: 10cqw; height: 10cqw; }
+.osf-sheet:hover .osf-sheet-play > span { background: var(--c1); transform: scale(1.12); }
+
+.osf-front {
+  background: var(--c2); border-radius: 3.8cqw;
+  box-shadow: 0 1.6cqw 0 var(--cd), inset 0 1.1cqw 0 rgba(255, 255, 255, 0.28);
+  color: #fff; place-items: end start; padding: 0;
+}
+.osf-front::before { display: none; }
+.osf-front-emblem { position: absolute; left: 4cqw; bottom: 3cqw; width: 21cqw; height: 21cqw; opacity: 1; color: #fff; pointer-events: none; }
+.osf-front-emblem svg { width: 100%; height: 100%; }
+.osf-front-count {
+  right: 3.4cqw; bottom: 4cqw; background: #fff; color: var(--cd); backdrop-filter: none;
+  border: 0.5cqw solid rgba(0, 0, 0, 0.08); border-bottom-width: 1cqw; padding: 1cqw 3.2cqw; font-weight: 900;
+}
+.osf-front:active { transform: translateY(1cqw); box-shadow: 0 0.6cqw 0 var(--cd), inset 0 1.1cqw 0 rgba(255, 255, 255, 0.28); }
+@media (hover: hover) {
+  .osf:hover .osf-front, .osf:focus-within .osf-front { transform: perspective(110cqw) rotateX(20deg); filter: none; }
+  .osf:hover .osf-front-emblem, .osf:focus-within .osf-front-emblem { transform: none; opacity: 1; }
+}
+
+/* kartu video */
+.osv {
+  background: #fff; border: 2px solid #e5e5e5; border-bottom-width: 5px; border-radius: 1.25rem; box-shadow: none;
+  transition: transform 120ms ease, border-color 150ms;
+}
+.osv:hover { transform: translateY(-2px); box-shadow: none; border-color: #58cc02; }
+.osv:active { transform: translateY(3px); border-bottom-width: 2px; }
+.osv-thumb { border-bottom: 2px solid #e5e5e5; }
+.osv-shade { background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.3)); }
+.osv-play { background: #58cc02; border: 0; box-shadow: 0 4px 0 #3f7d00; backdrop-filter: none; opacity: 1; }
+.osv:hover .osv-play { background: #89e219; transform: scale(1.08); }
+
+.osf-tone-head { background-image: none; border: 2px solid #e5e5e5; border-bottom-width: 5px; border-radius: 1.25rem; }
+.osf-tone-chip { background: var(--c2); box-shadow: 0 4px 0 var(--cd); }
+.osf-tone-head { --cd: #b36a00; }
+.osf-tone-head[data-tone="emerald"] { --cd: #3f7d00; } .osf-tone-head[data-tone="sky"] { --cd: #0f78a8; }
+.osf-tone-head[data-tone="rose"] { --cd: #b81c1c; }   .osf-tone-head[data-tone="violet"] { --cd: #7e4a9e; }
+.osf-tone-head[data-tone="amber"] { --c2: #ff9600; } .osf-tone-head[data-tone="emerald"] { --c2: #58cc02; }
+.osf-tone-head[data-tone="sky"] { --c2: #1cb0f6; } .osf-tone-head[data-tone="rose"] { --c2: #ff4b4b; } .osf-tone-head[data-tone="violet"] { --c2: #ce82ff; }
+
+/* header halaman File OSIS */
+.fo-hero { background: #58cc02; border-radius: 1.5rem; border-bottom: 6px solid #3f7d00; color: #fff; position: relative; overflow: hidden; }
+.fo-hero-btn { background: rgba(255,255,255,.22); border-radius: .9rem; border-bottom: 3px solid rgba(0,0,0,.15); }
+
+/* ---- pemutar: tahap briefing terang ala Duolingo ---- */
+.cine-root[data-phase="brief"] { background: #fff; color: #3c3c3c; }
+.cine-root[data-phase="brief"] .cine-ambient { display: none; }
+.cine-root[data-phase="brief"] .cine-bar { background: #fff; border-bottom: 2px solid #e5e5e5; color: #3c3c3c; }
+.cine-root[data-phase="brief"] .cine-bar button { border-color: #e5e5e5; color: #777; }
+.cdu-step { background: #fff; border: 2px solid #e5e5e5; border-bottom-width: 5px; border-radius: 1.25rem; padding: 1.2rem 1rem; animation: cine-rise 600ms cubic-bezier(.22,1,.36,1) both; }
+.cdu-ico { width: 3.6rem; height: 3.6rem; margin: 0 auto .8rem; display: grid; place-items: center; border-radius: 1rem; color: #fff; }
+.cdu-start {
+  display: inline-flex; align-items: center; gap: .6rem; padding: .95rem 2.6rem; border-radius: 1rem; border: 0; cursor: pointer;
+  font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: #58cc02; box-shadow: 0 5px 0 #3f7d00;
+  transition: transform 90ms, box-shadow 90ms;
+}
+.cdu-start:hover { background: #61e002; }
+.cdu-start:active { transform: translateY(4px); box-shadow: 0 1px 0 #3f7d00; }
+.cine-root[data-phase="brief"] .cine-cta { background: linear-gradient(180deg, transparent, #fff 38%); }
+@media (max-width: 639px) {
+  .cdu-step { display: flex; align-items: center; gap: .9rem; padding: .7rem 1rem; text-align: left; }
+  .cdu-ico { width: 2.8rem; height: 2.8rem; margin: 0; flex: none; }
+}
