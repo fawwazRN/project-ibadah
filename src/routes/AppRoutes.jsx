@@ -24,6 +24,8 @@ import SantriNadzhofahPage from "../pages/santri/SantriNadzhofahPage";
 import SantriLughahPage from "../pages/santri/Lughah";
 
 import SantriBkChat from "../pages/santri/SantriBkChat";
+import SantriPesanOrtu from "../pages/santri/SantriPesanOrtu";
+import ParentApp from "../pages/ortu/ParentApp";
 import { ArticleList, ArticleDetail } from "../pages/bk/ArticlesPage";
 import BkFlowAdmin from "../pages/admin/BkFlowAdmin";
 import BkArticlesAdmin from "../pages/admin/BkArticlesAdmin";
@@ -156,7 +158,7 @@ function RootRedirect() {
   if (isGuest) return <Navigate to={entryPath("guest")} replace />;
   if (!session) return <Navigate to="/auth/login" replace />;
   if (profile === undefined) return <FullPageLoader />;
-  if (!profile) return <Navigate to="/claim" replace />;
+  if (!profile) return <Navigate to={session.user?.user_metadata?.account_type === "parent" ? "/ortu" : "/claim"} replace />;
   return <Navigate to={entryPath(profile.role)} replace />;
 }
 
@@ -206,6 +208,8 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/auth/login" element={<LoginPage />} />
+      {/* Akun orang tua — link terpisah */}
+      <Route path="/ortu" element={<ParentApp />} />
 
       {/* ============ UNDANGAN ============
           Gerbang: cek status → nonaktif = REDIRECT,
@@ -244,6 +248,7 @@ export default function AppRoutes() {
           <Route element={<RoleRoute role="santri" />}>
             <Route path="/santri/kalender" element={<CalendarPage />} />
             <Route path="/santri/curhat" element={<SantriCurhat />} />
+            <Route path="/santri/pesan-ortu" element={<SantriPesanOrtu />} />
             <Route path="/santri" element={<SantriHome />} />
             <Route path="/santri/file-osis" element={<FileOSISPage />} />
             <Route path="/santri/bintang" element={<Navigate to="/santri" replace />} />

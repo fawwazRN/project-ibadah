@@ -21,6 +21,7 @@ import { lughahService } from "../../services/lughahService";
 import { computeStandings } from "../../utils/standings";
 import { startOfWeek, endOfWeek } from "../../lib/date";
 import { readPresentationVocabOverride } from "../../lib/lughah";
+import { supabase } from "../../lib/supabaseClient";
 
 const SLIDE_MS = 14000; // minimum per slide; slide dengan gulir menunggu gulir selesai
 const RESUME_KEY = "pres-resume";
@@ -198,6 +199,7 @@ async function loadData() {
     agg.set(k, a);
   });
   const allRules = ok(rules, []);
+  const pres = await supabase.rpc("get_presentation_settings").then((r) => r.data?.[0] ?? null).catch(() => null);
   return {
     ibadah: ok(ibadah, []).slice(0, 5),
     nyeker: top("nyeker_count"),
@@ -209,6 +211,7 @@ async function loadData() {
     weekly: [...agg.values()].sort((a, b) => b.pts - a.pts || b.count - a.count),
     weekRange: `${fmtDay(isoDay(wkStart))} – ${fmtDay(isoDay(endOfWeek()))}`,
     vocab: vocabOverride ?? ok(vocab, []),
+    link: pres?.link_url ? { raw: pres.link_url, url: toEmbed(pres.link_url), secs: pres.link_secs || 120 } : null,
   };
 }
 
@@ -704,6 +707,45 @@ function SlideEnd() {
   );
 }
 
+// ---------------------------------------------------------------- slide link web (diatur Super Admin)
+function toEmbed(u) {
+  const m = u.match(/docs\.google\.com\/presentation\/d\/([\w-]+)/);
+  return m ? `https://docs.google.com/presentation/d/${m[1]}/embed?start=true&loop=false&delayms=10000` : u;
+}
+function SlideLink({ link }) {
+  return (
+    <div className="h-full min-h-0 overflow-hidden rounded-3xl bg-white" style={{ border: `1px solid ${LINE}` }}>
+      <iframe title="Presentasi Kesantrian" src={link.url} className="w-full h-full border-0" style={{ pointerEvents: "none" }}
+        allow="autoplay; fullscreen" referrerPolicy="no-referrer" />
+    </div>
+  );
+}
+function LinkSettings({ current, onSaved }) {
+  const [url, setUrl] = useState("");
+  const [secs, setSecs] = useState(120);
+  const [msg, setMsg] = useState("");
+  useEffect(() => { if (current) { setUrl(current.raw); setSecs(current.secs); } }, [current]);
+  const save = async () => {
+    const { error } = await supabase.from("site_settings")
+      .update({ presentation_link: url.trim() || null, presentation_link_secs: Math.max(10, Number(secs) || 120) }).eq("id", 1);
+    setMsg(error ? `Gagal: ${error.message}` : "Tersimpan");
+    if (!error) onSaved?.();
+  };
+  const inp = { border: `1px solid ${LINE}`, borderRadius: 12, padding: `${U(.6)} ${U(.9)}`, fontSize: U(1.1), background: "#fff" };
+  return (
+    <div className="flex flex-col" style={{ gap: U(.5), width: U(30) }}>
+      <p className="font-extrabold" style={{ fontSize: U(1), color: MUTED }}>Slide terakhir: link web (presentasi Kesantrian)</p>
+      <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://… (kosong = tanpa slide link)" style={inp} />
+      <div className="flex items-center" style={{ gap: U(.6) }}>
+        <input type="number" min={10} value={secs} onChange={(e) => setSecs(e.target.value)} style={{ ...inp, width: U(8) }} />
+        <span style={{ fontSize: U(1), color: MUTED }}>detik</span>
+        <button onClick={save} className="font-extrabold" style={{ ...inp, marginLeft: "auto", cursor: "pointer" }}>Simpan</button>
+      </div>
+      {msg && <p style={{ fontSize: U(.95), color: MUTED }}>{msg}</p>}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------- daftar slide + narasi
 const SLIDES = [
   { sec: "Ibadah", theme: PAL.red, mood: "think", node: (d, t) => <SlideIbadahTop data={d} theme={t} />,
@@ -741,7 +783,12 @@ function buildSlides(d) {
         say: () => `Mufrodat tingkat ${(LEVEL_LABEL[w.level] ?? "").toLowerCase()}: artinya ${w.meaning}.${w.jama ? ` Jama’nya ${w.jama}.` : ""} Perhatikan contoh jumlah mufidah-nya, lalu buat kalimatmu sendiri!`,
       }))
     : [{ sec: "Lughah", theme: PAL.violet, mood: "talk", node: (dd, t) => <SlideLughahEmpty theme={t} />, say: () => "Qism Lughah belum menambahkan mufrodat hari ini." }];
-  return [...SLIDES.slice(0, 8), ...lughah, ...SLIDES.slice(8)];
+  const linkSlide = d.link ? [{
+    sec: "Kesantrian", theme: PAL.orange, mood: "read", ms: d.link.secs * 1000,
+    node: (dd) => <SlideLink link={dd.link} />,
+    say: () => "Terakhir, presentasi dari bagian kesantrian. Simak baik-baik ya!",
+  }] : [];
+  return [...SLIDES.slice(0, 8), ...lughah, ...SLIDES.slice(8), ...linkSlide];
 }
 
 function Btn({ color = PAL.green, outline = false, children, style, ...p }) {
@@ -783,24 +830,6 @@ function IntroScreen({ onDone, vh }) {
   );
 }
 
-function OutroScreen({ onDone, vh }) {
-  const [fade, setFade] = useState(false);
-  useEffect(() => {
-    const t = [setTimeout(() => setFade(true), 5000), setTimeout(onDone, 6700)];
-    return () => t.forEach(clearTimeout);
-  }, [onDone]);
-  return (
-    <div className="z-40 absolute inset-0 flex flex-col justify-center items-center text-center"
-      style={{ gap: U(1.2), background: `linear-gradient(180deg, ${PAL.green.t}, #fff 75%)` }}>
-      <div className="pres-pop"><BkMascot mood="cheer" size={Math.round(Math.min(vh * 0.3, 220))} /></div>
-      <h1 className="font-black tracking-tight pres-pop" style={{ fontSize: U(6.4), color: PAL.green.d, "--d": ".15s" }}>Terima kasih!</h1>
-      <p className="font-bold pres-pop" style={{ fontSize: U(1.9), color: MUTED, "--d": ".35s" }}>Sudah menyimak presentasi dari Ibadah, untuk semua.</p>
-      <div aria-hidden="true" className="fixed inset-0 z-50 pointer-events-none"
-        style={{ background: "#000", opacity: fade ? 1 : 0, transition: "opacity 1.6s ease-in-out" }} />
-    </div>
-  );
-}
-
 // ---------------------------------------------------------------- halaman utama
 export default function PresentationPage() {
   const nav = useNavigate();
@@ -824,10 +853,12 @@ export default function PresentationPage() {
   useEffect(() => { loadData().then(setData); }, []);
   idxRef.current = idx;
   const toIntro = useCallback(() => setPhase("slides"), []);
-  const toOutro = useCallback(() => setPhase("outro"), []);
-  const refreshPresentation = useCallback(() => {
-    try { sessionStorage.setItem(RESUME_KEY, "1"); } catch { /* abaikan */ }
-    window.location.reload();
+  const slidesRef = useRef([]);
+  slidesRef.current = slides;
+  // Kembali ke slide pertama TANPA reload halaman: layar penuh & wake lock tetap hidup, TV tidak mati.
+  const restart = useCallback(() => {
+    elapsed.current = 0; setProg(0); setIdx(0);
+    loadData().then(setData).catch(() => {});
   }, []);
 
   const go = useCallback((n) => { elapsed.current = 0; setProg(0); setIdx(((n % N) + N) % N); }, [N]);
@@ -836,15 +867,15 @@ export default function PresentationPage() {
     if (!started || !auto || phase !== "slides") return;
     const t = setInterval(() => {
       elapsed.current += 100;
-      const limit = Math.max(SLIDE_MS, ...needs.current.values());
+      const limit = slidesRef.current[idxRef.current]?.ms ?? Math.max(SLIDE_MS, ...needs.current.values());
       setProg(elapsed.current / limit);
       if (elapsed.current >= limit) {
         elapsed.current = 0; setProg(0);
-        if (idxRef.current >= N - 1) setPhase("outro"); else setIdx((v) => v + 1);
+        if (idxRef.current >= N - 1) restart(); else setIdx((v) => v + 1);
       }
     }, 100);
     return () => clearInterval(t);
-  }, [started, auto, N, phase]);
+  }, [started, auto, N, phase, restart]);
 
   const toggleFull = useCallback(async () => {
     try {
@@ -861,8 +892,11 @@ export default function PresentationPage() {
   useEffect(() => {
     if (!started || !navigator.wakeLock) return;
     let lock;
-    navigator.wakeLock.request("screen").then((l) => (lock = l)).catch(() => {});
-    return () => lock?.release?.().catch(() => {});
+    const acquire = () => navigator.wakeLock.request("screen").then((l) => (lock = l)).catch(() => {});
+    const onVis = () => { if (document.visibilityState === "visible") acquire(); };
+    acquire();
+    document.addEventListener("visibilitychange", onVis);
+    return () => { document.removeEventListener("visibilitychange", onVis); lock?.release?.().catch(() => {}); };
   }, [started]);
 
   useEffect(() => {
@@ -895,7 +929,7 @@ export default function PresentationPage() {
     if (!data || started) return;
     let resume = false;
     try { resume = sessionStorage.getItem(RESUME_KEY) === "1"; sessionStorage.removeItem(RESUME_KEY); } catch { /* abaikan */ }
-    if (resume) { setStarted(true); setIdx(0); setAuto(true); setPhase("intro"); }
+    if (resume) { setStarted(true); setIdx(0); setAuto(true); setPhase("slides"); }
   }, [data, started]);
   const exit = () => { if (document.fullscreenElement) document.exitFullscreen(); nav("/admin"); };
 
@@ -925,13 +959,13 @@ export default function PresentationPage() {
             <Btn onClick={() => start(true)} disabled={!data} style={{ width: "100%", opacity: data ? 1 : 0.6 }}>{data ? "Mulai (layar penuh)" : "Menyiapkan data…"}</Btn>
             <Btn outline onClick={() => start(false)} disabled={!data} style={{ width: "100%" }}>Mulai tanpa layar penuh</Btn>
           </div>
+          <LinkSettings current={data?.link} onSaved={() => loadData().then(setData)} />
           <p className="font-bold" style={{ fontSize: U(1), color: "#aaa" }}>← → geser · Spasi jeda/lanjut · F layar penuh</p>
           <button onClick={exit} aria-label="Keluar" className="top-4 left-4 absolute hover:bg-black/5 p-2.5 rounded-full text-[#afafaf]"><X size={26} /></button>
         </div>
       )}
 
       {started && phase === "intro" && <IntroScreen vh={vh} onDone={toIntro} />}
-      {started && phase === "outro" && <OutroScreen vh={vh} onDone={refreshPresentation} />}
 
       {started && phase === "slides" && (
         <NeedCtx.Provider value={needCtx}>
