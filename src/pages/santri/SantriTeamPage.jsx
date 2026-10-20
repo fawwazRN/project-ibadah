@@ -159,7 +159,7 @@ export default function SantriTeamPage() {
                 <section key={t.id} className="overflow-hidden border border-line rounded-xl">
                   <div className="flex items-center justify-between gap-3 bg-soft px-4 py-3">
                     <h3 className="font-bold text-fg">{t.name}</h3>
-                    <Badge tone="slate">{roster.length} anggota</Badge>
+                    <Badge tone="neutral">{roster.length} anggota</Badge>
                   </div>
                   <div className="p-3 space-y-3">
                     <div>
