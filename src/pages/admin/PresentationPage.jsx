@@ -714,11 +714,47 @@ function toEmbed(u) {
   const m = u.match(/docs\.google\.com\/presentation\/d\/([\w-]+)/);
   return m ? `https://docs.google.com/presentation/d/${m[1]}/embed?start=true&loop=false&delayms=10000` : u;
 }
+// Slide link responsif: menyesuaikan layar mana pun (TV, laptop, HP).
+// - Google Slides → rasio 16:9, dipas "contain" di tengah (tanpa terpotong).
+// - Web biasa     → dirender pada lebar desktop (min 1280px) lalu diskalakan agar
+//                   muat; jadi tampilan situs tidak "runtuh" ke layout HP di layar kecil.
+const WEB_MIN_W = 1280;
 function SlideLink({ link }) {
+  const box = useRef(null);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const read = () => setSize({ w: el.clientWidth, h: el.clientHeight });
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const isSlides = /docs\.google\.com\/presentation/.test(link.url);
+  let frame = { width: "100%", height: "100%" };
+  if (size.w && size.h) {
+    if (isSlides) {
+      // muat 16:9 di dalam kotak
+      const w = Math.min(size.w, (size.h * 16) / 9);
+      frame = { width: w, height: (w * 9) / 16 };
+    } else if (size.w < WEB_MIN_W) {
+      const k = size.w / WEB_MIN_W;
+      frame = { width: WEB_MIN_W, height: size.h / k, transform: `scale(${k})`, transformOrigin: "top left" };
+    }
+  }
   return (
-    <div className="h-full min-h-0 overflow-hidden rounded-3xl bg-white" style={{ border: `1px solid ${LINE}` }}>
-      <iframe title="Presentasi Kesantrian" src={link.url} className="w-full h-full border-0" style={{ pointerEvents: "none" }}
-        allow="autoplay; fullscreen" referrerPolicy="no-referrer" />
+    <div ref={box} className="relative flex justify-center items-center bg-white rounded-3xl h-full min-h-0 overflow-hidden" style={{ border: `1px solid ${LINE}` }}>
+      <iframe title="Presentasi Kesantrian" src={link.url} className="border-0 shrink-0"
+        style={{ ...frame, ...(isSlides ? {} : { position: "absolute", top: 0, left: 0 }), pointerEvents: "none" }}
+        allow="autoplay; fullscreen" referrerPolicy="no-referrer" loading="eager" />
+      {/* Cadangan bila situs menolak ditampilkan di dalam iframe */}
+      <a href={link.raw} target="_blank" rel="noopener noreferrer"
+        className="right-3 bottom-3 absolute bg-white/90 shadow px-3 py-1.5 border rounded-full font-bold"
+        style={{ fontSize: U(.9), color: MUTED, borderColor: LINE }}>
+        Tidak tampil? Buka langsung ↗
+      </a>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-// Model rapor santri untuk portal orang tua.
+// Model rekapan OSIS santri untuk portal orang tua (bukan rapor akademik).
 // Semua bobot & ambang predikat ada di sini — ubah sesuai kebijakan madrasah.
 
 // Pengurangan nilai (dari 100) per kejadian

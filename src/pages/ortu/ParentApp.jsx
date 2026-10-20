@@ -1,6 +1,6 @@
 // Portal Orang Tua — /ortu. Tanpa akun: cukup email anak (santri) → progres muncul.
 // Desain "play" (sama dengan halaman santri): chunky, bulat, dipandu maskot Kak Peci.
-// Tab: Ringkasan · Ibadah · Riyadhah · Nadzhofah · Lughah · Rapor (unduh PDF) · Pesan (disaring AI).
+// Tab: Ringkasan · Ibadah · Riyadhah · Nadzhofah · Lughah · Rekapan OSIS (unduh PDF) · Pesan (disaring AI).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
@@ -40,7 +40,7 @@ const TABS = [
   { id: "riyadhah", label: "Riyadhah", icon: Volleyball, cls: "q-riyadhah" },
   { id: "nadzhofah", label: "Nadzhofah", icon: Shirt, cls: "q-nadzhofah" },
   { id: "lughah", label: "Lughah", icon: Languages, cls: "q-lughah" },
-  { id: "rapor", label: "Rapor", icon: Medal, cls: "q-gold" },
+  { id: "rekap", label: "Rekapan OSIS", icon: Medal, cls: "q-gold" },
   { id: "pesan", label: "Pesan", icon: MessagesSquare, cls: "q-slate" },
 ];
 const T = Object.fromEntries(TABS.map((t) => [t.id, t]));
@@ -263,7 +263,14 @@ function Chat({ email }) {
       body: { email, body },
     });
     setBusy(false);
-    if (error || data?.error) return setNote(data?.error ?? error.message);
+    if (error || data?.error) {
+      // Untuk respons non-2xx, pesan asli dari fungsi ada di error.context (Response)
+      let msg = data?.error;
+      if (!msg && error?.context?.json) {
+        msg = await error.context.json().then((j) => j?.error).catch(() => null);
+      }
+      return setNote(msg ?? "Pesan belum bisa dikirim. Coba lagi sebentar.");
+    }
     if (data.status === "blocked") setNote(`Pesan diblokir AI: ${data.reason}`);
     else setText("");
     load();
@@ -398,13 +405,13 @@ export default function ParentApp() {
     setTab("ringkasan");
   };
 
-  // Unduh rapor: cetak halaman rapor A4 portrait → "Simpan sebagai PDF"
+  // Unduh rekapan OSIS: cetak halaman A4 portrait → "Simpan sebagai PDF"
   const download = () => {
     const style = document.createElement("style");
     style.textContent = "@page{size:A4 portrait;margin:0}";
     document.head.appendChild(style);
     const prevTitle = document.title;
-    document.title = `Rapor - ${model.student.full_name}`;
+    document.title = `Rekapan OSIS - ${model.student.full_name}`;
     const done = () => {
       style.remove();
       document.title = prevTitle;
@@ -451,7 +458,7 @@ export default function ParentApp() {
               Portal Orang Tua
             </h1>
             <p className="mt-1 font-semibold text-fg-3 text-sm leading-relaxed">
-              Pantau perkembangan ananda dan unduh rapornya. Masukkan email akun
+              Pantau perkembangan ananda dan unduh rekapan OSIS-nya. Masukkan email akun
               anak (santri).
             </p>
           </div>
@@ -627,8 +634,8 @@ export default function ParentApp() {
                 size="md"
                 icon={Download}
                 className="flex-1"
-                onClick={() => setTab("rapor")}>
-                Rapor
+                onClick={() => setTab("rekap")}>
+                Rekapan
               </Button>
               <button
                 type="button"
@@ -776,8 +783,8 @@ export default function ParentApp() {
                   variant="primary"
                   size="lg"
                   icon={Download}
-                  onClick={() => setTab("rapor")}>
-                  Lihat & unduh rapor
+                  onClick={() => setTab("rekap")}>
+                  Lihat & unduh rekapan OSIS
                 </Button>
               </>
             )}
@@ -999,8 +1006,8 @@ export default function ParentApp() {
               </>
             )}
 
-            {/* ---------- Rapor ---------- */}
-            {tab === "rapor" && (
+            {/* ---------- Rekapan OSIS ---------- */}
+            {tab === "rekap" && (
               <>
                 <div
                   className="flex items-center gap-3 bg-card p-4 border-2 border-line rounded-[20px]"
@@ -1008,7 +1015,7 @@ export default function ParentApp() {
                   <Mascot mood="read" size={60} className="shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-display text-fg text-base" style={head}>
-                      Rapor {first}
+                      Rekapan OSIS {first}
                     </p>
                     <p className="font-semibold text-fg-3 text-xs">
                       Periode: {model.periodLabel}. Ubah periode di atas, lalu
@@ -1021,7 +1028,7 @@ export default function ParentApp() {
                   size="lg"
                   icon={Download}
                   onClick={download}>
-                  Unduh rapor (PDF)
+                  Unduh rekapan OSIS (PDF)
                 </Button>
                 <p className="px-1 font-semibold text-[11px] text-fg-3 text-center">
                   Pada jendela cetak, pilih <b>Simpan sebagai PDF</b>{" "}
@@ -1042,7 +1049,7 @@ export default function ParentApp() {
       {/* versi cetak — di luar root supaya tampil saat print */}
       {createPortal(
         <div className="print-only">
-          <div className="print-doc rapor-doc">
+          <div className="print-doc rekap-doc">
             <ReportCard model={model} printedAt={printedAt} />
           </div>
         </div>,

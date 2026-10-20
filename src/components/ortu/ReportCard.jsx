@@ -1,7 +1,7 @@
 import { BrandMark } from "../ui/BrandMark";
 import { GRADES, dayLabel, rupiah } from "../../lib/rapor";
 
-// Lembar rapor A4 portrait (lebar rancangan 794px ≈ 210mm).
+// Lembar rekapan OSIS A4 portrait (lebar rancangan 794px ≈ 210mm).
 // Dipakai dua kali: pratinjau di layar (diskalakan) & versi cetak (.print-doc).
 const GREEN = "#168a57";
 const INK = "#1f2937";
@@ -140,7 +140,7 @@ export default function ReportCard({ model, printedAt }) {
               OSIS MANAGEMENT · MADRASAH
             </p>
             <h1 style={{ margin: "2px 0 0", fontSize: 25, fontWeight: 900, letterSpacing: "-.01em", color: GREEN, lineHeight: 1.1 }}>
-              RAPOR PERKEMBANGAN SANTRI
+              REKAPAN OSIS SANTRI
             </h1>
             <p style={{ margin: "3px 0 0", fontSize: 11, color: MUTE, fontWeight: 600 }}>
               Ibadah · Riyadhah · Nadzhofah · Lughah

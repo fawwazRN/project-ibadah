@@ -9,6 +9,7 @@ import { Button } from "../../components/ui/Button";
 import { Field, Input } from "../../components/ui/Field";
 import { Mascot } from "../../components/ui/Mascot";
 import IntroStage from "../../components/auth/IntroStage";
+import TermsConsent from "../../components/auth/TermsConsent";
 import { entryPath } from "../../routes/AppRoutes";
 
 export default function LoginPage() {
@@ -28,6 +29,8 @@ export default function LoginPage() {
   const [introPaused, setIntroPaused] = useState(false);
   const [focusPass, setFocusPass] = useState(false);
   const [done, setDone] = useState(false);
+  const [agreed, setAgreed] = useState(false); // syarat & ketentuan
+  const [termsError, setTermsError] = useState(false);
 
   if (booting) return null;
   if (session) {
@@ -50,7 +53,8 @@ export default function LoginPage() {
     setErrors(errs);
     setFormError("");
     setNeedVerify(false);
-    if (Object.keys(errs).length) return;
+    if (!agreed) setTermsError(true);
+    if (Object.keys(errs).length || !agreed) return;
     setLoading(true);
     try {
       if (tab === "login") {
@@ -152,6 +156,14 @@ export default function LoginPage() {
                 autoComplete={tab === "login" ? "current-password" : "new-password"}
               />
             </Field>
+            <TermsConsent
+              agreed={agreed}
+              error={termsError && !agreed}
+              onChange={(v) => {
+                setAgreed(v);
+                if (v) setTermsError(false);
+              }}
+            />
             <Button type="submit" variant="primary" size="lg" loading={loading}>
               {tab === "login" ? "Masuk" : "Daftar"}
             </Button>
@@ -168,6 +180,7 @@ export default function LoginPage() {
               size="lg"
               icon={Eye}
               onClick={() => {
+                if (!agreed) return setTermsError(true);
                 enterGuest();
                 navigate(entryPath("guest"));
               }}>

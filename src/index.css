@@ -493,8 +493,8 @@ html[data-skin="work"] { --tabbar-h: 0px; }
     display: block !important;
   }
 
-  /* Rapor orang tua: lembar A4 sudah punya bingkai & margin sendiri */
-  .print-doc.rapor-doc {
+  /* Rekapan OSIS orang tua: lembar A4 sudah punya bingkai & margin sendiri */
+  .print-doc.rekap-doc {
     padding: 0 !important;
   }
 
