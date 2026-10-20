@@ -1,21 +1,17 @@
 // Portal Orang Tua — /ortu. Tanpa akun: cukup email anak (santri) → progres muncul.
 // Desain "play" (sama dengan halaman santri): chunky, bulat, dipandu maskot Kak Peci.
-// Tab: Ringkasan · Ibadah · Riyadhah · Nadzhofah · Lughah · Rekapan OSIS (unduh PDF) · Pesan (disaring AI).
+// Tab: Ringkasan · Ibadah · Riyadhah · Nadzhofah · Lughah · Rekapan OSIS (unduh PDF).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
   BookOpenCheck,
-  Check,
   CheckCircle2,
   Download,
   Languages,
   Loader2,
   Medal,
-  MessagesSquare,
-  Send,
-  ShieldAlert,
   Shirt,
   Sparkles,
   Volleyball,
@@ -41,7 +37,6 @@ const TABS = [
   { id: "nadzhofah", label: "Nadzhofah", icon: Shirt, cls: "q-nadzhofah" },
   { id: "lughah", label: "Lughah", icon: Languages, cls: "q-lughah" },
   { id: "rekap", label: "Rekapan OSIS", icon: Medal, cls: "q-gold" },
-  { id: "pesan", label: "Pesan", icon: MessagesSquare, cls: "q-slate" },
 ];
 const T = Object.fromEntries(TABS.map((t) => [t.id, t]));
 const head = { fontWeight: 900 };
@@ -232,111 +227,6 @@ function PaperFit({ children }) {
         }}>
         {children}
       </div>
-    </div>
-  );
-}
-
-// ------------------------------------------------------------------ pesan
-function Chat({ email }) {
-  const [msgs, setMsgs] = useState([]);
-  const [text, setText] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [note, setNote] = useState("");
-  const load = useCallback(async () => {
-    const { data } = await supabase.rpc("parent_messages_list", {
-      p_email: email,
-    });
-    setMsgs(data ?? []);
-  }, [email]);
-  useEffect(() => {
-    load();
-    const t = setInterval(load, 10000);
-    return () => clearInterval(t);
-  }, [load]);
-  const send = async (e) => {
-    e.preventDefault();
-    const body = text.trim();
-    if (!body || busy) return;
-    setBusy(true);
-    setNote("");
-    const { data, error } = await supabase.functions.invoke("parent-message", {
-      body: { email, body },
-    });
-    setBusy(false);
-    if (error || data?.error) {
-      // Untuk respons non-2xx, pesan asli dari fungsi ada di error.context (Response)
-      let msg = data?.error;
-      if (!msg && error?.context?.json) {
-        msg = await error.context.json().then((j) => j?.error).catch(() => null);
-      }
-      return setNote(msg ?? "Pesan belum bisa dikirim. Coba lagi sebentar.");
-    }
-    if (data.status === "blocked") setNote(`Pesan diblokir AI: ${data.reason}`);
-    else setText("");
-    load();
-  };
-  return (
-    <div className="space-y-3">
-      <div className="flex items-start gap-3 bg-sky-50 p-3 border-2 border-sky-200 rounded-2xl">
-        <Mascot mood="care" size={52} />
-        <p className="font-semibold text-sky-900 text-xs leading-relaxed">
-          Kirim nasihat & semangat untuk ananda. Pesan hanya untuk nasihat dan
-          pembinaan — selain itu akan disaring AI dan tidak sampai ke anak.
-        </p>
-      </div>
-      <div className="space-y-2">
-        {msgs.length === 0 && (
-          <p className="py-6 font-semibold text-fg-3 text-sm text-center">
-            Belum ada pesan. Tulis yang pertama!
-          </p>
-        )}
-        {msgs.map((m) => {
-          const ok = m.status === "sent";
-          return (
-            <div
-              key={m.id}
-              className={`flex ${ok ? "justify-end" : "justify-start"}`}>
-              <div
-                className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm font-semibold ${ok ? "rounded-br-md bg-brand text-on-brand" : "rounded-bl-md border-2 border-rose-200 bg-rose-50 text-rose-800"}`}>
-                <p className="break-words">{m.body}</p>
-                <p
-                  className={`mt-1 flex items-center gap-1 text-[11px] font-bold ${ok ? "opacity-80" : "text-rose-600"}`}>
-                  {ok ? (
-                    <>
-                      <Check size={12} /> Terkirim
-                    </>
-                  ) : (
-                    <>
-                      <ShieldAlert size={12} /> Diblokir: {m.reason}
-                    </>
-                  )}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      {note && (
-        <p className="bg-rose-50 px-3.5 py-2.5 border-2 border-rose-200 rounded-2xl font-bold text-rose-700 text-xs">
-          {note}
-        </p>
-      )}
-      <form onSubmit={send} className="flex gap-2">
-        <Input
-          maxLength={1000}
-          placeholder="Tulis nasihat untuk anak…"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <Button
-          type="submit"
-          variant="primary"
-          loading={busy}
-          aria-label="Kirim"
-          className="px-4">
-          {!busy && <Send size={16} strokeWidth={2.6} />}
-        </Button>
-      </form>
     </div>
   );
 }
@@ -637,17 +527,7 @@ export default function ParentApp() {
                 onClick={() => setTab("rekap")}>
                 Rekapan
               </Button>
-              <button
-                type="button"
-                onClick={() => setTab("pesan")}
-                className="inline-flex flex-1 justify-center items-center gap-2 px-4 rounded-[14px] h-11 font-extrabold text-[13px] text-white uppercase tracking-wide"
-                style={{
-                  background: "rgba(255,255,255,.18)",
-                  border: "2px solid rgba(255,255,255,.45)",
-                }}>
-                <MessagesSquare size={16} strokeWidth={2.4} /> Pesan
-              </button>
-            </div>
+           </div>
           </section>
 
           {/* tab */}
@@ -1036,8 +916,6 @@ export default function ParentApp() {
               </>
             )}
 
-            {/* ---------- Pesan ---------- */}
-            {tab === "pesan" && <Chat email={email} />}
           </div>
         </main>
       </div>
