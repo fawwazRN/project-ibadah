@@ -229,6 +229,7 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/auth/login" element={<LoginPage />} />
+      <Route path="/slide" element={<PresentationPage />} />
       {/* Akun orang tua — link terpisah */}
       <Route path="/ortu" element={<ParentApp />} />
 
