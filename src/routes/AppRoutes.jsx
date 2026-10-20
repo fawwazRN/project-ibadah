@@ -25,7 +25,6 @@ import SantriNadzhofahPage from "../pages/santri/SantriNadzhofahPage";
 import SantriLughahPage from "../pages/santri/Lughah";
 
 import SantriBkChat from "../pages/santri/SantriBkChat";
-import SantriPesanOrtu from "../pages/santri/SantriPesanOrtu";
 import ParentApp from "../pages/ortu/ParentApp";
 import { ArticleList, ArticleDetail } from "../pages/bk/ArticlesPage";
 import BkFlowAdmin from "../pages/admin/BkFlowAdmin";
@@ -270,7 +269,6 @@ export default function AppRoutes() {
           <Route element={<RoleRoute role="santri" />}>
             <Route path="/santri/kalender" element={<CalendarPage />} />
             <Route path="/santri/curhat" element={<SantriCurhat />} />
-            <Route path="/santri/pesan-ortu" element={<SantriPesanOrtu />} />
             <Route path="/santri" element={<SantriHome />} />
             <Route path="/santri/file-osis" element={<FileOSISPage />} />
             <Route path="/santri/bintang" element={<Navigate to="/santri" replace />} />
