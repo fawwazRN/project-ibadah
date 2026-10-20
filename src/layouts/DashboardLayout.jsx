@@ -8,7 +8,5 @@ import AdminShell from "./AdminShell";
 export default function DashboardLayout() {
   const { profile } = useAuth();
   if (profile?.role !== "santri") return <AdminShell />;
-  return (
-<StudentShell />
-  );
+  return <StudentShell />;
 }
