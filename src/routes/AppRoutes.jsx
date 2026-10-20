@@ -1,10 +1,11 @@
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { BrandMark } from "../components/ui/BrandMark";
 import { eventService } from "../services/eventService";
+import { isPresentationEmail } from "../lib/constants";
 
 // ---------- Auth ----------
 import LoginPage from "../pages/auth/LoginPage";
@@ -104,7 +105,9 @@ export const homeFor = (role) => HOME[role] ?? "/santri";
 // - belum → gerbang undangan dulu (InvitationGate akan me-redirect
 //   otomatis jika undangan nonaktif)
 // ============================================================
-export function entryPath(roleOrGuest) {
+export function entryPath(roleOrGuest, email) {
+  // Akun presentasi langsung ke layar presentasi (tanpa undangan/dashboard)
+  if (isPresentationEmail(email)) return "/admin/presentasi";
   if (sessionStorage.getItem("invite_seen")) {
     return roleOrGuest === "guest" ? "/guest" : homeFor(roleOrGuest);
   }
@@ -127,8 +130,12 @@ function FullPageLoader() {
 
 function ProtectedRoute() {
   const { session, booting, isGuest } = useAuth();
+  const { pathname } = useLocation();
   if (booting) return <FullPageLoader />;
   if (!session && !isGuest) return <Navigate to="/auth/login" replace />;
+  // Akun presentasi hanya boleh membuka layar presentasi
+  if (isPresentationEmail(session?.user?.email) && pathname !== "/admin/presentasi")
+    return <Navigate to="/admin/presentasi" replace />;
   return <Outlet />;
 }
 
@@ -138,7 +145,7 @@ function ClaimGate() {
   if (isGuest) return <Navigate to={entryPath("guest")} replace />;
   if (!session) return <Navigate to="/auth/login" replace />;
   if (profile === undefined) return <FullPageLoader />;
-  if (profile) return <Navigate to={entryPath(profile.role)} replace />;
+  if (profile) return <Navigate to={entryPath(profile.role, session.user?.email)} replace />;
   return <Outlet />;
 }
 
@@ -159,7 +166,7 @@ function RootRedirect() {
   if (!session) return <Navigate to="/auth/login" replace />;
   if (profile === undefined) return <FullPageLoader />;
   if (!profile) return <Navigate to={session.user?.user_metadata?.account_type === "parent" ? "/ortu" : "/claim"} replace />;
-  return <Navigate to={entryPath(profile.role)} replace />;
+  return <Navigate to={entryPath(profile.role, session.user?.email)} replace />;
 }
 
 /* ============================================================

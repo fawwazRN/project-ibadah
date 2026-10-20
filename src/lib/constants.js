@@ -118,3 +118,11 @@ export const MATCH_EVENTS = [
   { value: "red", label: "Kartu Merah" },
   { value: "substitution", label: "Pergantian" },
 ];
+
+// ---------- Akun presentasi ----------
+// Akun khusus untuk menayangkan presentasi (TV/laptop). Setelah masuk, akun ini
+// hanya diarahkan ke /admin/presentasi. Kata sandi TIDAK disimpan di kode —
+// akun dibuat lewat supabase/presentation_account.sql.
+export const PRESENTATION_EMAIL = "presentasi@gmail.com";
+export const isPresentationEmail = (email) =>
+  (email ?? "").trim().toLowerCase() === PRESENTATION_EMAIL;

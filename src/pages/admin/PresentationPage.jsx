@@ -22,6 +22,8 @@ import { computeStandings } from "../../utils/standings";
 import { startOfWeek, endOfWeek } from "../../lib/date";
 import { readPresentationVocabOverride } from "../../lib/lughah";
 import { supabase } from "../../lib/supabaseClient";
+import { useAuth } from "../../context/AuthContext";
+import { isPresentationEmail } from "../../lib/constants";
 
 const SLIDE_MS = 14000; // minimum per slide; slide dengan gulir menunggu gulir selesai
 const RESUME_KEY = "pres-resume";
@@ -833,6 +835,7 @@ function IntroScreen({ onDone, vh }) {
 // ---------------------------------------------------------------- halaman utama
 export default function PresentationPage() {
   const nav = useNavigate();
+  const { session, signOut } = useAuth();
   const vh = useViewportH();
   const [data, setData] = useState(null);
   const [started, setStarted] = useState(false);
@@ -931,7 +934,12 @@ export default function PresentationPage() {
     try { resume = sessionStorage.getItem(RESUME_KEY) === "1"; sessionStorage.removeItem(RESUME_KEY); } catch { /* abaikan */ }
     if (resume) { setStarted(true); setIdx(0); setAuto(true); setPhase("slides"); }
   }, [data, started]);
-  const exit = () => { if (document.fullscreenElement) document.exitFullscreen(); nav("/admin"); };
+  const exit = async () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    // Akun presentasi: keluar = logout (tidak boleh membuka dashboard)
+    if (isPresentationEmail(session?.user?.email)) { await signOut(); nav("/auth/login", { replace: true }); return; }
+    nav("/admin");
+  };
 
   const S = slides[idx] ?? SLIDES[0];
   const theme = S.theme;

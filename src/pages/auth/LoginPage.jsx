@@ -32,7 +32,7 @@ export default function LoginPage() {
   if (booting) return null;
   if (session) {
     if (!profile) return <Navigate to="/claim" replace />;
-    return <Navigate to={entryPath(profile.role)} replace />;
+    return <Navigate to={entryPath(profile.role, session.user?.email)} replace />;
   }
 
   const switchTab = (k) => {
@@ -57,12 +57,12 @@ export default function LoginPage() {
         const p = await signIn(email.trim().toLowerCase(), password);
         setDone(true);
         push("success", "Berhasil masuk");
-        navigate(p ? entryPath(p.role) : "/claim", { replace: true });
+        navigate(p ? entryPath(p.role, email) : "/claim", { replace: true });
       } else {
         const res = await signUp(email.trim().toLowerCase(), password);
         if (res.verified) {
           push("success", "Akun berhasil dibuat");
-          navigate(res.profile ? entryPath(res.profile.role) : "/claim", { replace: true });
+          navigate(res.profile ? entryPath(res.profile.role, email) : "/claim", { replace: true });
         } else {
           setNeedVerify(true);
         }

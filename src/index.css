@@ -493,6 +493,11 @@ html[data-skin="work"] { --tabbar-h: 0px; }
     display: block !important;
   }
 
+  /* Rapor orang tua: lembar A4 sudah punya bingkai & margin sendiri */
+  .print-doc.rapor-doc {
+    padding: 0 !important;
+  }
+
   /* Tabel panjang: judul kolom diulang tiap halaman, baris tidak terpotong */
   .print-doc thead {
     display: table-header-group;
