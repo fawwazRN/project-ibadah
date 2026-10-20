@@ -45,7 +45,6 @@ export const NAV = {
         { to: "/santri/kalender", label: "Kalender OSIS", icon: CalendarDays },
         { to: "/santri/bk", label: "Kak Peci", icon: MessagesSquare },
         { to: "/santri/curhat", label: "Curhat ke OSIS", icon: HeartHandshake },
-        { to: "/santri/pesan-ortu", label: "Pesan Orang Tua", icon: MessagesSquare },
         { to: "/santri/artikel", label: "Artikel BK", icon: Newspaper },
         { to: "/santri/standings", label: "Klasemen Liga", icon: Trophy },
         { to: "/santri/leaderboard", label: "Papan Nakal", icon: Medal },
