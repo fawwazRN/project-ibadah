@@ -3,7 +3,7 @@
 // Daftar panjang (aturan, jadwal, pelanggar) bergulir otomatis; slide baru
 // berpindah setelah gulir selesai. ← / → / Spasi / F / klik tepi layar.
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   AlertTriangle, ArrowUpRight, Ban, BookOpenCheck, CalendarClock, CalendarDays, Crown, Flag, Footprints, HeartHandshake, History,
   Languages, Maximize, Medal, MessageSquareWarning, MessagesSquare, Minimize, Newspaper, Pause, Play, Printer,
@@ -796,6 +796,8 @@ function IntroScreen({ onDone, vh }) {
 // ---------------------------------------------------------------- halaman utama
 export default function PresentationPage() {
   const nav = useNavigate();
+  const location = useLocation();
+  const isDirectSlide = location.pathname === "/slide";
   const { session, signOut } = useAuth();
   const vh = useViewportH();
   const [data, setData] = useState(null);
@@ -814,7 +816,33 @@ export default function PresentationPage() {
   const N = slides.length || 1;
   const needCtx = useMemo(() => ({ set: (id, ms) => (ms ? needs.current.set(id, ms) : needs.current.delete(id)) }), []);
 
-  useEffect(() => { loadData().then(setData); }, []);
+  useEffect(() => {
+    let alive = true;
+    loadData().then((result) => { if (alive) setData(result); }).catch(() => {
+      if (alive) setData({
+        ibadah: [], nyeker: [], clothing: [],
+        league: { ctx: null, teams: [], players: [], upcoming: [] },
+        rulesIbadah: [], rulesRiyadhah: [], zikir: [], weekly: [],
+        weekRange: "", vocab: [], link: null,
+      });
+    });
+    return () => { alive = false; };
+  }, []);
+
+  // /slide langsung memulai slideshow tanpa perlu klik tombol.
+  // Browser dapat menolak fullscreen otomatis karena memerlukan gesture pengguna.
+  useEffect(() => {
+    if (!isDirectSlide || !data || started) return;
+    setStarted(true);
+    setIdx(0);
+    setAuto(true);
+    elapsed.current = 0;
+    setPhase("slides");
+    try {
+      const result = document.documentElement.requestFullscreen?.();
+      result?.catch?.(() => {});
+    } catch { /* browser menolak fullscreen otomatis */ }
+  }, [isDirectSlide, data, started]);
   idxRef.current = idx;
   const toIntro = useCallback(() => setPhase("slides"), []);
   const slidesRef = useRef([]);
