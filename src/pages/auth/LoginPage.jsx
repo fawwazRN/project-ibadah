@@ -9,7 +9,7 @@ import { Button } from "../../components/ui/Button";
 import { Field, Input } from "../../components/ui/Field";
 import { Mascot } from "../../components/ui/Mascot";
 import IntroStage from "../../components/auth/IntroStage";
-import TermsConsent from "../../components/auth/TermsConsent";
+import TermsConsent, { hasAgreedTerms } from "../../components/auth/TermsConsent";
 import { entryPath } from "../../routes/AppRoutes";
 
 export default function LoginPage() {
@@ -29,11 +29,12 @@ export default function LoginPage() {
   const [introPaused, setIntroPaused] = useState(false);
   const [focusPass, setFocusPass] = useState(false);
   const [done, setDone] = useState(false);
-  const [agreed, setAgreed] = useState(false); // syarat & ketentuan
+  const [agreed, setAgreed] = useState(hasAgreedTerms); // syarat & ketentuan (diingat di perangkat)
   const [termsError, setTermsError] = useState(false);
 
   if (booting) return null;
   if (session) {
+    if (profile === undefined) return null; // profil masih dimuat — jangan buru-buru ke /claim
     if (!profile) return <Navigate to="/claim" replace />;
     return <Navigate to={entryPath(profile.role, session.user?.email)} replace />;
   }

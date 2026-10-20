@@ -261,7 +261,7 @@ export default function ReportCard({ model, printedAt }) {
               {riyadhah.top.length
                 ? riyadhah.top.map((t) => <Li key={t.name} l={t.name} r={`${t.total}× · ${t.poin} poin`} />)
                 : <Empty text="Tidak ada catatan." />}
-              <Foot text={riyadhah.team ? `Tim: ${riyadhah.team}` : "Belum tergabung dalam tim"} />
+              <Foot text={`Tim: ${riyadhah.team || "-"}`} />
             </Box>
             <Box title="Nadzhofah" c={AREA_STYLE.nadzhofah.c}>
               <Li l="Jumlah nyeker" r={`${nadzhofah.nyeker}×`} />

@@ -139,20 +139,35 @@ function ProtectedRoute() {
   return <Outlet />;
 }
 
+function ProfileRetry() {
+  const { retryProfile, signOut } = useAuth();
+  return (
+    <div className="place-items-center grid bg-page p-6 min-h-screen">
+      <div className="space-y-3 max-w-xs text-center">
+        <BrandMark className="mx-auto size-9" />
+        <p className="font-extrabold text-fg text-lg">Koneksi bermasalah</p>
+        <p className="font-semibold text-fg-3 text-sm">Profilmu belum berhasil dimuat. Datamu aman — coba lagi sebentar.</p>
+        <button onClick={retryProfile} className="bg-brand px-5 py-2.5 rounded-2xl font-extrabold text-on-brand">Coba lagi</button>
+        <button onClick={signOut} className="block mx-auto font-bold text-fg-3 text-xs underline">Keluar</button>
+      </div>
+    </div>
+  );
+}
+
 function ClaimGate() {
-  const { session, profile, booting, isGuest } = useAuth();
+  const { session, profile, booting, isGuest, profileError } = useAuth();
   if (booting) return <FullPageLoader />;
   if (isGuest) return <Navigate to={entryPath("guest")} replace />;
   if (!session) return <Navigate to="/auth/login" replace />;
-  if (profile === undefined) return <FullPageLoader />;
+  if (profile === undefined) return profileError ? <ProfileRetry /> : <FullPageLoader />;
   if (profile) return <Navigate to={entryPath(profile.role, session.user?.email)} replace />;
   return <Outlet />;
 }
 
 // Pelindung peran — super_admin boleh masuk SEMUA area.
 function RoleRoute({ role }) {
-  const { profile } = useAuth();
-  if (profile === undefined) return <FullPageLoader />;
+  const { profile, profileError } = useAuth();
+  if (profile === undefined) return profileError ? <ProfileRetry /> : <FullPageLoader />;
   if (!profile) return <Navigate to="/claim" replace />;
   if (profile.role !== role && profile.role !== "super_admin")
     return <Navigate to={homeFor(profile.role)} replace />;

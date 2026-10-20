@@ -839,11 +839,7 @@ export default function ParentApp() {
                   qid="riyadhah"
                   label="Skor riyadhah"
                   value={riyadhah.score}
-                  sub={
-                    riyadhah.team
-                      ? `Tim ${riyadhah.team}`
-                      : "Belum tergabung dalam tim"
-                  }
+                  sub={riyadhah.team ? `Tim ${riyadhah.team}` : "Tim: -"}
                   grade={riyadhah.grade}
                 />
                 <div className="gap-2 grid grid-cols-2">

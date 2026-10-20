@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { supabase } from "../lib/supabaseClient";
@@ -15,6 +16,9 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(undefined); // undefined = memuat · null = belum klaim · object = siap
   const [booting, setBooting] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
+  const [profileError, setProfileError] = useState(false); // gagal memuat (jaringan) ≠ belum klaim
+  const profileRef = useRef(undefined);
+  profileRef.current = profile;
 
   const loadProfile = useCallback(async (uid) => {
     // Akun yang sudah didaftarkan Super Admin di admin_emails tidak perlu
@@ -26,15 +30,37 @@ export function AuthProvider({ children }) {
       console.error("Pengecekan profil admin gagal:", e);
     }
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", uid)
-      .maybeSingle();
-    if (error) console.error("Gagal memuat profil:", error);
+    // Coba beberapa kali. Gagal muat (jaringan/gangguan sementara) TIDAK boleh dianggap
+    // "belum punya profil" — kalau tidak, admin/santri yang sudah klaim malah dilempar ke
+    // halaman pilih kelas.
+    let data = null;
+    let error = null;
+    for (let i = 0; i < 3; i++) {
+      ({ data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", uid)
+        .maybeSingle());
+      if (!error) break;
+      await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+    }
+    if (error) {
+      console.error("Gagal memuat profil:", error);
+      setProfileError(true);
+      // pertahankan profil yang sudah ada; jika belum ada tetap "memuat" (undefined)
+      return profileRef.current ?? null;
+    }
+    setProfileError(false);
     setProfile(data ?? null);
     return data ?? null;
   }, []);
+
+  const retryProfile = useCallback(async () => {
+    setProfileError(false);
+    setProfile(undefined);
+    const { data } = await supabase.auth.getUser();
+    if (data?.user) await loadProfile(data.user.id);
+  }, [loadProfile]);
 
   useEffect(() => {
     let mounted = true;
@@ -63,11 +89,16 @@ export function AuthProvider({ children }) {
       }
     })();
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       if (!mounted) return;
       setSession(s);
-      if (s?.user) loadProfile(s.user.id);
-      else setProfile(null);
+      if (s?.user) {
+        // Penyegaran token berkala tidak perlu memuat ulang profil
+        if (event === "TOKEN_REFRESHED" && profileRef.current) return;
+        // Baru masuk: tandai "memuat" agar tidak sempat tampil halaman pilih kelas
+        if (event === "SIGNED_IN" && !profileRef.current) setProfile(undefined);
+        loadProfile(s.user.id);
+      } else setProfile(null);
     });
 
     return () => {
@@ -96,8 +127,9 @@ export function AuthProvider({ children }) {
     if (error) throw error;
     sessionStorage.removeItem("osis.guest");
     setIsGuest(false);
+    setProfile(undefined);
     return loadProfile(data.user.id);
-  }, []);
+  }, [loadProfile]);
 
   const signUp = useCallback(async (email, password) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
@@ -145,6 +177,8 @@ export function AuthProvider({ children }) {
         signUp,
         signOut,
         claimProfile,
+        profileError,
+        retryProfile,
         role: profile?.role ?? null,
       }}>
       {children}

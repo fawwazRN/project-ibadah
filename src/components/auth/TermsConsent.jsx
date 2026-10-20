@@ -17,6 +17,15 @@ export const TERMS = [
   },
 ];
 
+// Persetujuan disimpan di perangkat — tidak ditanya lagi setiap masuk web.
+const TERMS_KEY = "osis.terms.v1";
+export const hasAgreedTerms = () => {
+  try { return localStorage.getItem(TERMS_KEY) === "1"; } catch { return false; }
+};
+export const rememberTerms = (v) => {
+  try { v ? localStorage.setItem(TERMS_KEY, "1") : localStorage.removeItem(TERMS_KEY); } catch { /* abaikan */ }
+};
+
 export default function TermsConsent({ agreed, onChange, error }) {
   const [open, setOpen] = useState(false);
   return (
@@ -28,7 +37,7 @@ export default function TermsConsent({ agreed, onChange, error }) {
         <input
           type="checkbox"
           checked={agreed}
-          onChange={(e) => onChange(e.target.checked)}
+          onChange={(e) => { rememberTerms(e.target.checked); onChange(e.target.checked); }}
           className="mt-0.5 size-5 accent-[var(--color-brand)] shrink-0"
         />
         <span className="font-semibold text-[13px] text-fg-2 leading-snug">
@@ -77,6 +86,7 @@ export default function TermsConsent({ agreed, onChange, error }) {
             variant="primary"
             className="flex-1"
             onClick={() => {
+              rememberTerms(true);
               onChange(true);
               setOpen(false);
             }}>
