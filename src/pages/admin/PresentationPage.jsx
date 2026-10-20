@@ -714,143 +714,6 @@ function toEmbed(u) {
   const m = u.match(/docs\.google\.com\/presentation\/d\/([\w-]+)/);
   return m ? `https://docs.google.com/presentation/d/${m[1]}/embed?start=true&loop=false&delayms=10000` : u;
 }
-// Slide link: BISA DIISI/DI-SCROLL (email, tombol, dll) dan responsif di layar mana pun.
-// - Google Slides → rasio 16:9, dipas "contain" di tengah (tanpa terpotong).
-// - Web biasa     → iframe memakai lebar asli kotaknya, jadi layout responsif situs ikut bekerja
-//                   (HP = tampilan HP, laptop = tampilan laptop). Di layar besar (TV ≥1280px)
-//                   tampilan diperbesar sampai 2× agar terbaca dari jauh.
-// - Saat disentuh/diketik, slide otomatis berhenti; lanjut otomatis lagi setelah tidak ada
-//   aktivitas (TV tidak akan macet di slide ini).
-const WEB_ZOOM_FROM = 1280;
-const IDLE_SAME_ORIGIN = 45000; // ms tanpa aktivitas (iframe satu situs: terdeteksi akurat)
-const IDLE_CROSS_ORIGIN = 90000; // ms sejak disentuh (iframe situs lain: tidak bisa dipantau)
-function SlideLink({ link }) {
-  const box = useRef(null);
-  const frameRef = useRef(null);
-  const idleT = useRef();
-  const [size, setSize] = useState({ w: 0, h: 0 });
-  const [engaged, setEngaged] = useState(false);
-  const [left, setLeft] = useState(0);
-  const deadline = useRef(0);
-
-  useEffect(() => {
-    const el = box.current;
-    if (!el) return;
-    const read = () => setSize({ w: el.clientWidth, h: el.clientHeight });
-    read();
-    const ro = new ResizeObserver(read);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  const isSlides = /docs\.google\.com\/presentation/.test(link.url);
-
-  const resume = useCallback(() => {
-    clearTimeout(idleT.current);
-    setEngaged(false);
-    window.dispatchEvent(new CustomEvent("pres:resume"));
-  }, []);
-  const touch = useCallback((ms) => {
-    window.dispatchEvent(new CustomEvent("pres:interact"));
-    setEngaged(true);
-    deadline.current = Date.now() + ms;
-    clearTimeout(idleT.current);
-    idleT.current = setTimeout(resume, ms);
-  }, [resume]);
-  const engagedRef = useRef(false);
-  engagedRef.current = engaged;
-  // pindah slide saat masih dijeda oleh slide ini → lanjutkan otomatis
-  useEffect(() => () => {
-    clearTimeout(idleT.current);
-    if (engagedRef.current) window.dispatchEvent(new CustomEvent("pres:resume"));
-  }, []);
-
-  // hitung mundur untuk ditampilkan
-  useEffect(() => {
-    if (!engaged) return;
-    const t = setInterval(() => setLeft(Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000))), 500);
-    return () => clearInterval(t);
-  }, [engaged]);
-
-  // Fokus masuk ke iframe → window kehilangan fokus (berlaku untuk semua situs)
-  useEffect(() => {
-    const onBlur = () => {
-      if (document.activeElement === frameRef.current) touch(IDLE_CROSS_ORIGIN);
-    };
-    window.addEventListener("blur", onBlur);
-    return () => window.removeEventListener("blur", onBlur);
-  }, [touch]);
-
-  // Situs yang sama (mis. /ortu): pantau aktivitas di dalam iframe agar jeda mengikuti pemakaian
-  const onLoad = () => {
-    try {
-      const w = frameRef.current?.contentWindow;
-      if (!w || !w.document) return;
-      const act = () => touch(IDLE_SAME_ORIGIN);
-      ["pointerdown", "keydown", "input", "wheel", "touchstart"].forEach((ev) =>
-        w.addEventListener(ev, act, { passive: true }),
-      );
-    } catch { /* beda situs: pakai deteksi fokus di atas */ }
-  };
-
-  let frame = { width: "100%", height: "100%" };
-  if (size.w && size.h) {
-    if (isSlides) {
-      const w = Math.min(size.w, (size.h * 16) / 9);
-      frame = { width: w, height: (w * 9) / 16 };
-    } else if (size.w >= WEB_ZOOM_FROM) {
-      const k = Math.min(size.w / WEB_ZOOM_FROM, 2);
-      frame = { width: size.w / k, height: size.h / k, transform: `scale(${k})`, transformOrigin: "top left" };
-    }
-  }
-  return (
-    <div ref={box} className="relative flex justify-center items-center bg-white rounded-3xl h-full min-h-0 overflow-hidden" style={{ border: `1px solid ${LINE}` }}>
-      <iframe ref={frameRef} title="Presentasi Kesantrian" src={link.url} onLoad={onLoad}
-        className="border-0 shrink-0"
-        style={{ ...frame, ...(isSlides ? {} : { position: "absolute", top: 0, left: 0 }) }}
-        allow="autoplay; fullscreen; clipboard-write" referrerPolicy="no-referrer" loading="eager" />
-      {engaged ? (
-        <button onClick={resume}
-          className="right-3 bottom-3 absolute bg-white shadow-lg px-4 py-2 border rounded-full font-extrabold"
-          style={{ fontSize: U(.95), color: INK, borderColor: LINE }}>
-          Slide dijeda · lanjut otomatis {left}s — Lanjutkan sekarang ▶
-        </button>
-      ) : (
-        <a href={link.raw} target="_blank" rel="noopener noreferrer"
-          className="right-3 bottom-3 absolute bg-white/90 shadow px-3 py-1.5 border rounded-full font-bold"
-          style={{ fontSize: U(.9), color: MUTED, borderColor: LINE }}>
-          Tidak tampil? Buka langsung ↗
-        </a>
-      )}
-    </div>
-  );
-}
-function LinkSettings({ current, onSaved }) {
-  const [url, setUrl] = useState("");
-  const [secs, setSecs] = useState(120);
-  const [msg, setMsg] = useState("");
-  useEffect(() => { if (current) { setUrl(current.raw); setSecs(current.secs); } }, [current]);
-  const save = async () => {
-    const { error } = await supabase.from("site_settings")
-      .update({ presentation_link: url.trim() || null, presentation_link_secs: Math.max(10, Number(secs) || 120) }).eq("id", 1);
-    setMsg(error ? `Gagal: ${error.message}` : "Tersimpan");
-    if (!error) onSaved?.();
-  };
-  const inp = { border: `1px solid ${LINE}`, borderRadius: 12, padding: `${U(.6)} ${U(.9)}`, fontSize: U(1.1), background: "#fff" };
-  return (
-    <div className="flex flex-col" style={{ gap: U(.5), width: U(30) }}>
-      <p className="font-extrabold" style={{ fontSize: U(1), color: MUTED }}>Slide terakhir: link web (presentasi Kesantrian)</p>
-      <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://… (kosong = tanpa slide link)" style={inp} />
-      <div className="flex items-center" style={{ gap: U(.6) }}>
-        <input type="number" min={10} value={secs} onChange={(e) => setSecs(e.target.value)} style={{ ...inp, width: U(8) }} />
-        <span style={{ fontSize: U(1), color: MUTED }}>detik</span>
-        <button onClick={save} className="font-extrabold" style={{ ...inp, marginLeft: "auto", cursor: "pointer" }}>Simpan</button>
-      </div>
-      {msg && <p style={{ fontSize: U(.95), color: MUTED }}>{msg}</p>}
-    </div>
-  );
-}
-
 // ---------------------------------------------------------------- daftar slide + narasi
 const SLIDES = [
   { sec: "Ibadah", theme: PAL.red, mood: "think", node: (d, t) => <SlideIbadahTop data={d} theme={t} />,
@@ -888,12 +751,7 @@ function buildSlides(d) {
         say: () => `Mufrodat tingkat ${(LEVEL_LABEL[w.level] ?? "").toLowerCase()}: artinya ${w.meaning}.${w.jama ? ` Jama’nya ${w.jama}.` : ""} Perhatikan contoh jumlah mufidah-nya, lalu buat kalimatmu sendiri!`,
       }))
     : [{ sec: "Lughah", theme: PAL.violet, mood: "talk", node: (dd, t) => <SlideLughahEmpty theme={t} />, say: () => "Qism Lughah belum menambahkan mufrodat hari ini." }];
-  const linkSlide = d.link ? [{
-    sec: "Kesantrian", theme: PAL.orange, mood: "read", ms: d.link.secs * 1000,
-    node: (dd) => <SlideLink link={dd.link} />,
-    say: () => "Terakhir, presentasi dari bagian kesantrian. Simak baik-baik ya!",
-  }] : [];
-  return [...SLIDES.slice(0, 8), ...lughah, ...SLIDES.slice(8), ...linkSlide];
+  return [...SLIDES.slice(0, 8), ...lughah, ...SLIDES.slice(8)];
 }
 
 function Btn({ color = PAL.green, outline = false, children, style, ...p }) {
@@ -1081,7 +939,6 @@ export default function PresentationPage() {
             <Btn onClick={() => start(true)} disabled={!data} style={{ width: "100%", opacity: data ? 1 : 0.6 }}>{data ? "Mulai (layar penuh)" : "Menyiapkan data…"}</Btn>
             <Btn outline onClick={() => start(false)} disabled={!data} style={{ width: "100%" }}>Mulai tanpa layar penuh</Btn>
           </div>
-          <LinkSettings current={data?.link} onSaved={() => loadData().then(setData)} />
           <p className="font-bold" style={{ fontSize: U(1), color: "#aaa" }}>← → geser · Spasi jeda/lanjut · F layar penuh</p>
           <button onClick={exit} aria-label="Keluar" className="top-4 left-4 absolute hover:bg-black/5 p-2.5 rounded-full text-[#afafaf]"><X size={26} /></button>
         </div>

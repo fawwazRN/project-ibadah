@@ -9,7 +9,7 @@ import { Button } from "../../components/ui/Button";
 import { Field, Input } from "../../components/ui/Field";
 import { Mascot } from "../../components/ui/Mascot";
 import IntroStage from "../../components/auth/IntroStage";
-import TermsConsent, { hasAgreedTerms } from "../../components/auth/TermsConsent";
+import TermsConsent, { markTermsAccepted } from "../../components/auth/TermsConsent";
 import { entryPath } from "../../routes/AppRoutes";
 
 export default function LoginPage() {
@@ -29,7 +29,7 @@ export default function LoginPage() {
   const [introPaused, setIntroPaused] = useState(false);
   const [focusPass, setFocusPass] = useState(false);
   const [done, setDone] = useState(false);
-  const [agreed, setAgreed] = useState(hasAgreedTerms); // syarat & ketentuan (diingat di perangkat)
+  const [agreed, setAgreed] = useState(false); // syarat & ketentuan (wajib dicentang tiap masuk)
   const [termsError, setTermsError] = useState(false);
 
   if (booting) return null;
@@ -56,6 +56,7 @@ export default function LoginPage() {
     setNeedVerify(false);
     if (!agreed) setTermsError(true);
     if (Object.keys(errs).length || !agreed) return;
+    markTermsAccepted(); // sudah setuju di form → TermsGate tidak menanyakan lagi di sesi ini
     setLoading(true);
     try {
       if (tab === "login") {
@@ -73,7 +74,14 @@ export default function LoginPage() {
         }
       }
     } catch (err) {
-      setFormError(err.message ?? "Terjadi kesalahan. Coba lagi.");
+      const m = String(err?.message ?? "");
+      setFormError(
+        /database error saving new user|hanya diizinkan/i.test(m)
+          ? "Pendaftaran hanya untuk email sekolah (@student.abudzar.sch.id) atau email yang sudah didaftarkan Super Admin."
+          : /invalid login credentials/i.test(m)
+            ? "Email atau kata sandi salah."
+            : m || "Terjadi kesalahan. Coba lagi.",
+      );
     } finally {
       setLoading(false);
     }
@@ -182,6 +190,7 @@ export default function LoginPage() {
               icon={Eye}
               onClick={() => {
                 if (!agreed) return setTermsError(true);
+                markTermsAccepted();
                 enterGuest();
                 navigate(entryPath("guest"));
               }}>
