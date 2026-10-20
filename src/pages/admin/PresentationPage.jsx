@@ -910,7 +910,7 @@ export default function PresentationPage() {
     if (document.fullscreenElement) document.exitFullscreen();
     // Akun presentasi: keluar = logout (tidak boleh membuka dashboard)
     if (isPresentationEmail(session?.user?.email)) { await signOut(); nav("/auth/login", { replace: true }); return; }
-    nav("/admin");
+    nav(session ? "/admin" : "/auth/login");
   };
 
   const S = slides[idx] ?? SLIDES[0];
