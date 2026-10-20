@@ -38,17 +38,28 @@ export default function SantriTeamPage() {
       const my = await supabase.rpc("get_santri_league");
       if (my.error) throw my.error;
       const ctx = await leagueService.getContext();
-      const [teams, matches, players] = await Promise.all([
+      const [teams, matches, players, membershipResult] = await Promise.all([
         leagueService.listTeams(ctx.phase_id),
         matchService.list(ctx.season_id),
         matchService.playerStats(ctx.season_id),
+        supabase
+          .from("team_memberships")
+          .select(
+            "id, team_id, position, student:profiles!team_memberships_student_id_fkey(full_name, class_name)",
+          )
+          .eq("season_id", ctx.season_id)
+          .eq("status", "active"),
       ]);
+      if (membershipResult.error) throw membershipResult.error;
+      const roster = membershipResult.data ?? [];
       const official = matches.filter((m) => m.status === "official");
       setData({
         mine: my.data,
         ctx,
         standings: computeStandings(teams, official),
         scorers: (players ?? []).filter((p) => p.goals > 0).slice(0, 5),
+        roster,
+        teams,
         matches,
       });
     })().catch((err) => setError(err.message));
@@ -129,6 +140,76 @@ export default function SantriTeamPage() {
           </ul>
         </Card>
       )}
+
+
+      <Card>
+        <CardHeader
+          title="Semua Tim & Roster"
+          description="Daftar tim musim ini, seluruh pemain aktif, dan kiper yang terdaftar."
+        />
+        {data.teams.length === 0 ? (
+          <EmptyState icon={Volleyball} title="Belum ada tim terdaftar" />
+        ) : (
+          <div className="gap-3 grid md:grid-cols-2 p-4">
+            {data.teams.map((t) => {
+              const roster = data.roster.filter((m) => m.team_id === t.id);
+              const keepers = roster.filter((m) => m.position === "kiper");
+              const players = roster.filter((m) => m.position !== "kiper");
+              return (
+                <section key={t.id} className="overflow-hidden border border-line rounded-xl">
+                  <div className="flex items-center justify-between gap-3 bg-soft px-4 py-3">
+                    <h3 className="font-bold text-fg">{t.name}</h3>
+                    <Badge tone="slate">{roster.length} anggota</Badge>
+                  </div>
+                  <div className="p-3 space-y-3">
+                    <div>
+                      <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-fg-3">
+                        <ShieldAlert size={14} /> Kiper
+                      </p>
+                      {keepers.length ? (
+                        <ul className="space-y-2">
+                          {keepers.map((m) => (
+                            <li key={m.id} className="flex items-center gap-2.5 rounded-lg border border-sky-500/20 bg-sky-500/[0.06] px-3 py-2">
+                              <Avatar name={m.student?.full_name ?? "Santri"} size="sm" />
+                              <div>
+                                <p className="text-sm font-semibold text-fg">{m.student?.full_name ?? "Nama tidak tersedia"}</p>
+                                <p className="text-[11px] text-fg-3">{m.student?.class_name ?? "Kelas tidak tersedia"}</p>
+                              </div>
+                              <Badge tone="sky">Kiper</Badge>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-xs text-fg-3 italic">Belum ada kiper terdaftar.</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-fg-3">
+                        <Users size={14} /> Pemain
+                      </p>
+                      {players.length ? (
+                        <ul className="space-y-1.5">
+                          {players.map((m) => (
+                            <li key={m.id} className="flex items-center gap-2.5 px-2 py-1.5">
+                              <Avatar name={m.student?.full_name ?? "Santri"} size="sm" />
+                              <div className="min-w-0">
+                                <p className="truncate text-sm text-fg">{m.student?.full_name ?? "Nama tidak tersedia"}</p>
+                                <p className="text-[11px] text-fg-3">{m.student?.class_name ?? "Kelas tidak tersedia"}</p>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-xs text-fg-3 italic">Belum ada pemain terdaftar.</p>
+                      )}
+                    </div>
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        )}
+      </Card>
 
       <Card>
         <CardHeader
